@@ -5,7 +5,7 @@ const PUBLIC_ROUTES = ['/', '/login', '/signup'];
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get('accessToken')?.value;
+  const token = await request.cookies.get('accessToken')?.value;
 
   console.log('Middleware is running for:', pathname);
 
@@ -20,7 +20,7 @@ export async function middleware(request) {
       console.log('Invalid token on public page:', err);
     }
   }
-  console.log('token 2 : ', token);
+  console.log('token 2 : ', token); // token 2 : undefined
   // ✅ Skip auth check for public pages
   if (['/', '/login', '/signup'].includes(pathname)) {
     return NextResponse.next();
