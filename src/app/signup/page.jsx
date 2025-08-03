@@ -32,7 +32,8 @@ const Signup = () => {
     }
 
     try {
-      const res = await fetch(`${process.env.Backend_url}/signup`, {
+      console.log(process.env.NEXT_PUBLIC_Backend_url)
+      const res = await fetch(`${process.env.NEXT_PUBLIC_Backend_url}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
