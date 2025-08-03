@@ -17,8 +17,12 @@ const Login = () => {
     setError('');
 
     try {
-      console.log(process.env.NEXT_PUBLIC_Backend_url)
-      const res = await fetch(`${process.env.NEXT_PUBLIC_Backend_url}/login`, {
+      const base = process.env.NEXT_PUBLIC_Backend_url;
+      console.log("base - ",base)
+      const path = '/login';
+      const url = new URL(path, base)
+      console.log("url - ",url)
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
