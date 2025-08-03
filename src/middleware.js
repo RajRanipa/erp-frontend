@@ -12,13 +12,15 @@ export async function middleware(request) {
   // ✅ If visiting login or signup but already logged in → redirect
   if ((pathname === '/login' || pathname === '/signup') && token) {
     try {
-      await jwtVerify(token, new TextEncoder().encode(process.env.JWT_ACCESS_SECRET));
+      console.log('token 1 : ', token);
+      const verfy = await jwtVerify(token, new TextEncoder().encode(process.env.JWT_ACCESS_SECRET));
+      console.log('verfy : ', verfy);
       return NextResponse.redirect(new URL('/dashboard', request.url)); // or '/'
     } catch (err) {
       console.log('Invalid token on public page:', err);
     }
   }
-
+  console.log('token 2 : ', token);
   // ✅ Skip auth check for public pages
   if (['/', '/login', '/signup'].includes(pathname)) {
     return NextResponse.next();
