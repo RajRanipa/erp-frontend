@@ -36,6 +36,7 @@ const Signup = () => {
       const res = await fetch(`${process.env.NEXT_PUBLIC_Backend_url}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(form)
       });
 
