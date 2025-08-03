@@ -7,6 +7,7 @@ export async function middleware(request) {
   const { pathname } = request.nextUrl;
   const token = await request.cookies.get('accessToken')?.value;
 
+  console.log('cookies : ', request.cookies.get('accessToken'));
   console.log('Middleware is running for:', pathname);
 
   // ✅ If visiting login or signup but already logged in → redirect

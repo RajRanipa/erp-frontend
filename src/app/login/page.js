@@ -34,7 +34,6 @@ const Login = () => {
       if (!res.ok) throw new Error(data.message || 'Login failed');
 
       // Store token and redirect to dashboard
-      localStorage.setItem('token', data.token);
       router.push('/dashboard');
     } catch (err) {
       setError(err.message);
