@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CustomInput from '@/components/CustomInput';
+import { api } from '../../lib/axiosInstance';
 
 const Signup = () => {
   const router = useRouter();
@@ -33,16 +34,11 @@ const Signup = () => {
 
     try {
       console.log(process.env.NEXT_PUBLIC_Backend_url)
-      const res = await fetch(`${process.env.NEXT_PUBLIC_Backend_url}/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(form)
-      });
+      const res = await api.post('/signup', form, { withCredentials: true });
 
-      const data = await res.json();
-
-      if (!res.ok) {
+      const data = res.data;
+      
+      if (!data.status) {
         throw new Error(data.message || 'Signup failed');
       }
 
