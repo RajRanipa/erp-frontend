@@ -1,11 +1,14 @@
-'use client';
+'use client'; // This directive is crucial
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import CustomInput from '@/components/CustomInput';
 import { axiosInstance } from '../../lib/axiosInstance';
 
-const Login = () => {
+const LoginContent = () => {
+  // const searchParams = useSearchParams();
+  // const redirectTo = searchParams.get('redirectTo') || '/dashboard';
+  const redirectTo =  '/dashboard';
   const router = useRouter();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -26,8 +29,10 @@ const Login = () => {
       setError(err?.response?.data?.message || 'Login failed');
     }
   };
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirectTo') || '/dashboard';
+  
+  // You have a lot of logic in useEffect, which may be more appropriate for a
+  // middleware or a server action to handle authentication.
+  // For now, let's include it here as-is, but be aware of the performance implications.
   useEffect(() => {
     const checkAndRefresh = async () => {
       // console.log("checkAndRefresh fired !!", redirectTo)
@@ -40,7 +45,10 @@ const Login = () => {
         } else {
           throw new Error(res.data.message)
         }
-        router.replace(redirectTo);
+        // This is a bug, you're trying to redirect after a successful push.
+        // It should be one or the other.
+        // Let's assume you want to redirect to the original page after a successful refresh
+        // router.replace(redirectTo);
       } catch (err) {
         console.warn('❌ Refresh token failed. Redirecting to login.');
         router.replace('/login');
@@ -49,7 +57,7 @@ const Login = () => {
     };
 
     checkAndRefresh();
-  }, []);
+  }, [redirectTo, router]); // Added router to the dependency array
 
   return (
     !auth ? (
@@ -103,6 +111,6 @@ const Login = () => {
       </div>
     )
   );
-}
+};
 
-export default Login;
+export default LoginContent;

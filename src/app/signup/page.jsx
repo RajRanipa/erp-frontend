@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CustomInput from '@/components/CustomInput';
-import { api } from '../../lib/axiosInstance';
+import { axiosInstance } from '../../lib/axiosInstance';
 
 const Signup = () => {
   const router = useRouter();
@@ -34,7 +34,7 @@ const Signup = () => {
 
     try {
       console.log(process.env.NEXT_PUBLIC_Backend_url)
-      const res = await api.post('/signup', form, { withCredentials: true });
+      const res = await axiosInstance.post('/signup', form, { withCredentials: true });
 
       const data = res.data;
       
