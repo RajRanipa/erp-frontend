@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { cn } from '../utils/cn';
 
 const CustomInput = ({
   label,
@@ -11,6 +12,8 @@ const CustomInput = ({
   required = false,
   icon,
   className = '',
+  id = '',
+  ref = null,
 }) => {
   const [touched, setTouched] = useState(false);
   const [error, setError] = useState('');
@@ -32,7 +35,7 @@ const CustomInput = ({
   };
 
   return (
-    <div className={`mb-4 w-full ${className}`}>
+    <div className={cn(`mb-4 w-full ${className}`)}>
       {label && (
         <label
           htmlFor={name}
@@ -51,7 +54,8 @@ const CustomInput = ({
         <input
           type={type}
           name={name}
-          id={name}
+          id={id}
+          ref={ref}
           placeholder={placeholder}
           value={value}
           onChange={handleChange}

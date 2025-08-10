@@ -1,16 +1,20 @@
 'use client';
+import useIdleTimer from './utils/useIdleTimer';
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const router = useRouter();
+  useIdleTimer({
+    timeout: 15 * 60 * 1000, // 15 minutes
+  });
   return (
     <div className="min-h-screen w-full px-4 flex flex-col justify-between relative">
       <div className="absolute top-0 left-0 h-screen w-full z-0 pointer-events-none"><img src="/logo.png" alt="Logo" className="w-[50%] h-auto object-cover opacity-6 relative top-0 left-0 scale-[1.4]" /></div>
       <div className="flex justify-between items-center py-2 relative z-10">
         <div className="flex items-center">
-          <img
+          <Image
             src="/globe.svg"
             alt="Logo"
             width={50}

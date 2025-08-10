@@ -36,7 +36,6 @@ const Login = () => {
         const data = refresh_token.data
         console.log('🔄 Token refreshed in /auth-check', data, redirectTo);
         if (data.status) {
-          setAuth(true);
           router.push('/dashboard');
         } else {
           throw new Error(res.data.message)
