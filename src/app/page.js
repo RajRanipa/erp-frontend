@@ -7,7 +7,16 @@ export default function Home() {
   const router = useRouter();
   return (
     <div className="min-h-screen w-full px-4 flex flex-col justify-between relative">
-      <div className="absolute top-0 left-0 h-screen w-full z-0 pointer-events-none"><img src="/logo.png" alt="Logo" className="w-[50%] h-auto object-cover opacity-6 relative top-0 left-0 scale-[1.4]" /></div>
+      <div className="absolute top-0 left-0 h-screen w-full z-0 pointer-events-none">
+        <Image
+          src="/logo.png"
+          alt="Logo"
+          width={800}
+          height={800}
+          className="w-[50%] h-auto object-cover opacity-6 relative top-0 left-0 scale-[1.4]"
+          priority
+        />
+      </div>
       <div className="flex justify-between items-center py-2 relative z-10">
         <div className="flex items-center">
           <Image

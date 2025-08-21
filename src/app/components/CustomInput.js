@@ -30,7 +30,7 @@ const CustomInput = ({
     else {
       setInternalErr('');
     }
-  }, [value, touched, required, label, name]);
+  }, [value, touched, required, label, name, placeholder]);
 
   const displayErr = (typeof err === 'string' && err.length) ? err : internalErr;
   const errorId = displayErr ? `${id || name}-error` : undefined;

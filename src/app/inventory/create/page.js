@@ -54,7 +54,7 @@ export default function AddProductPage() {
             enabled[key] = hasKey || hasAnyField;
         });
         return enabled;
-    }, [formData, productParameters]);
+    }, [formData]);
 
     const handleChange = useCallback((eOrName, maybeValue) => {
         let name, value;
@@ -193,7 +193,7 @@ export default function AddProductPage() {
                 animation: "top-bottom",
             })
         }
-    }, [formData, router, enabledParameters]);
+    }, [formData, router, enabledParameters, toast]);
 
     // Derived paramRequirements computed with useMemo for UI hints
     const paramRequirements = useMemo(() => {

@@ -20,17 +20,9 @@ export default function ProductionDashboard({ children }) {
             console.log("fetchCampaign called");
             try {
                 const response = await axiosInstance.get("/api/campaigns");
-                console.log(response);
-                setCampaign(data);
+                console.log(response.data);
+                setCampaign(response.data);
                 setLoading(false);
-                toast({
-                    type: "success",
-                    message: "Campaign fetched successfully",
-                    duration: 4000,
-                    autoClose: true,
-                    placement: "top-center",
-                    animation: "top-bottom",
-                })
             } catch (error) {
                 setError(error.message);
                 setLoading(false);
@@ -45,20 +37,23 @@ export default function ProductionDashboard({ children }) {
             }
         };
         fetchCampaign();
-    }, []);
+    }, [toast]);
 
     return (
         <DashboardLayout>
             <DisplayBar title="Production Dashboard">
-            <div className="flex items-center gap-4">
-                <NavLink
-                    href="/manufacturing"
-                    activeClass="cursor-pointer px-2 py-1 rounded text-white bg-blue-500"
-                    inactiveClass="cursor-pointer px-2 py-1 rounded text-gray-900 hover:text-blue-500 bg-gray-300"
-                >
-                    manufacturing
-                </NavLink>
-            </div>
+                <div className="flex items-center gap-4">
+                    {campaign.length > 0 && (
+                        <NavLink
+                            href="/manufacturing"
+                            activeClass="cursor-pointer px-2 py-1 rounded text-white bg-blue-500"
+                            inactiveClass="cursor-pointer px-2 py-1 rounded text-gray-900 hover:text-blue-500 bg-gray-300"
+                        >
+                            manufacturing
+                        </NavLink>
+                    )
+                    }
+                </div>
                 <NavLink
                     href="/manufacturing/start"
                     activeClass="cursor-pointer px-2 py-1 rounded text-white bg-blue-500"

@@ -1,6 +1,4 @@
 
-
-/* eslint-disable react/prop-types */
 "use client";
 import { cn } from "@/utils/cn";
 import React, { useState, forwardRef } from "react";

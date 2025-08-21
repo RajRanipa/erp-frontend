@@ -84,7 +84,7 @@ const SelectTypeInput = ({
       // Clear only on mount/prop changes, not on typing
       if (inputValue !== '') setIfChanged(setInputValue, inputValue, '');
     }
-  }, [selectedValue, options]);
+  }, [selectedValue, options, inputValue]);
 
   // Fetch options from backend. If `params` has filters, pass them; otherwise fetch all.
   useEffect(() => {
@@ -132,7 +132,7 @@ const SelectTypeInput = ({
 
     fetchOptions();
     return () => { ignore = true; };
-  }, [apiget, params?.productType]);
+  }, [apiget, apiparams, optionsProp, params?.productType, params?.category]);
 
   useEffect(() => {
     if (touched && required && !inputValue) {
@@ -140,7 +140,7 @@ const SelectTypeInput = ({
     } else {
       setError('');
     }
-  }, [inputValue, touched, required, label, name]);
+  }, [inputValue, touched, required, label, name, placeholder]);
 
   const handleBlur = useCallback((e) => {
     setTouched(true);

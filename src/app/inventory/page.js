@@ -43,7 +43,6 @@ export default function InventoryPage({ children }) {
   // Initial fetch
   useEffect(() => {
     // fetchProducts();
-    // eslint-disable-next-line
   }, []);
 
   return (
