@@ -9,25 +9,35 @@ const CustomInput = ({
   placeholder = '',
   value,
   onChange,
+  onBlur,
   required = false,
+  readOnly = false,
   icon,
+  parent_className = '',
+  autocomplete = 'on',
   className = '',
   id = '',
-  ref = null,
+  inputRef = null,
+  err,
 }) => {
   const [touched, setTouched] = useState(false);
-  const [error, setError] = useState('');
-
+  const [internalErr, setInternalErr] = useState('');
+  // setError(err);
   useEffect(() => {
     if (touched && required && !value) {
-      setError(`${label || name} is required`);
-    } else {
-      setError('');
+      setInternalErr(`${label || placeholder || name} is required`);
+    }
+    else {
+      setInternalErr('');
     }
   }, [value, touched, required, label, name]);
 
+  const displayErr = (typeof err === 'string' && err.length) ? err : internalErr;
+  const errorId = displayErr ? `${id || name}-error` : undefined;
+
   const handleBlur = (e) => {
     setTouched(true);
+    if (onBlur) onBlur(e);
   };
 
   const handleChange = (e) => {
@@ -35,7 +45,7 @@ const CustomInput = ({
   };
 
   return (
-    <div className={cn(`mb-4 w-full ${className}`)}>
+    <div className={cn(`mb-5 w-full relative ${parent_className}`)}>
       {label && (
         <label
           htmlFor={name}
@@ -55,22 +65,28 @@ const CustomInput = ({
           type={type}
           name={name}
           id={id}
-          ref={ref}
+          ref={inputRef}
           placeholder={placeholder}
           value={value}
           onChange={handleChange}
           onBlur={handleBlur}
           required={required}
-          className={`block w-full px-3 py-2 border ${
-            error ? 'border-red-500' : 'border-gray-300'
-          } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 ${
-            error
+          readOnly={readOnly}
+          autoComplete={autocomplete}
+          aria-invalid={!!displayErr}
+          aria-describedby={errorId}
+          className={cn(`${className} block w-full px-3 py-2 border sm:text-sm
+          ${ displayErr ? 'border-red-500' : 'border-gray-300' } 
+          rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 
+          ${ (displayErr && readOnly)
               ? 'focus:ring-red-500 focus:border-red-500'
-              : 'focus:ring-blue-500 focus:border-blue-500'
-          } sm:text-sm ${icon ? 'pl-10' : ''}`}
+              : 'focus:ring-blue-500 focus:border-blue-500' } 
+          ${readOnly ? 'bg-gray-200 pointer-events-none' : ''} 
+               ${icon ? 'pl-10' : ''}`)}
         />
       </div>
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+        {/* {console.log(readOnly)} */}
+      {displayErr && <p id={errorId} className="mt-1 text-sm text-red-600 absolute">{displayErr}</p>}
     </div>
   );
 };

@@ -31,18 +31,19 @@ const Sidebar = () => {
     const sidebarList = [
         { name: 'Dashboard', href: '/dashboard' },
         { name: 'Inventory', href: '/inventory' },
+        { name: 'Manufacturing', href: '/manufacturing' },
         { name: 'HR', href: '/hr' },
         { name: 'Billing', href: '/billing' },
         { name: 'Settings', href: '/settings' },
     ]
     return (
-        <aside className="w-64 bg-gray-800 text-white max-h-full min-h-screen">
+        <aside className="w-64 bg-gray-200 text-gray-700 max-h-full overflow-hidden flex flex-col">
             <div className="p-4 text-xl font-bold">
-                <CustomInput type="text" placeholder="Search" className='mb-0' id="sidebae_searchInput" ref={searchRef} />
+                <CustomInput type="text" placeholder="Search" parent_className='mb-0' className='bg-gray-50' id="sidebae_searchInput" ref={searchRef} />
             </div>
-            <nav className="mt-4 space-y-2 px-4 overflow-auto h-[-webkit-fill-available] h-fill-available" id='sidebar_nav'>
+            <nav className=" space-y-2 px-4 overflow-auto h-full" id='sidebar_nav'>
                 {sidebarList.map((item, index) => (
-                    <Link key={index} href={item.href} className="block hover:text-yellow-400">
+                    <Link key={index} href={item.href} className="block hover:text-blue-800 ">
                     {item.name.split('').map((letter, index) => (
                         <span key={index}>{letter}</span>
                     ))}
