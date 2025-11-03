@@ -10,7 +10,7 @@ import CustomInput from '@/Components/inputs/CustomInput';
 import NavLink from '@/Components/NavLink';
 import { useActiveParty } from '../ActivePartyProviser';
 
-const Row = memo(({ p, onOpenParty }) => {
+const Row = memo(function Row({ p, onOpenParty }) {
   // console.debug('Row render party', p._id, p.displayName || p.legalName);
   return (
     <tr className="hover:bg-most">
@@ -52,7 +52,7 @@ const statusoptions = [
 ]
 // export default function PartiesPage() {
 // existing component code
-export default function PartiesPage() {
+export default function PartiesPage({ searchParams }) {
   const [role, setRole] = useState('');
   const [status, setStatus] = useState('active');
   const { setActiveParty } = useActiveParty();
