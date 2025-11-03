@@ -1,0 +1,280 @@
+// src/app/items/finished/page.js
+'use client';
+import React, { useEffect, useState, useMemo, useDeferredValue, memo } from 'react';
+import { useRouter } from 'next/navigation';
+import DisplayMain from '@/components/layout/DisplayMain';
+import SelectInput from '@/components/inputs/SelectInput';
+import CustomInput from '@/components/inputs/CustomInput';
+import { axiosInstance } from '@/lib/axiosInstance';
+import { useToast, useConfirmToast } from '@/components/toast';
+import Items from '../page';
+import NavLink from '@/components/NavLink';
+import EditButton from '@/components/buttons/EditButton';
+import DeleteButton from '@/components/buttons/DeleteButton';
+import Table from '@/components/layout/Table.jsx';
+
+const Row = memo(function Row({ item, onEdit, onDelete }) {
+  return (
+    <tr className="border-b border-white-100 hover:bg-white-50">
+      <td className="px-4 py-2">{item.name}</td>
+      <td className="px-4 py-2">{item?.temperature?.value ? `${item.temperature.value} ${item.temperature?.unit || ''}` : '\u2014'}</td>
+      <td className="px-4 py-2">{item?.dimension?.value ?? '\u2014'}</td>
+      <td className="px-4 py-2">{item?.density?.value ? `${item.density.value} ${item.density?.unit || ''}` : '\u2014'}</td>
+      <td className="px-4 py-2">
+        <NavLink href={`/items/packing`}>
+          <div className="flex items-center gap-2">
+            <div>
+              {item.packing?.name || '\u2014'}{' '}
+              {item.packing?.brandType && (
+                item.packing.brandType === 'plain' ? item.packing.brandType : ''
+              )}
+            </div>
+            {item.packing?.productColor ? (
+              <div className={`px-1 ${item.packing.productColor.includes('red') ? 'text-red-400' : 'text-blue-400'}`}>{item.packing.productColor}</div>
+            ) : null}
+          </div>
+        </NavLink>
+      </td>
+      <td className="px-4 py-2">{item.product_unit || '\u2014'}</td>
+      <td className="px-4 py-2 text-right">
+        <div className="flex items-center justify-end gap-2">
+          <EditButton onClick={() => onEdit(item)} itemName={item.name} />
+          <DeleteButton onClick={(e) => onDelete(item.name, item._id, e.currentTarget)} itemName={item.name} />
+        </div>
+      </td>
+    </tr>
+  );
+});
+
+// helper used inside Row too
+function formatDimension(dim) {
+  if (!dim) return '\u2014';
+  const { length, width, thickness, unit } = dim;
+  const parts = [];
+  if (length != null) parts.push(length);
+  if (width != null) parts.push(width);
+  if (thickness != null) parts.push(thickness);
+  const dims = parts.join(' \u00d7 ');
+  return dims ? `${dims} ${unit || ''}`.trim() : '\u2014';
+}
+
+export default function Finished() {
+  const toast = useToast();
+  const confirmToast = useConfirmToast();
+  const router = useRouter();
+
+  const [items, setItems] = useState([]);
+  const [productTypes, setProductTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [q, setQ] = useState('');
+  const dq = useDeferredValue(q);
+  const [productTypeFilter, setProductTypeFilter] = useState('');
+
+  const [sel, setSel] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchAll = async () => {
+      setLoading(true);
+      try {
+        const itemsRes = await axiosInstance.get('/api/items/finished');
+        if (!mounted) return;
+
+        const itemsData = itemsRes.data || [];
+        // console.log('itemsData', itemsData);
+        // return;
+        setItems(itemsData);
+
+        // Extract unique product types from the items themselves
+        const uniqueTypes = Array.from(
+          new Map(
+            itemsData
+              .filter(it => it.productType?.name)
+              .map(it => [it.productType._id, { value: it.productType._id, label: it.productType.name }])
+          ).values()
+        );
+        setProductTypes(uniqueTypes);
+
+        setError(null);
+      } catch (err) {
+        console.error('fetch error', err);
+        setError(err?.message || 'Failed to load');
+        toast({ type: 'error', message: 'Failed to fetch items', duration: 4000 });
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    fetchAll();
+    return () => { mounted = false; };
+  }, [toast]);
+
+  // client-side filtering and searching (memoized)
+  const rows = useMemo(() => {
+    const qLower = (dq || '').toString().trim().toLowerCase();
+    return items.filter(it => {
+      // productType filter (productType is populated on backend)
+      if (productTypeFilter) {
+        if (!it.productType || it.productType._id !== productTypeFilter) return false;
+      }
+      // search across name, packing.name, density.value, temperature.value, dimension, productType.name
+      if (qLower) {
+        const hay = [
+          it.name,
+          it.packing?.name,
+          it.density?.value,
+          it.temperature?.value,
+          formatDimension(it.dimension),
+          it.productType?.name
+        ].filter(Boolean).join(' ').toLowerCase();
+        return hay.includes(qLower);
+      }
+      return true;
+    });
+  }, [items, dq, productTypeFilter]);
+
+  const onEdit = (item) => {
+    // navigate to edit page (adjust route if your app expects different path)
+    router.push(`/items/edit/${item._id}`);
+  };
+
+  const onDelete = async (name, id, triggerEl) => {
+    console.log('delete', name, id);
+    try {
+      const ok = await confirmToast(`Delete ${name} product? This will permanently delete the item. Are you sure?`, {
+        type: 'warning',
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        placement: 'top-center',
+        animation: 'top-bottom',
+        focusTarget: triggerEl,
+      });
+      if (!ok) return;
+
+      // optimistic UI: remove from list first
+      setItems(prev => prev.filter(p => p._id !== id));
+      await axiosInstance.delete(`/api/items/${id}`, { withCredentials: true });
+      toast({ type: 'success', message: 'Item deleted' });
+    } catch (err) {
+      console.error('delete failed', err);
+      // restore removed item on error by refetching (simple approach)
+      toast({ type: 'error', message: 'Failed to delete item' });
+      // quick refetch to ensure state is consistent
+      try {
+        const resp = await axiosInstance.get('/api/items/finished');
+        setItems(resp.data || []);
+      } catch (e) { /* ignore */ }
+    }
+  };
+
+  return (
+    <Items>
+      <div className="Items-page">
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-h2 font-semibold mb-5">Finished Goods</h1>
+          <div className="flex gap-2 items-center flex-[0_1_30%]">
+            <SelectInput
+              name="product_type"
+              value={productTypeFilter}
+              onChange={e => setProductTypeFilter(e.target.value)}
+              options={[{ value: '', label: 'All types' }, ...productTypes]}
+              className="w-fit"
+            />
+
+            <CustomInput
+              name="search_items"
+              placeholder="Search name / packing / unit / type"
+              onChange={e => setQ(e.target.value)}
+              value={q}
+              className="w-full"
+            />
+          </div>
+        </div>
+
+        {loading ? <div className="p-4">Loading…</div> : error ? <div className="p-4 text-red-500">{error}</div> : (
+          <Table
+            columns={[
+              {
+                key: 'name',
+                header: 'Name',
+                sortable: true,
+                render: (r) => <div className="font-semibold">{r.name}</div>,
+              },
+              {
+                key: 'temperature',
+                header: 'Temperature',
+                sortable: true,
+                render: (r) => (r?.temperature?.value ? `${r.temperature.value} ${r.temperature?.unit || ''}` : '—'),
+                align: 'center',
+              },
+              {
+                key: 'dimension',
+                header: 'Dimension',
+                render: (r) => (r?.dimension?.value ?? '—'),
+                align: 'center',
+              },
+              {
+                key: 'density',
+                header: 'Density',
+                render: (r) => (r?.density?.value ? `${r.density.value} ${r.density?.unit || ''}` : '—'),
+                align: 'center',
+              },
+              {
+                key: 'packing',
+                header: 'Packing',
+                render: (r) => (
+                  <NavLink href={`/items/packing`}>
+                    <div className="flex items-center gap-2">
+                      <div>
+                        {r.packing?.name || '\u2014'}{' '}
+                        {r.packing?.brandType && (r.packing.brandType === 'plain' ? r.packing.brandType : '')}
+                      </div>
+                      {r.packing?.productColor ? (
+                        <div className={`px-1 ${r.packing.productColor.includes('red') ? 'text-red-400' : 'text-blue-400'}`}>{r.packing.productColor}</div>
+                      ) : null}
+                    </div>
+                  </NavLink>
+                ),
+              },
+              {
+                key: 'unit',
+                header: 'Unit',
+                render: (r) => r.product_unit || '\u2014',
+                align: 'center',
+              },
+              {
+                key: 'actions',
+                header: '',
+                render: (r) => (
+                  <div className="flex items-center justify-end gap-2">
+                    <EditButton onClick={() => onEdit(r)} itemName={r.name} />
+                    <DeleteButton onClick={(e) => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} />
+                  </div>
+                ),
+                align: 'right',
+              },
+            ]}
+            data={rows}
+            rowKey={(r) => r._id}
+            selectable="multiple"
+            selectedKeys={sel}
+            onSelectionChange={setSel}
+            virtualization={items.length > 100}
+            loading={loading}
+          />
+        )}
+      </div>
+    </Items>
+  );
+}
+
+{/* <Table ths={['Name', 'Temperature', 'Dimension', 'Density', 'Packing', 'Unit', 'Actions']}>
+            {rows.length === 0 ? (
+              <tr><td className="px-4 py-6 text-secondaryText" colSpan={7}>No items found.</td></tr>
+            ) : (
+              rows.map(item => (
+                <Row key={item._id} item={item} onEdit={onEdit} onDelete={onDelete} />
+              ))
+            )}
+          </Table> */}

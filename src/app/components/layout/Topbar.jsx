@@ -3,8 +3,8 @@
 
 const Topbar = () => {
   return (
-    <header className="min-h-16 min-w-screen bg-white border-b border-gray-200 shadow-sm z-10 flex items-center px-6 justify-between top-0">
-      <h1 className="text-lg font-medium">Welcome Raj 👑</h1>
+    <header className="min-h-16 min-w-screen bg-primary z-10 flex items-center px-6 justify-between top-0">
+      <h1 className="text-lg font-medium text-primary-text hover:bg-actionHover">Welcome Raj 👑</h1>
       <div className="flex items-center gap-4">
         {/* Notification icon, user avatar, etc */}
         <span>🔔</span>

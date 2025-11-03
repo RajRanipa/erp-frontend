@@ -9,12 +9,14 @@ const DashboardLayout = ({ children, Bar = false }) => {
     return (
         <div className="flex flex-col max-h-screen h-screen overflow-hidden">
             <Topbar className="flex-[0_0]"/>  
-            <div className="flex-1 bg-gray-50 relative flex overflow-hidden">
+            <div className="flex-1 bg-transparent relative flex overflow-hidden">
                 <Sidebar/>
-                 <main className="w-full overflow-hidden flex flex-col">
+                <div className='w-full overflow-hidden flex flex-col p-2 bg-primary'>
+                 <main className="w-full flex-1 bg-secondary text-secondary-text border border-color-100 rounded-lg overflow-hidden flex flex-col">
                     { Bar && <DisplayBar/>}
                     {children}
                 </main>
+                </div>
             </div>
         </div>
     );

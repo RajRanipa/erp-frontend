@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { cn } from '../utils/cn';
-import { axiosInstance } from '../../lib/axiosInstance'
+import { axiosInstance } from '@/lib/axiosInstance'
 
 const normalizeOption = (item) => {
   if (item == null) return null;
@@ -268,9 +268,9 @@ const SelectTypeInput = ({
       {label && (
         <label
           htmlFor={name}
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-primary-text mb-1"
         >
-          {label} {required && <span className="text-red-500 ml-1">*</span>}
+          {label} {required && <span className="text-error ml-1">*</span>}
         </label>
       )}
 
@@ -289,11 +289,11 @@ const SelectTypeInput = ({
             autoComplete="off"
             disabled={loading}
             className={cn(`${className} block w-full px-3 py-2 border sm:text-sm
-              ${error ? 'border-red-500' : 'border-gray-300'}
-              rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2
-              ${error ? 'focus:ring-red-500 focus:border-red-500'
+              ${error ? 'border-error' : 'border-color'}
+              rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2
+              ${error ? 'focus:ring-error focus:border-error'
                 : 'focus:ring-blue-500 focus:border-blue-500'}
-              ${readOnly ? 'bg-gray-200 pointer-events-none' : ''}
+              ${readOnly ? 'bg-secondary pointer-events-none' : ''}
               ${loading ? 'bg-gray-100 text-gray-400' : ''}
             `)}
           />
@@ -310,7 +310,7 @@ const SelectTypeInput = ({
         {shouldShowCreateButton && (
           <button
             type="button"
-            className="ml-2 px-3 py-2 rounded bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 transition disabled:opacity-50"
+            className="ml-2 px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 transition disabled:opacity-50"
             onClick={() => handleCreateAndSave()}
             onMouseDown={(e) => e.preventDefault()} // this is neccessary so just don't remove it okay nice and easy 
             disabled={loading}
@@ -323,7 +323,7 @@ const SelectTypeInput = ({
       </div>
 
       {showOptions && filteredOptions.length > 0 && (
-        <ul className="absolute z-10 bg-white border border-gray-300 rounded-md shadow-md mt-1 max-h-40 overflow-y-auto w-full">
+        <ul className="absolute z-10 bg-most-secondary border border-color-100 rounded-lg shadow-md mt-1 max-h-40 overflow-y-auto w-full">
           {filteredOptions.map((option, idx) => (
             <li
               key={idx}
@@ -344,7 +344,7 @@ const SelectTypeInput = ({
         </ul>
       )}
 
-      {error && <p className="mt-1 text-sm text-red-600 absolute">{error}</p>}
+      {error && <p className="mt-1 text-sm text-error absolute">{error}</p>}
     </div>
   );
 };

@@ -1,11 +1,13 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
-import SelectTypeInput from '../SelectTypeInput';
+import SelectTypeInput from '../inputs/SelectTypeInput';
 import { useToast } from '@/components/toast';
-import { axiosInstance } from '../../../lib/axiosInstance';
+import { axiosInstance } from '@/lib/axiosInstance';
+import { cn } from '@/utils/cn';
 
 function SelectWithCreateDialog({
   name,
+  label,
   placeholder,
   buttonName = 'Add New',
   value,
@@ -144,13 +146,14 @@ function SelectWithCreateDialog({
   }, [buildPayload, draft, createUrl, toast, closeDialogAndRestoreFocus]);
 
   return (
-    <div className={"w-full flex items-start justify-start flex-1/3 gap-2 flex-col py-2 px-4 border border-gray-300 rounded-md"}>
-      <p className="capitalize">{placeholder || name}</p>
-      <div className='flex gap-4 w-full'>
+    <div className={"w-full flex items-start justify-start flex-1/3 gap-2 flex-col py-2 px-4 border border-white-200 rounded-lg"}>
+      {/* <p className="capitalize">{label || placeholder}</p> */}
+      <div className='flex gap-4 w-full mt-4'>
         <SelectTypeInput
-          className={className}
+          className={cn(`${className} border-white-200`)}
           type="text"
           name={name}
+          label={label}
           placeholder={placeholder}
           apiget={apiget}
           apiparams={apiparams}
@@ -169,10 +172,10 @@ function SelectWithCreateDialog({
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/40" onClick={closeDialogAndRestoreFocus}></div>
           {/* Dialog */}
-          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="dialog-title" className="relative z-10 w-full max-w-lg rounded-md bg-white p-5 shadow-xl">
+          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="dialog-title" className="relative z-10 w-full max-w-lg rounded-lg bg-most-secondary p-5 shadow-xl">
             <div className="flex items-start justify-between mb-3">
               <h3 id="dialog-title" className="text-base font-semibold">{buttonName}</h3>
-              <button type="button" className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-sm" onClick={closeDialogAndRestoreFocus}>Close</button>
+              <button type="button" className="px-3 py-1 rounded-lg bg-secondary hover:bg-primary text-sm" onClick={closeDialogAndRestoreFocus}>Close</button>
             </div>
 
             <div className="flex items-start gap-2 flex-col w-full">
@@ -180,8 +183,8 @@ function SelectWithCreateDialog({
             </div>
 
             <div className="mt-4 flex items-center justify-end gap-2">
-              <button type="button" className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-sm" onClick={closeDialogAndRestoreFocus}>Cancel</button>
-              <button type="button" className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm" onClick={saveItem}>Save</button>
+              <button type="button" className="px-4 py-2 rounded-lg bg-secondary hover:bg-primary text-sm" onClick={closeDialogAndRestoreFocus}>Cancel</button>
+              <button type="button" className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm" onClick={saveItem}>Save</button>
             </div>
           </div>
         </div>

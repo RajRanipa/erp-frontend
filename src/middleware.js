@@ -1,15 +1,14 @@
 import { NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const PUBLIC_ROUTES = ['/', '/login', '/signup'];
+const ACCESS_COOKIE_NAME = 'accessToken';
 const JWT_SECRET = process.env.JWT_ACCESS_SECRET;
-console.log('JWT_SECRET loaded:', JWT_SECRET);
 
-export async function middleware(request) {
-  const { pathname } = request.nextUrl;
+// Public routes that don't require auth
+const PUBLIC_PATHS = ['/', '/login', '/signup', '/api', '/favicon.ico', '/_next'];
 
-  // Bypass middleware for Next internals and static assets (so /pngegg.png works)
-  const isStaticAsset = (
+function isStaticAsset(pathname) {
+  return (
     pathname.startsWith('/_next/') ||
     pathname === '/favicon.ico' ||
     pathname.startsWith('/favicon-') ||
@@ -19,53 +18,71 @@ export async function middleware(request) {
     pathname.startsWith('/.well-known/') ||
     /\.(png|jpg|jpeg|gif|webp|svg|ico|txt|json|css|js|map)$/i.test(pathname)
   );
-  if (isStaticAsset) {
-    return NextResponse.next();
+}
+
+export async function middleware(request) {
+  const { pathname } = request.nextUrl;
+
+  // Allow static assets and Next internals
+  if (isStaticAsset(pathname)) return NextResponse.next();
+
+  // Allow public API and public paths
+  if (pathname.startsWith('/api/public') || PUBLIC_PATHS.includes(pathname)) {
+    // If user is on auth pages and has token, handle redirect below
+    // otherwise allow public routes to continue
   }
 
-  const tokenCookie = request.cookies.get('accessToken');
-  const token = tokenCookie?.value;
+  const tokenCookie = request.cookies.get(ACCESS_COOKIE_NAME);
+  const token = tokenCookie?.value || null;
 
-  console.log('Middleware running for pathname:', pathname);
-  console.log('Cookie accessToken:', tokenCookie);
-
-  if (PUBLIC_ROUTES.includes(pathname) && (pathname === '/login' || pathname === '/signup') && token) {
+  // If user visits /login or /signup and already has a token, redirect based on setup state
+  if ((pathname === '/login' || pathname === '/signup') && token) {
     try {
-      console.log('Token present on public auth page:', token);
-      const verfy = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
-      console.log('Token verified successfully:', verfy);
-      console.log('Redirecting to /dashboard');
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+      const isSetupCompleted = !!payload.isSetupCompleted;
+      return NextResponse.redirect(new URL(isSetupCompleted ? '/dashboard' : '/setup', request.url));
     } catch (err) {
-      console.log('Invalid or expired token on public auth page:', err);
+      // invalid token - allow them to see login/signup
+      return NextResponse.next();
     }
   }
 
-  if (PUBLIC_ROUTES.includes(pathname)) {
-    console.log('Public route accessed, proceeding without auth check');
+  // Allow general public routes (non-auth) without token
+  if (PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/api/public')) {
     return NextResponse.next();
   }
 
+  // Protected routes require a token
   if (!token) {
-    console.log('No token found for protected route:', pathname);
-    console.log('Redirecting to /login');
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   try {
-    await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
-    console.log('Token valid for protected route:', pathname);
-    console.log('Proceeding to next');
-    return NextResponse.next();
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+
+    const isSetupCompleted = !!payload.isSetupCompleted;
+    const isSetupRoute = pathname === '/setup' || pathname.startsWith('/setup/');
+
+    if (!isSetupCompleted && !isSetupRoute) {
+      return NextResponse.redirect(new URL('/setup', request.url));
+    }
+
+    if (isSetupCompleted && isSetupRoute) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+
+    // Attach lightweight headers for downstream SSR (optional)
+    const response = NextResponse.next();
+    if (payload.id) response.headers.set('x-user-id', String(payload.id));
+    if (payload.companyId) response.headers.set('x-company-id', String(payload.companyId));
+    if (payload.role) response.headers.set('x-role', String(payload.role));
+
+    return response;
   } catch (err) {
-    console.error('JWT verification failed:', err);
-    console.log('Redirecting to /login due to invalid or expired token');
     return NextResponse.redirect(new URL('/login', request.url));
   }
 }
 
 export const config = {
-  matcher: [
-    '/:path*',
-  ],
+  matcher: ['/:path*'],
 };
