@@ -147,14 +147,14 @@ export default function RawMaterials() {
     }, [formData.items]);
 
     // Sync campaign name from context when available (handles refresh / late hydration)
+    const campaignName = activeCampaign?.name ?? '';
     useEffect(() => {
-        if (activeCampaign && activeCampaign.name) {
-            setFormData(prev => {
-                if (prev.campaign === activeCampaign.name) return prev;
-                return { ...prev, campaign: activeCampaign.name };
-            });
-        }
-    }, [activeCampaign?._id, activeCampaign?.name]);
+        if (!campaignName) return;
+        setFormData(prev => {
+            if (prev.campaign === campaignName) return prev;
+            return { ...prev, campaign: campaignName };
+        });
+    }, [campaignName]);
 
 
     // Helpers to keep error arrays sized to current rows
@@ -421,7 +421,7 @@ export default function RawMaterials() {
             ...prev,
             items: ensureArrayLen(prev.items, (formData.items?.length ?? 0) + 1, () => ({ name: false, weight: false }))
         }));
-    }, [formData]);
+    }, [formData, formError]);
 
     const removeRow = useCallback((index) => {
         setFormData(prev => {
@@ -485,7 +485,7 @@ export default function RawMaterials() {
         if (formData.batchesID !== computedBatchID) {
             setFormData(prev => ({ ...prev, batchesID: computedBatchID }));
         }
-    }, [computedBatchID]);
+    }, [computedBatchID, formData.batchesID]);
 
 
     const handleSubmit = useCallback(async (e) => {
@@ -535,7 +535,7 @@ export default function RawMaterials() {
         } finally {
             setSaving(false);
         }
-    }, [formData, Toast, touched]);
+    }, [formData, touched, validate, activeCampaign?._id, router]);
 
 
     return (

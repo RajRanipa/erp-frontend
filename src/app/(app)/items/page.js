@@ -29,7 +29,7 @@ export default function Items({ children }) {
             }
         };
         // fetchItems();
-    }, [Toast]);
+    }, []);
     
   return (
     <>

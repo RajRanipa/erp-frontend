@@ -16,7 +16,7 @@ export function useParty(id) {
     } catch (e) {
       Toast.error( e?.response?.data?.message || 'Failed to load party');
     } finally { setLoading(false); }
-  }, [id, Toast]);
+  }, [id]);
   useEffect(() => { fetchOne(); }, [fetchOne]);
   return { data, loading, refetch: fetchOne };
 }

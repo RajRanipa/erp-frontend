@@ -17,7 +17,7 @@ export function useParties({ role, status, q, page, limit }) {
     } catch (e) {
       Toast.error(e?.response?.data?.message || 'Failed to load parties');
     } finally { setLoading(false); }
-  }, [role, status, q, page, limit, Toast]);
+  }, [role, status, q, page, limit]);
 
   useEffect(() => { fetchList(); }, [fetchList]);
   return { ...data, loading, refetch: fetchList };

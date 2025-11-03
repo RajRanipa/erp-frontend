@@ -85,7 +85,7 @@ export default function ProductionDashboard({ children }) {
             }
         };
         fetchCampaign();
-    }, [Toast]);
+    }, []);
 
    
     return (

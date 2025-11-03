@@ -7,7 +7,7 @@ export default function Batch(initial) {
     useEffect(() => {
         console.log('initial', initial.initial);
         // initial = initial.initial
-    },[])
+    },[initial.initial])
   return (
       <div className="max-w-3xl">
           {Array.isArray(initial.initial) && initial.initial.map((item) => (

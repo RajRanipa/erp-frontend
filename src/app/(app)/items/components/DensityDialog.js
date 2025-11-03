@@ -124,7 +124,7 @@ export default function DensityDialog({
       Toast.error( msg );
       setSaving(false);
     }
-  }, [mode, initialData, onSaved, onClose, Toast]);
+  }, [mode, initialData, onSaved, onClose, initialDraft]);
 
   const handleDelete = useCallback(async () => {
     try {
@@ -142,7 +142,7 @@ export default function DensityDialog({
       Toast.error( err?.response?.data?.message || 'Failed to delete' );
       setDeleting(false);
     }
-  }, [initialData, onDeleted, onClose,  Toast]);
+  }, [initialData, onDeleted, onClose, initialDraft]);
 
   return (
      <Dialog

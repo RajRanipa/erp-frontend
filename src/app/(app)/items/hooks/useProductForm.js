@@ -141,7 +141,7 @@ export default function useProductForm({ mode = 'create', initialData = {} } = {
         } else {
             dispatch({ type: 'SET_FIELD', field: name, value });
         }
-    }, []);
+    }, [formData, initialData]);
 
     const toggleParameter = useCallback((key) => {
         const willEnable = !(enabledParameters && enabledParameters[key]);
@@ -222,7 +222,7 @@ export default function useProductForm({ mode = 'create', initialData = {} } = {
             Toast.error(err?.response?.data?.message || err.message || 'Failed');
             throw err;
         }
-    }, [formData, enabledParameters, mode, Toast]);
+    }, [formData, enabledParameters, mode]);
 
     const remove = useCallback(async (id) => {
         try {
@@ -236,7 +236,7 @@ export default function useProductForm({ mode = 'create', initialData = {} } = {
             Toast.error( err?.response?.data?.message || err.message || 'Failed to delete', {duration: 4000, autoClose: true, placement: "top-center", animation: "top-bottom" });
             throw err;
         }
-    }, [formData, Toast]);
+    }, [formData]);
 
     // compute paramRequirements (which parameters currently have fields)
     const paramRequirements = useMemo(() => {

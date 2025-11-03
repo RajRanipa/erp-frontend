@@ -34,14 +34,14 @@ export default function EditWarehousePage() {
         setInitial(data);
       } catch (err) {
         if (!mounted) return;
-        Toast.error( err?.response?.data?.message || 'Failed to load warehouse');
+        Toast.error(err?.response?.data?.message || 'Failed to load warehouse');
         router.push('/warehouse');
       } finally {
         if (mounted) setLoading(false);
       }
     })();
     return () => { mounted = false; };
-  }, [id]);
+  }, [id, router]);
 
   const handleSuccess = (saved) => {
     Toast.success('Warehouse saved');

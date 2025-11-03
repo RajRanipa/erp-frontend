@@ -15,7 +15,7 @@ export default function Density({ formData, onChange, className = '' }) {
   const handleOpen = useCallback((data) => {
     setInitialData({ productType: formData?.productType, value: data?.value });
     setOpen(true);
-  }, []);
+  }, [formData?.productType]);
 
   const handleClose = useCallback(() => {
     setOpen(false);

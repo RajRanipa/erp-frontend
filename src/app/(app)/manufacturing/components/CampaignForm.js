@@ -69,7 +69,7 @@ export default function CampaignForm({
         setErrors({});
         setTouched({});
         setResetKey(k => k + 1);
-    }, [initKey]);
+    }, [initKey, initialValues]);
 
     const validate = (values) => {
         const e = {};

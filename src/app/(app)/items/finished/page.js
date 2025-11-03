@@ -74,7 +74,7 @@ export default function Finished() {
     };
     fetchAll();
     return () => { mounted = false; };
-  }, [Toast]);
+  }, []);
 
   // client-side filtering and searching (memoized)
   const rows = useMemo(() => {

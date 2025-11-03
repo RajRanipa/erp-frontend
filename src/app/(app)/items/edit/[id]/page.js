@@ -30,7 +30,7 @@ export default function EditProductPage() {
         if (id) {
             fetchItem();
         }
-    }, [id]);
+    }, [id, queryParams]);
 
     return (
         <Item>

@@ -38,7 +38,7 @@ export default function Raw() {
       }
     };
     fetchItems();
-  }, [Toast]);
+  }, []);
 
   const filteredItems = useMemo(() => {
     if (!search.trim()) return items;

@@ -19,30 +19,26 @@ export default function ProductParameters({
         enabledParameters["temperature"] ||
         enabledParameters["density"] ||
         enabledParameters["packing"]) &&
-        <div className='flex gap-5 flex-wrap mt-4'>
+        <div className='grid grid-cols-2 gap-4 mt-4'>
           {enabledParameters["dimension"] &&
             <Dimension
               formData={formData}
               onChange={onChange}
-              className='flex-[1_0_30%]'
             />}
           {enabledParameters["temperature"] &&
             <Temperature
               formData={formData}
               onChange={onChange}
-              className='flex-[1_0_30%]'
             />}
           {enabledParameters["density"] &&
             <Density
               formData={formData}
               onChange={onChange}
-              className='flex-[1_0_30%]'
             />}
           {enabledParameters["packing"] &&
             <Packing
               formData={formData}
               onChange={onChange}
-              className='flex-[1_0_30%]'
             />}
         </div>
       }

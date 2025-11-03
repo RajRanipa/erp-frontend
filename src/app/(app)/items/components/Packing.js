@@ -19,7 +19,7 @@ export default function Packing({ formData, onChange, className = '' }) {
         minimumStock : 1
       });
     // console.log('packing initialData packing ', initialData);
-  },[]);
+  }, [formData?.productType]);
 
   const handleOpen = useCallback((data) => {
     setInitialData(
@@ -28,7 +28,7 @@ export default function Packing({ formData, onChange, className = '' }) {
         minimumStock : 1
       });
     setOpen(true);
-  }, []);
+  }, [formData?.productType]);
 
   const handleClose = useCallback(() => {
     setOpen(false);

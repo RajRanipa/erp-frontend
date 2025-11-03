@@ -114,6 +114,14 @@ const SelectTypeInput = ({
   const clearBtnRef = useRef(null);
   const listItemRefs = useRef([]);
 
+  // stable emitter so callbacks can depend on it safely
+  const emitChange = useCallback((val, labelText) => {
+    onChange?.({
+      target: { name, value: val },
+      label: { name, value: labelText },
+    });
+  }, [onChange, name]);
+
   const displayErr = err || internalErr;
   const errorId = displayErr ? `${id || name}-error` : undefined;
 
@@ -167,24 +175,15 @@ const SelectTypeInput = ({
 
   // ------------ 2) parent -> inputValue sync (ONLY here) ------------
   useEffect(() => {
-    // parent changed value
     const v = value == null ? '' : String(value);
     if (!v) {
-      // parent cleared
-      if (inputValue !== '') setInputValue('');
+      setInputValue(prev => (prev !== '' ? '' : prev));
       return;
     }
-
-    // find option
     const found = options.find((o) => String(o.value) === v);
-    if (found) {
-      const labelText = htmlToPlain(found.label);
-      if (inputValue !== labelText) setInputValue(labelText);
-    } else {
-      // value not in options yet
-      if (inputValue !== v) setInputValue(v);
-    }
-  }, [value, options]); // <- ONLY from these two
+    const nextLabel = found ? htmlToPlain(found.label) : v;
+    setInputValue(prev => (prev === nextLabel ? prev : nextLabel));
+  }, [value, options]);
 
   // ------------ 3) validation ------------
   useEffect(() => {
@@ -206,12 +205,6 @@ const SelectTypeInput = ({
   }, [options, inputValue, fetching]);
 
   // ------------ helpers ------------
-  const emitChange = (val, labelText) => {
-    onChange?.({
-      target: { name, value: val },
-      label: { name, value: labelText },
-    });
-  };
 
   const handleSelect = useCallback(
     (option) => {
@@ -222,7 +215,7 @@ const SelectTypeInput = ({
       setCreated(false);
       emitChange(option.value, labelText);
     },
-    [name]
+    [emitChange]
   );
 
   const handleFocus = useCallback(() => {
@@ -232,7 +225,7 @@ const SelectTypeInput = ({
       setShowOptions(true);
       setHighlightedIndex(0);
     }
-  }, [readOnly, options.length]);
+  }, [onFocus, readOnly, options.length]);
 
   const handleBlur = useCallback(
     (e) => {
@@ -281,7 +274,7 @@ const SelectTypeInput = ({
         }
       }
     },
-    [allowCustomValue, options]
+    [allowCustomValue, options, emitChange]
   );
 
   const handleKeyDown = useCallback((e) => {
@@ -325,7 +318,7 @@ const SelectTypeInput = ({
     setInfo('');
     emitChange('', '');
     if (required) inputRef.current.focus();
-  }, []);
+  }, [emitChange, required, inputRef]);
 
 
   // create & save
@@ -363,7 +356,7 @@ const SelectTypeInput = ({
     } finally {
       setLoading(false);
     }
-  }, [inputValue, name, callBack, apipost, fetchOptions]);
+  }, [inputValue, name, callBack, apipost, fetchOptions, emitChange]);
 
   // scroll into view
   useEffect(() => {
