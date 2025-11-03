@@ -121,15 +121,24 @@ function SelectWithCreateDialog({
       if (process.env.NODE_ENV !== 'production') {
         console.log('res', res);
       }
-      Toast.success(res.data.message || 'Item created successfully');
+      Toast.success(res?.data?.message || 'Item created successfully');
       // Close dialog and restore focus after a successful save
       closeDialogAndRestoreFocus();
+      // Optionally notify parent with the new option if API returns it
+      if (onChange && res?.data?.option) {
+        onChange({ target: { name, value: res.data.option.value }, label: res.data.option });
+      }
     } catch (err) {
       console.error('Failed to create item', err);
-      alert(err?.response?.data?.message || 'Failed to create');
-      Toast.error(res.data.message || 'Failed to create item');
+      const msg = err?.response?.data?.message || err?.message || 'Failed to create item';
+      // Avoid blocking alert in production; rely on Toast
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-alert
+        alert(msg);
+      }
+      Toast.error(msg);
     }
-  }, [buildPayload, draft, createUrl, Toast, closeDialogAndRestoreFocus]);
+  }, [buildPayload, draft, createUrl, closeDialogAndRestoreFocus, onChange, name]);
 
   return (
     <div className={"w-full flex items-start justify-start flex-1/3 gap-2 flex-col py-2 px-4 border border-white-200 rounded-lg"}>

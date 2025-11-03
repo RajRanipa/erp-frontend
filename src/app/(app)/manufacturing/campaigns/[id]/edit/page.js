@@ -27,7 +27,7 @@ export default function EditCampaignPage() {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, initial]);
 
   const handleUpdate = async (values) => {
     try {

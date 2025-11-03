@@ -1,6 +1,6 @@
 'use client';
 // src/app/items/components/TemperatureDialog.js
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
 import UnitSelect from '@/Components/inputs/UnitSelect';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
@@ -34,11 +34,11 @@ export default function TemperatureDialog({
   
   const createUrl = '/api/temperatures';
 
-  const initialDraft = {
+  const initialDraft = useMemo(() => ({
     value: initialData.value ?? '',
     unit: initialData.unit ?? '˚C',
     productType: initialData.productType ?? '',
-  };
+  }), [initialData]);
 
   const [dialogData, setDialogData] = useState(initialDraft);
   const dialogDataRef = useRef(dialogData);

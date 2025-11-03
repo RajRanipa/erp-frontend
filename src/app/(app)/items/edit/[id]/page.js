@@ -9,12 +9,10 @@ import { axiosInstance } from '@/lib/axiosInstance';
 export default function EditProductPage() {
     const { id } = useParams();
     const [item, setItem] = useState(null);
-    const queryParams = {
-        id : id
-    }
     useEffect(() => {
         async function fetchItem() {
             try {
+                const queryParams = { id };
                 const res = await axiosInstance.get(`/api/items/by-id`, { params: queryParams });
                 // console.log("item", res.data);
                 if(res.data){
@@ -30,7 +28,7 @@ export default function EditProductPage() {
         if (id) {
             fetchItem();
         }
-    }, [id, queryParams]);
+    }, [id]);
 
     return (
         <Item>

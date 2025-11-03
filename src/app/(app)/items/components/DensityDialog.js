@@ -1,6 +1,6 @@
 'use client';
 // src/app/items/components/DensityDialog.js
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
 import UnitSelect from '@/Components/inputs/UnitSelect';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
@@ -34,11 +34,11 @@ export default function DensityDialog({
   
   const createUrl = '/api/densities';
 
-  const initialDraft = {
+  const initialDraft = useMemo(() => ({
     value: initialData.value ?? '',
     unit: initialData.unit ?? 'kg/m³',
     productType: initialData.productType ?? '',
-  };
+  }), [initialData]);
 
   const [dialogData, setDialogData] = useState(initialDraft);
   const dialogDataRef = useRef(dialogData);

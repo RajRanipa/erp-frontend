@@ -20,7 +20,10 @@ function isVisible(el) {
 
 const Portal = ({ children }) => {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true));
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
   if (!mounted) return null;
   return createPortal(children, document.body);
 };
@@ -118,7 +121,7 @@ const Dialog = memo(function Dialog({
       try { target.focus({ preventScroll: true }); } catch { }
     }
     savedActiveElementRef.current = null;
-  }, [open, getBackFocus]);
+  }, [open, getBackFocus, mounted]);
 
   // Mount/unmount + animation
   useEffect(() => {

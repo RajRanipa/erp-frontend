@@ -50,7 +50,9 @@ const statusoptions = [
   { value: 'draft', label: 'draft' },
   { value: 'archived', label: 'archived' },
 ]
-export default function PartiesListPage() {
+// export default function PartiesPage() {
+// existing component code
+export default function PartiesPage() {
   const [role, setRole] = useState('');
   const [status, setStatus] = useState('active');
   const { setActiveParty } = useActiveParty();

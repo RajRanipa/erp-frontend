@@ -1,6 +1,6 @@
 'use client';
 // src/app/items/components/DimensionDialog.js
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
 import UnitSelect from '@/Components/inputs/UnitSelect';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
@@ -35,14 +35,14 @@ export default function DimensionDialog({
   
   const createUrl = '/api/dimensions';
 
-  const initialDraft = {
+  const initialDraft = useMemo(() => ({
     length: initialData.length ?? '',
     width: initialData.width ?? '',
     thickness: initialData.thickness ?? '',
     unit: initialData.unit ?? 'mm',
     category: initialData.category ?? '',
     productType: initialData.productType ?? '',
-  };
+  }), [initialData]);
 
   const [dialogData, setDialogData] = useState(initialDraft);
   const dialogDataRef = useRef(dialogData);
