@@ -20,7 +20,7 @@ function isVisible(el) {
 
 const Portal = ({ children }) => {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => setMounted(true));
   if (!mounted) return null;
   return createPortal(children, document.body);
 };
