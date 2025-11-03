@@ -1,0 +1,143 @@
+// src/app/(app)/items/raw/page.js
+'use client';
+import React, { useEffect, useState, useMemo } from 'react';
+import CustomInput from '@/Components/inputs/CustomInput';
+import DisplayMain from '@/Components/layout/DisplayMain';
+import { axiosInstance } from '@/lib/axiosInstance';
+import { useToast, useConfirmToast, Toast } from '@/Components/toast';
+import Items from '../page';
+import EditButton from '@/Components/buttons/EditButton';
+import DeleteButton from '@/Components/buttons/DeleteButton';
+import { useRouter } from 'next/navigation';
+import Table from '@/Components/layout/Table';
+import useAuthz from '@/hook/useAuthz';
+import StatusActions from '../components/StatusActions';
+
+export default function Raw() {
+  
+  const { can } = useAuthz();
+  // const confirmToast = useConfirmToast();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState('');
+  const [sel, setSel] = useState([]);
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const response = await axiosInstance.get('/api/items/raw');
+        setItems(response.data || []);
+        setLoading(false);
+      } catch (err) {
+        setError(err?.message || 'Failed to fetch items');
+        setLoading(false);
+        Toast.error( 'Failed to fetch raw items');
+      }
+    };
+    fetchItems();
+  }, [Toast]);
+
+  const filteredItems = useMemo(() => {
+    if (!search.trim()) return items;
+    const lower = search.toLowerCase();
+    return items.filter(it => {
+      const name = it.name?.toLowerCase() || '';
+      const grade = it.grade?.toLowerCase() || '';
+      const unit = it.product_unit?.toLowerCase() || '';
+      const desc = it.description?.toLowerCase() || '';
+      return (
+        name.includes(lower) ||
+        grade.includes(lower) ||
+        unit.includes(lower) ||
+        desc.includes(lower)
+      );
+    });
+  }, [items, search]);
+
+  const onEdit = (item) => {
+    router.push(`/items/edit/${item._id}`);
+  };
+
+  const onDelete = async (name, id, triggerEl) => {
+    try {
+      const ok = await Toast.promise(`Delete ${name} ? This will permanently delete the item. Are you sure?`, {
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        focusTarget: triggerEl,
+      });
+      if (!ok) return;
+
+      // optimistic UI
+      setItems(prev => prev.filter(p => p._id !== id));
+      await axiosInstance.delete(`/api/items/${id}`, { withCredentials: true });
+      Toast.success('Item deleted');
+    } catch (err) {
+      console.error('delete failed', err);
+      Toast.error( 'Failed to delete item');
+      // simple refetch to restore
+      try {
+        const resp = await axiosInstance.get('/api/items/raw');
+        setItems(resp.data || []);
+      } catch (e) { /* ignore */ }
+    }
+  };
+
+  return (
+    <>
+      {<Items>
+        <div className="Items-page">
+          <div className="flex items-center justify-between gap-2">
+            <h1 className="text-h2 font-semibold mb-5">Raw Materials</h1>
+            <div className="flex gap-2 items-center flex-[0_1_30%]">
+              <CustomInput
+                name="search_items"
+                placeholder="Search name / grade / unit"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {loading && <p>Loading...</p>}
+          {error && <p>Error: {error}</p>}
+          {/* { can('items:status:update') && (
+            
+          )} */}
+          {!loading && !error && (
+            <Table
+              columns={[
+                { key: 'name', header: 'Name', sortable: true, render: r => r.name },
+                { key: 'grade', header: 'Grade', render: r => r.grade || '\u2014' },
+                { key: 'product_unit', header: 'Unit', render: r => r.product_unit || '\u2014' },
+                { key: 'minimumStock', header: 'Minimum Stock', render: r => r.minimumStock ?? '\u2014' },
+                { key: 'description', header: 'Description', render: r => r.description || '\u2014' },
+                { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
+                {
+                  key: 'actions',
+                  header: '',
+                  render: r => (
+                    <div className='flex gap-2 items-center'>
+                      <EditButton onClick={() => onEdit(r)} itemName={r.name} />
+                      <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} />
+                    </div>
+                  ),
+                  align: 'right',
+                },
+              ]}
+              data={filteredItems}
+              rowKey={r => r._id}
+              selectable="multiple"
+              selectedKeys={sel}
+              onSelectionChange={setSel}
+              loading={loading}
+              pageSize={10}
+            />
+          )}
+        </div>
+      </Items>}
+    </>
+  );
+}
