@@ -90,7 +90,8 @@ export default function Step1CompanyInfo({ values = {}, saving, onValidityChange
               onChange={e => handleChange('companyName', e.target.value)}
               disabled={safeSaving}
               placeholder="Enter your company name"
-            />
+              autoFocus
+            /> 
           </div>
 
           <SelectTypeInput

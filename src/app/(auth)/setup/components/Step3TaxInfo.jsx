@@ -98,6 +98,7 @@ export default function Step3TaxInfo({ values = {}, saving, onValidityChange, on
             disabled={safeSaving}
             placeholder="e.g., ABCDE1234F"
             required
+            autoFocus
           />
 
           <CustomInput

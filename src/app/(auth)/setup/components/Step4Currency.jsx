@@ -123,6 +123,7 @@ export default function Step4Currency({ values = {}, saving, onValidityChange, o
               options={currencyOptions}
               placeholder="e.g., INR, USD"
               required
+              autoFocus
             />
           </div>
 

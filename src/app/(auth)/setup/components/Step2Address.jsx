@@ -116,6 +116,7 @@ export default function Step2Address({ values = {}, saving, onValidityChange, on
             disabled={safeSaving}
             placeholder="e.g., 221B Baker Street"
             required
+            autoFocus
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

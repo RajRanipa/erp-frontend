@@ -95,6 +95,7 @@ const SelectTypeInput = ({
   dropdownHeight = 'max-h-40',
   err,
   onFocus,
+  autoFocus = false,
 }) => {
   // local UI only
   const [inputValue, setInputValue] = useState('');   // what user sees
@@ -434,6 +435,7 @@ const SelectTypeInput = ({
               loading ? 'bg-gray-100 text-gray-400' : '',
               className
             )}
+            autoFocus={autoFocus}
           />
 
           {!loading && (

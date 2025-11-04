@@ -231,6 +231,7 @@ export default function WizardShell({ formData, setupProgress = {}, serverProgre
               onClick={onFinish}
               disabled={saving}
               className="btn-primary disabled:opacity-50"
+              autoFocus
             >
               Finish Setup
             </button>

@@ -96,6 +96,7 @@ export default function Step6Modules({ values = {}, saving, onValidityChange, on
           onClick={selectCore}
           disabled={saving}
           className="btn-border text-sm disabled:opacity-50"
+          autoFocus
         >
           Core Defaults
         </button>

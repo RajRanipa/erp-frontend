@@ -30,8 +30,9 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
   } = useProductForm({ mode, initialData });
   const [catagory, setCatagory] = useState(null);
   
+  // console.log('handleLocalChange');
   const handleLocalChange = useCallback((eOrName) => {
-  // console.log('handleLocalChange', eOrName);
+  console.log('handleLocalChange', eOrName);
 
   if (eOrName && eOrName.target) {
     const { name, value } = eOrName.target;
