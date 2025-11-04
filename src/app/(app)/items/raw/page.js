@@ -12,9 +12,11 @@ import { useRouter } from 'next/navigation';
 import Table from '@/Components/layout/Table';
 import useAuthz from '@/hook/useAuthz';
 import StatusActions from '../components/StatusActions';
+import NavLink from '@/Components/NavLink';
+import Loading from '@/Components/Loading';
 
 export default function Raw() {
-  
+
   const { can } = useAuthz();
   // const confirmToast = useConfirmToast();
   const [items, setItems] = useState([]);
@@ -34,7 +36,7 @@ export default function Raw() {
       } catch (err) {
         setError(err?.message || 'Failed to fetch items');
         setLoading(false);
-        Toast.error( 'Failed to fetch raw items');
+        Toast.error('Failed to fetch raw items');
       }
     };
     fetchItems();
@@ -76,7 +78,7 @@ export default function Raw() {
       Toast.success('Item deleted');
     } catch (err) {
       console.error('delete failed', err);
-      Toast.error( 'Failed to delete item');
+      Toast.error('Failed to delete item');
       // simple refetch to restore
       try {
         const resp = await axiosInstance.get('/api/items/raw');
@@ -88,53 +90,58 @@ export default function Raw() {
   return (
     <>
       {<Items>
-        <div className="Items-page">
+        <div className="Items-page h-full flex flex-col">
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-h2 font-semibold mb-5">Raw Materials</h1>
             <div className="flex gap-2 items-center flex-[0_1_30%]">
-              <CustomInput
+              {loading ? <Loading variant='skeleton' /> : (filteredItems && filteredItems.length > 0) && <CustomInput
                 name="search_items"
                 placeholder="Search name / grade / unit"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-              />
+              />}
             </div>
           </div>
 
-          {loading && <p>Loading...</p>}
+          {loading && <Loading variant='skeleton' className='h-full'/>}
           {error && <p>Error: {error}</p>}
           {/* { can('items:status:update') && (
             
           )} */}
           {!loading && !error && (
-            <Table
-              columns={[
-                { key: 'name', header: 'Name', sortable: true, render: r => r.name },
-                { key: 'grade', header: 'Grade', render: r => r.grade || '\u2014' },
-                { key: 'product_unit', header: 'Unit', render: r => r.product_unit || '\u2014' },
-                { key: 'minimumStock', header: 'Minimum Stock', render: r => r.minimumStock ?? '\u2014' },
-                { key: 'description', header: 'Description', render: r => r.description || '\u2014' },
-                { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
-                {
-                  key: 'actions',
-                  header: '',
-                  render: r => (
-                    <div className='flex gap-2 items-center'>
-                      <EditButton onClick={() => onEdit(r)} itemName={r.name} />
-                      <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} />
-                    </div>
-                  ),
-                  align: 'right',
-                },
-              ]}
-              data={filteredItems}
-              rowKey={r => r._id}
-              selectable="multiple"
-              selectedKeys={sel}
-              onSelectionChange={setSel}
-              loading={loading}
-              pageSize={10}
-            />
+            (filteredItems && filteredItems.length === 0) ?
+              <div className='flex flex-col items-center justify-center w-full p-4 gap-3'>
+                <span className="text-secondary-text">No items found.</span>
+                <NavLink href={`/items/create`} type="button">Add New Packing Material</NavLink>
+              </div> :
+              <Table
+                columns={[
+                  { key: 'name', header: 'Name', sortable: true, render: r => r.name },
+                  { key: 'grade', header: 'Grade', render: r => r.grade || '\u2014' },
+                  { key: 'product_unit', header: 'Unit', render: r => r.product_unit || '\u2014' },
+                  { key: 'minimumStock', header: 'Minimum Stock', render: r => r.minimumStock ?? '\u2014' },
+                  { key: 'description', header: 'Description', render: r => r.description || '\u2014' },
+                  { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
+                  {
+                    key: 'actions',
+                    header: '',
+                    render: r => (
+                      <div className='flex gap-2 items-center'>
+                        <EditButton onClick={() => onEdit(r)} itemName={r.name} />
+                        <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} />
+                      </div>
+                    ),
+                    align: 'right',
+                  },
+                ]}
+                data={filteredItems}
+                rowKey={r => r._id}
+                selectable="multiple"
+                selectedKeys={sel}
+                onSelectionChange={setSel}
+                loading={loading}
+                pageSize={10}
+              />
           )}
         </div>
       </Items>}

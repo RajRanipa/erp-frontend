@@ -4,16 +4,18 @@ import React, { useEffect, useState, useMemo } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
 import DisplayMain from '@/Components/layout/DisplayMain';
 import { axiosInstance } from '@/lib/axiosInstance';
-import {  Toast } from "@/Components/toast";
+import { Toast } from "@/Components/toast";
 import Items from '../page';
 import EditButton from '@/Components/buttons/EditButton';
 import DeleteButton from '@/Components/buttons/DeleteButton';
 import { useRouter } from 'next/navigation';
 import Table from '@/Components/layout/Table';
 import StatusActions from '../components/StatusActions';
+import NavLink from '@/Components/NavLink';
+import Loading from '@/Components/Loading';
 
 export default function Packing() {
-  
+
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -88,7 +90,7 @@ export default function Packing() {
     } catch (err) {
       console.error('delete failed', err);
       // restore removed item on error by refetching (simple approach)
-      Toast.error( 'Failed to delete item');
+      Toast.error('Failed to delete item');
       // quick refetch to ensure state is consistent
       try {
         const resp = await axiosInstance.get('/api/items/finished');
@@ -100,53 +102,60 @@ export default function Packing() {
   return (
     <>
       <Items>
-        <div className="Items-page">
+        <div className="Items-page h-full flex flex-col">
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-h2 font-semibold mb-5">Packing Material</h1>
-            <div className="flex gap-2 items-center flex-[0_1_30%]">
-              <CustomInput
+            <div className="flex gap-2 items-center flex-[0_1_30%] relative">
+              {loading ? <Loading variant='skeleton' /> : (filteredItems && filteredItems.length > 0) &&<CustomInput
                 name="search_items"
                 placeholder="Search by name size"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-              />
+              />}
             </div>
           </div>
-          {loading && <p>Loading...</p>}
+          {loading && <Loading variant='skeleton' className='h-full'/>}
           {error && <p>Error: {error}</p>}
           {!loading && !error && (
-            <Table
-              columns={[
-                { key: 'name', header: 'Name', sortable: true, render: r => r.name },
-                { key: 'brandType', header: 'Brand Type', render: r => r.brandType || '\u2014' },
-                { key: 'productColor', header: 'Color', render: r => r?.productColor ? (
-                        <div className={`${r.productColor.includes('red') ? 'text-red-400' : 'text-blue-400'}`}>{r.productColor}</div>
-                      ) :'\u2014' },
-                { key: 'product_unit', header: 'Unit', render: r => r.product_unit || '\u2014' },
-                { key: 'minimumStock', header: 'Minimum Stock', render: r => r.minimumStock ?? '\u2014' },
-                { key: 'dimension', header: 'Dimension', render: r => r?.dimension?.value || '\u2014' },
-                { key: 'description', header: 'Description', render: r => r.description || '\u2014' },
-                { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
-                {
-                  key: 'actions',
-                  header: '',
-                  render: r => (
-                    <div className='flex gap-2 items-center'>
-                      <EditButton onClick={() => onEdit(r)} itemName={r.name} />
-                      <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} />
-                    </div>
-                  ),
-                  align: 'right',
-                },
-              ]}
-              data={filteredItems}
-              rowKey={r => r._id}
-              selectable="multiple"
-              selectedKeys={sel}
-              onSelectionChange={setSel}
-              loading={loading}
-              pageSize={10}
-            />
+            (filteredItems && filteredItems.length === 0) ?
+              <div className='flex flex-col items-center justify-center w-full p-4 gap-3'>
+                <span className="text-secondary-text">No items found.</span>
+                <NavLink href={`/items/create`} type="button">Add New Packing Material</NavLink>
+              </div> :
+              <Table
+                columns={[
+                  { key: 'name', header: 'Name', sortable: true, render: r => r.name },
+                  { key: 'brandType', header: 'Brand Type', render: r => r.brandType || '\u2014' },
+                  {
+                    key: 'productColor', header: 'Color', render: r => r?.productColor ? (
+                      <div className={`${r.productColor.includes('red') ? 'text-red-400' : 'text-blue-400'}`}>{r.productColor}</div>
+                    ) : '\u2014'
+                  },
+                  { key: 'product_unit', header: 'Unit', render: r => r.product_unit || '\u2014' },
+                  { key: 'minimumStock', header: 'Minimum Stock', render: r => r.minimumStock ?? '\u2014' },
+                  { key: 'dimension', header: 'Dimension', render: r => r?.dimension?.value || '\u2014' },
+                  { key: 'description', header: 'Description', render: r => r.description || '\u2014' },
+                  { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
+                  {
+                    key: 'actions',
+                    header: '',
+                    render: r => (
+                      <div className='flex gap-2 items-center'>
+                        <EditButton onClick={() => onEdit(r)} itemName={r.name} />
+                        <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} />
+                      </div>
+                    ),
+                    align: 'right',
+                  },
+                ]}
+                data={filteredItems}
+                rowKey={r => r._id}
+                selectable="multiple"
+                selectedKeys={sel}
+                onSelectionChange={setSel}
+                loading={loading}
+                pageSize={10}
+              />
           )}
         </div>
       </Items>

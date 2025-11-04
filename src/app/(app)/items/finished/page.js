@@ -12,6 +12,7 @@ import EditButton from '@/Components/buttons/EditButton';
 import DeleteButton from '@/Components/buttons/DeleteButton';
 import Table from '@/Components/layout/Table.jsx';
 import StatusActions from '../components/StatusActions';
+import Loading from '@/Components/Loading';
 
 
 // helper used inside Row too
@@ -131,31 +132,36 @@ export default function Finished() {
 
   return (
     <Items>
-      <div className="Items-page">
+      <div className="Items-page h-full flex flex-col">
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-h2 font-semibold mb-5">Finished Goods</h1>
-          <div className="flex gap-2 items-center flex-[0_1_30%]">
-            <SelectInput
-              name="product_type"
-              value={productTypeFilter}
-              onChange={e => setProductTypeFilter(e.target.value)}
-              options={[{ value: '', label: 'All types' }, ...productTypes]}
-              className="w-fit"
-            />
-
-            <CustomInput
-              name="search_items"
-              placeholder="Search name / packing / unit / type"
-              onChange={e => setQ(e.target.value)}
-              value={q}
-              className="w-full"
-            />
+          <div className="flex gap-2 items-center flex-[0_1_30%] relative">
+            {loading ? <Loading variant='skeleton' /> : ((rows && rows.length > 0) && <>
+              <SelectInput
+                name="product_type"
+                value={productTypeFilter}
+                onChange={e => setProductTypeFilter(e.target.value)}
+                options={[{ value: '', label: 'All types' }, ...productTypes]}
+                className="w-fit"
+              />
+              <CustomInput
+                name="search_items"
+                placeholder="Search name / packing / unit / type"
+                onChange={e => setQ(e.target.value)}
+                value={q}
+                className="w-full"
+              />
+            </>)}
           </div>
         </div>
-
-        {loading ? <div className="p-4">Loading…</div> : error ? <div className="p-4 text-red-500">{error}</div> : (
-          <Table
-            columns={[
+        {/* <Loading variant='skeleton' className='h-full' /> */}
+        {loading ? <Loading variant='skeleton' className='h-full' /> : error ? <div className="p-4 text-red-500">{error}</div> : (
+          (rows && rows.length === 0) ?
+            <div className='flex flex-col items-center justify-center w-full p-4 gap-3'>
+              <span className="text-secondary-text">No items found.</span>
+              <NavLink href={`/items/create`} type="button">Add new Finished Good</NavLink>
+            </div> :
+            <Table columns={[
               {
                 key: 'name',
                 header: 'Name',
@@ -217,14 +223,14 @@ export default function Finished() {
                 align: 'right',
               },
             ]}
-            data={rows}
-            rowKey={(r) => r._id}
-            selectable="multiple"
-            selectedKeys={sel}
-            onSelectionChange={setSel}
-            virtualization={items.length > 100}
-            loading={loading}
-          />
+              data={rows}
+              rowKey={(r) => r._id}
+              selectable="multiple"
+              selectedKeys={sel}
+              onSelectionChange={setSel}
+              virtualization={items.length > 100}
+              loading={loading}
+            />
         )}
       </div>
     </Items>
