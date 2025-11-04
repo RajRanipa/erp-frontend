@@ -121,6 +121,7 @@ export default function useProductForm({ mode = 'create', initialData = {} } = {
     }, [formData]);
 
     const handleChange = useCallback((eOrName, maybeValue) => {
+        // console.log('handleChange', eOrName, maybeValue);
         let name, value;
         if (eOrName && eOrName.target) {
             name = eOrName.target.name;

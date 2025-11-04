@@ -114,7 +114,20 @@ const SelectTypeInput = ({
   const dropdownRef = useRef(null);
   const clearBtnRef = useRef(null);
   const listItemRefs = useRef([]);
+  // Helper: find by option.value OR by plain-text option.label
+  const findOptionByValueOrLabel = useCallback((opts, v) => {
+    if (!v) return { found: null, matched: null };
+    const sv = String(v);
+    let found = opts.find((o) => String(o.value) === sv);
+    if (found) return { found, matched: 'value' };
+    found = opts.find((o) => htmlToPlain(o.label).toLowerCase() === sv.toLowerCase());
+    if (found) return { found, matched: 'label' };
+    return { found: null, matched: null };
+  }, []);
 
+  // Avoid infinite onChange loops by remembering last emitted pair
+  const lastSyncRef = useRef({ value: null, label: null });
+  
   // stable emitter so callbacks can depend on it safely
   const emitChange = useCallback((val, labelText) => {
     onChange?.({
@@ -176,15 +189,32 @@ const SelectTypeInput = ({
 
   // ------------ 2) parent -> inputValue sync (ONLY here) ------------
   useEffect(() => {
-    const v = value == null ? '' : String(value);
-    if (!v) {
-      setInputValue(prev => (prev !== '' ? '' : prev));
+    const raw = value == null ? '' : String(value);
+    if (!raw) {
+      // empty value: clear input and reset guard
+      setInputValue((prev) => (prev !== '' ? '' : prev));
+      lastSyncRef.current = { value: '', label: '' };
       return;
     }
-    const found = options.find((o) => String(o.value) === v);
-    const nextLabel = found ? htmlToPlain(found.label) : v;
-    setInputValue(prev => (prev === nextLabel ? prev : nextLabel));
-  }, [value, options]);
+
+    // Try to find by value first, then by label (plain text)
+    const { found } = findOptionByValueOrLabel(options, raw);
+    // console.log("found", found)
+    // Normalize to canonical (value,label)
+    const normalizedValue = found ? String(found.value) : raw;
+    const nextLabel = found ? htmlToPlain(found.label) : raw;
+
+    // Keep what user sees in sync with normalized label
+    setInputValue((prev) => (prev === nextLabel ? prev : nextLabel));
+
+    // Emit onChange only if the normalized pair changed since last sync
+    const last = lastSyncRef.current;
+    if (last.value !== normalizedValue || last.label !== nextLabel) {
+      lastSyncRef.current = { value: normalizedValue, label: nextLabel };
+      emitChange?.(normalizedValue, nextLabel);
+      // onChange?.({ target: { name, value: normalizedValue }, label: { name, value: nextLabel } });
+    }
+  }, [value, options, findOptionByValueOrLabel, onChange, name]);
 
   // ------------ 3) validation ------------
   useEffect(() => {
@@ -436,10 +466,11 @@ const SelectTypeInput = ({
               className
             )}
             autoFocus={autoFocus}
+            tabIndex={readOnly ? -1 : 0}
           />
 
           {!loading && (
-            inputValue && !shouldShowCreateButton ? (
+            inputValue && !shouldShowCreateButton && !readOnly ? (
               <button
                 type="button"
                 aria-label="Clear selection"

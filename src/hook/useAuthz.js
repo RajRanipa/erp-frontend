@@ -10,24 +10,24 @@ const impliesFull = (allowed, perm) => {
 };
 
 export default function useAuthz() {
-  // const {  role, permissions} = useUser() || {};
-  const {  role} = useUser() || {};
-  var permissions = [
-    'company:manage',
-    'users:manage',
-    'items:read',
-    'items:full',
-    'inventory:full',
-    'settings:full',
-    'categories:full',
-    'parameters:full',
-    'producttypes:full',
-    'campaigns:full',
-    'rawmaterials:full',
-    'rawmterials:full',
-    'batches:full',
-    'parties:full',
-  ] 
+  const { role, permissions} = useUser() || {};
+  // const {  role} = useUser() || {};
+  // var permissions = [
+  //   'company:manage',
+  //   'users:manage',
+  //   'items:read',
+  //   'items:full',
+  //   'inventory:full',
+  //   'settings:full',
+  //   'categories:full',
+  //   'parameters:full',
+  //   'producttypes:full',
+  //   'campaigns:full',
+  //   'rawmaterials:full',
+  //   'rawmterials:full',
+  //   'batches:full',
+  //   'parties:full',
+  // ] 
 
   const isOwner = role === 'owner';
 

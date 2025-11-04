@@ -14,7 +14,7 @@ const CoreProductFields = React.memo(CoreProductFieldsComponent);
 const ParameterToggleBar = React.memo(ParameterToggleBarComponent);
 
 export default function ItemForm({ mode = 'create', initialData = {}, onsubmit = () => {} }) {
-  
+  // console.log('initialData', initialData);
   const router = useRouter();
   const {
     formData,
@@ -30,9 +30,8 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
   } = useProductForm({ mode, initialData });
   const [catagory, setCatagory] = useState(null);
   
-  // console.log('handleLocalChange');
   const handleLocalChange = useCallback((eOrName) => {
-  console.log('handleLocalChange', eOrName);
+  // console.log('handleLocalChange', eOrName);
 
   if (eOrName && eOrName.target) {
     const { name, value } = eOrName.target;

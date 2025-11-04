@@ -57,7 +57,7 @@ export default function Items({ children }) {
         </div>
         <div className='flex gap-2'>
           {can('items:create') && (
-            <NavLink href="/items/create" type={"button"}> Create Product </NavLink>
+            <NavLink href="/items/create" type={"button"}> Create Item </NavLink>
           )}
         </div>
       </DisplayBar>

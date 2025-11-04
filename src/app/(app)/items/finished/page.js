@@ -13,6 +13,7 @@ import DeleteButton from '@/Components/buttons/DeleteButton';
 import Table from '@/Components/layout/Table.jsx';
 import StatusActions from '../components/StatusActions';
 import Loading from '@/Components/Loading';
+import { mapPacking } from '@/utils/FGP';
 
 
 // helper used inside Row too
@@ -192,7 +193,8 @@ export default function Finished() {
                 header: 'Packing',
                 render: (r) => (
                   <NavLink href={`/items/packing`}>
-                    <div className="flex items-center gap-2">
+                  {mapPacking(r.packing)}
+                    {/* <div className="flex items-center gap-2">
                       <div>
                         {r.packing?.name || '\u2014'}{' '}
                         {r.packing?.brandType && (r.packing.brandType === 'plain' ? r.packing.brandType : '')}
@@ -200,7 +202,7 @@ export default function Finished() {
                       {r.packing?.productColor ? (
                         <div className={`px-1 ${r.packing.productColor.includes('red') ? 'text-red-400' : 'text-blue-400'}`}>{r.packing.productColor}</div>
                       ) : null}
-                    </div>
+                    </div> */}
                   </NavLink>
                 ),
               },

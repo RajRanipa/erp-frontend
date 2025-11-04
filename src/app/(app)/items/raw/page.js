@@ -112,7 +112,7 @@ export default function Raw() {
             (filteredItems && filteredItems.length === 0) ?
               <div className='flex flex-col items-center justify-center w-full p-4 gap-3'>
                 <span className="text-secondary-text">No items found.</span>
-                <NavLink href={`/items/create`} type="button">Add New Packing Material</NavLink>
+                <NavLink href={`/items/create`} type="button">Add New Raw Material</NavLink>
               </div> :
               <Table
                 columns={[

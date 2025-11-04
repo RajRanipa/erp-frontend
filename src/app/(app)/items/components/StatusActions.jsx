@@ -93,6 +93,7 @@ export default function StatusActions({ item, onStatusChange }) {
           disabled={loading}
           placeholder="Select Status"
           className={`text-sm border rounded-2xl px-2 py-1 focus:outline-none focus:ring-2 focus:ring-action ${colorClass}`}
+          parent_className="mb-0"
           options={STATUS_OPTIONS.map((s) => ({ value: s, label: s.replace('_', ' ') }))}
         />
 
