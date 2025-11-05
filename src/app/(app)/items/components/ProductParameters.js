@@ -19,7 +19,7 @@ export default function ProductParameters({
         enabledParameters["temperature"] ||
         enabledParameters["density"] ||
         enabledParameters["packing"]) &&
-        <div className='grid grid-cols-2 gap-4 mt-4'>
+        <div className='grid lg:grid-cols-2 gap-4 mt-4'>
           {enabledParameters["dimension"] &&
             <Dimension
               formData={formData}

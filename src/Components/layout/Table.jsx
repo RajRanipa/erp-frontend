@@ -1,3 +1,4 @@
+import { cn } from '@/utils/cn';
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 
 export default function Table(
@@ -95,7 +96,7 @@ export default function Table(
               </th>
             )}
             {columns.map(col => (
-              <th key={col.key} style={{width: col.width}} className="px-3 py-2 text-left text-sm font-medium text-secondary-text">
+              <th key={col.key} style={{width: col.width}} className={cn("px-3 py-2 text-left text-sm font-medium text-secondary-text", col?.className || '')}>
                 <div className="flex items-center gap-2">
                   <span onClick={()=>col.sortable && toggleSort(col.key)} className="cursor-pointer select-none">{col.header}</span>
                   {sort?.key === col.key && <span>{sort.direction==='asc'?'↑':'↓'}</span>}
@@ -111,7 +112,7 @@ export default function Table(
               <tr key={key} className={`hover:bg-white-100 ${idx%2? '': 'bg-white-100/30'}`}>
                 {selectable!=='none' && <td className="px-3 py-2 text-center"><input type="checkbox" checked={(selectedKeys||[]).includes(key)} onChange={()=>handleSelect(key)} /></td>}
                 {columns.map(col => (
-                  <td key={col.key} className="px-3 py-2 text-sm">
+                  <td key={col.key} className={cn("px-3 py-2 text-sm", col?.className || '')}>
                     {col.render ? col.render(row, idx) : row[col.key]}
                   </td>
                 ))}
@@ -124,7 +125,7 @@ export default function Table(
             <tr>
               {selectable === 'multiple' && <td></td>}
               {columns.map(col => (
-                <td key={col.key} className="px-3 py-2">
+                <td key={col.key} className={cn("px-3 py-2", col?.className || '')}>
                   {getFooter(sorted)[col.key] ?? ''}
                 </td>
               ))}

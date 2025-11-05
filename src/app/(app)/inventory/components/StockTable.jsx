@@ -105,12 +105,14 @@ export default function StockTable({
       {
         key: 'warehouse',
         header: 'Warehouse',
+        className: 'hidden lg:table-cell',
         sortable: true,
         render: (r) => r.warehouseId?.name || r.warehouseId || '—',
       },/* for mobile version i want to hide this column from tabel so it's look good on mobile */
       {
         key: 'batchNo',
         header: 'Batch',
+        className: 'hidden lg:table-cell',
         render: (r) => r.batchNo || '—',
         align: 'center',
       },
@@ -119,6 +121,7 @@ export default function StockTable({
         header: 'On Hand',
         sortable: true,
         align: 'right',
+        className: 'hidden lg:table-cell',
         render: (r) => r.onHand ?? 0,
       },
       {
@@ -126,6 +129,7 @@ export default function StockTable({
         header: 'Reserved',
         sortable: true,
         align: 'right',
+        className: 'hidden lg:table-cell',
         render: (r) => r.reserved ?? 0,
       },
       {

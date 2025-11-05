@@ -115,7 +115,7 @@ const Dialog = memo(function Dialog({
       else if (getBackFocus?.current instanceof HTMLElement) target = getBackFocus.current;
       else if (getBackFocus instanceof HTMLElement) target = getBackFocus;
     } catch { target = null; }
-    console.log('target', target)
+    // console.log('target', target)
     if (!target) target = savedActiveElementRef.current;
     if (target && document.contains(target)) {
       try { target.focus({ preventScroll: true }); } catch { }
@@ -202,7 +202,8 @@ const Dialog = memo(function Dialog({
               {onClose && <button type="button" className="btn btn-ghost flex items-center justify-center" onClick={onClose} aria-label="Close dialog">✕</button>}
             </div>
           )}
-          <div ref={childrenRef} className="p-4 space-y-3 overflow-auto h-[-webkit-fill-available]">{children}</div>
+          {/* <div ref={childrenRef} className="p-4 space-y-3 overflow-auto h-[-webkit-fill-available]">{children}</div> */}
+          <div ref={childrenRef} className="p-4 space-y-3 overflow-auto">{children}</div>
           {actions && <div className="flex justify-end gap-2 p-3 border-t border-color-100">{actions}</div>}
         </div>
       </div>

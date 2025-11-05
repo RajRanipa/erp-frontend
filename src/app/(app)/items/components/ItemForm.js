@@ -73,7 +73,7 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
   return (
     <div>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className='grid grid-cols-4 gap-4 grid-rows-[min-content]' >
+        <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 grid-rows-[min-content]' >
           {/* {(mode == 'create')&&  */}
           <SelectTypeInput
             label="Category"
@@ -103,7 +103,7 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
           {catagory && formData.category_label && <CoreProductFields formData={formData} onChange={handleLocalChange} errors={errors} />}
 
           {catagory && (formData.category_label === 'raw material'|| formData.productType) && formData.name && formData.product_unit && 
-          <div className='col-span-4 bg-white-100 p-4 rounded-lg flex flex-col items-start justify-start gap-2 shadow-sm'>
+          <div className='col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 bg-white-100 p-4 rounded-lg flex flex-col items-start justify-start gap-2 shadow-sm'>
               <h2 className="text-lg font-bold flex-1/1">Product Parameters</h2>
               <ParameterToggleBar
                   productParameters={productParameters}
