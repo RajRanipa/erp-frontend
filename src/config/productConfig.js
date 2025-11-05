@@ -75,7 +75,22 @@ const coreProductFields = [
             return cat.includes('finished') || cat.includes('packing');
         }
     },
-    { type: 'text', name: 'name', label: 'Product Name', placeholder: 'Product Name', required: true },
+    { type: 'selecttype', name: 'name', label: 'Product Name', placeholder: 'Product Name', required: true, allowCustomValue: true,
+        options: [
+            { value: "orewool blanket", label: "orewool Blanket" },
+            { value: "orewool board", label: "orewool Board" },
+            { value: "orewool bulk", label: "orewool Bulk" },
+            { value: "orewool module", label: "orewool Module" },
+            { value: "blanket strip", label: "Blanket Strip" },
+            { value: "plastic bag", label: "Plastic Bag" },
+            { value: "wovan bag", label: "Wovan Bag" },
+            { value: "corrugated box", label: "Corrugated Box" },
+            { value: "calcined alumina", label: "Calcined Alumina" },
+            { value: "silica", label: "Silica" },
+            { value: "Colloidal silica", label: "Colloidal Silica" },
+            { value: "starch", label: "Starch" },
+        ]
+    },
     {type: 'selecttype', name: 'product_unit', label: 'Product Unit', placeholder: 'Product Unit', required: true,
         options: [
             { value: "roll", label: "Roll" },

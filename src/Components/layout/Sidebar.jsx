@@ -3,9 +3,12 @@ import React from 'react';
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import NavLink from '../NavLink';
+import { cn } from '@/utils/cn';
 
 // Memoized SidebarItem component
 const SidebarItem = React.memo(function SidebarItem({
+  open,
+  setOpen,
   item,
   index,
   collapsed,
@@ -20,9 +23,10 @@ const SidebarItem = React.memo(function SidebarItem({
       href={item.href}
       className={navLinkClass}
       type="link"
+      {...( open ? {onClick: () => setOpen(false)} : {} )}
     >
       <span className="text-xl">{item.icon}</span>
-      {!collapsed && <span>{item.name}</span>}
+      {(!collapsed || open) && <span>{item.name}</span>}
       <span className={
         `${active ? activeSpanClass : inactiveSpanClass} 
         ${active ? '' : 'group-focus:w-[5px] group-focus:bg-white-400 group-hover:w-[5px] group-hover:bg-white-400'}`}></span>
@@ -30,7 +34,7 @@ const SidebarItem = React.memo(function SidebarItem({
   );
 });
 
-const Sidebar = () => {
+const Sidebar = ({ open, setOpen }) => {
   const [collapsed, setCollapsed] = useState(true);
   const pathname = usePathname();
 
@@ -56,13 +60,13 @@ const Sidebar = () => {
   // Precompute classNames for NavLink and active span
   const navLinkClass = useMemo(
     () =>
-      `group relative flex items-center gap-2 hover:text-action-hover py-1 px-3 focus:outline-none focus:text-action`,
+      `group relative flex items-center justify-start gap-2 hover:text-action-hover py-1 px-3 focus:outline-none focus:text-action`,
     []
   );
-  const navLinkClassCollapsed = useMemo(
-    () => navLinkClass + ' justify-center',
-    [navLinkClass]
-  );
+  // const navLinkClassCollapsed = useMemo(
+  //   () => navLinkClass + ' justify-center',
+  //   [navLinkClass]
+  // );
   const navLinkClassExpanded = navLinkClass + '';
   const activeSpanClass = useMemo(
     () =>
@@ -92,32 +96,63 @@ const Sidebar = () => {
     };
   }, []);
 
+  // Close on Escape (mobile)
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setOpen?.(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, setOpen]);
+
   return (
-    <aside
-      className={`${collapsed ? 'w-25' : 'w-64'} bg-primary text-primary-text max-h-full overflow-hidden p-2 transition-all duration-300`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <div
-        className={`h-full p-3 flex flex-col rounded-lg ${collapsed ? 'items-center' : 'items-start'
-          }`}
+    <>
+      
+      <aside
+        role="complementary"
+        aria-label="Sidebar"
+        aria-hidden={!open}
+        className={cn(
+          // base
+          'bg-primary text-primary-text max-h-full overflow-hidden p-[17px] pt-2 transition-all duration-300',
+          // layout: slide-in on mobile, static on desktop
+          'fixed top-12 left-0 z-40 h-screen w-64 lg:static',
+          // visibility: mobile uses `open`, desktop always visible
+          open ? 'translate-x-0' : '-translate-x-full',
+          'lg:translate-x-0',
+          // width behavior only on lg
+          collapsed ? 'lg:w-20' : 'lg:w-64',
+          'w-full',
+          // display rules so it’s hidden on mobile when closed, always block on lg
+          // open ? 'block' : 'hidden',
+          'lg:block'
+        )}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
-        <nav className="relative flex-1 space-y-2 overflow-auto h-full w-full" id="sidebar_nav">
-          {sidebarList.map((item, index) => (
-            <SidebarItem
-              key={index}
-              item={item}
-              index={index}
-              collapsed={collapsed}
-              active={activeIndex === index}
-              navLinkClass={collapsed ? navLinkClassCollapsed : navLinkClassExpanded}
-              activeSpanClass={activeSpanClass}
-              inactiveSpanClass={inactiveSpanClass}
-            />
-          ))}
-        </nav>
-      </div>
-    </aside>
+        <div
+          className={cn('h-full w-fit p-0 flex flex-col rounded-lg', collapsed ? 'lg:items-center' : 'lg:items-start')}
+        >
+          <nav className="relative flex-1 space-y-2 overflow-auto h-full w-full" id="sidebar_nav">
+            {sidebarList.map((item, index) => (
+              <SidebarItem
+                open={open}
+                setOpen={setOpen}
+                key={index}
+                item={item}
+                index={index}
+                collapsed={collapsed}
+                active={activeIndex === index}
+                navLinkClass={ navLinkClassExpanded}
+                activeSpanClass={activeSpanClass}
+                inactiveSpanClass={inactiveSpanClass}
+              />
+            ))}
+          </nav>
+        </div>
+      </aside>
+    </>
   );
 };
 

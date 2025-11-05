@@ -23,6 +23,8 @@ const CustomInput = ({
   btnContent,
   info,
   autoFocus=false,
+  min,
+  max,
 }) => {
   const [touched, setTouched] = useState(false);
   const [internalErr, setInternalErr] = useState('');
@@ -96,6 +98,7 @@ const CustomInput = ({
           tabIndex={readOnly ? -1 : undefined}
           onFocus={readOnly ? (e) => e.target.blur() : undefined}
           autoFocus={autoFocus}
+          {...(type === 'number' ? { min, max, inputMode: 'decimal' } : {})}
         />
         
   {type === 'password' && !readOnly && (

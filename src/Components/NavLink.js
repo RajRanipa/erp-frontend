@@ -3,14 +3,14 @@ import { cn } from '../utils/cn';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export default function NavLink({ href, children, activeClass, inactiveClass, className ='', type ='link' }) {
+export default function NavLink({ href, children, activeClass, inactiveClass, className ='', type ='link', onClick = () => {} }) {
   const pathname = usePathname();
   const isActive = pathname === href;
   // console.log("isActive",isActive, pathname, href)
   
   if (type && type.toLowerCase() === 'button') {
-    activeClass = "cursor-pointer px-3 py-1.5 rounded-lg text-white bg-action";
-    inactiveClass = "cursor-pointer px-3 py-1.5 rounded-lg text-secondary-text hover:text-action-hover bg-most-secondary"
+    activeClass = "btn-primary";
+    inactiveClass = "cursor-pointer px-3 py-1.5 rounded-lg text-secondary-text hover:text-action-hover bg-most-secondary "
   } else {
     activeClass = 'cursor-pointer text-action'
     inactiveClass = 'cursor-pointer text-secondary-text hover:text-action-hover'
@@ -19,7 +19,8 @@ export default function NavLink({ href, children, activeClass, inactiveClass, cl
   return (
     <Link
       href={href}
-      className={cn(`capitalize ${isActive ? activeClass : inactiveClass} ${className} `)}
+      className={cn(`capitalize text-sm md:text-base ${isActive ? activeClass : inactiveClass} ${className} `)}
+      onClick={onClick}
     >
       {children}
     </Link>

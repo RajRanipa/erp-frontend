@@ -13,7 +13,7 @@ import DeleteButton from '@/Components/buttons/DeleteButton';
 import Table from '@/Components/layout/Table.jsx';
 import StatusActions from '../components/StatusActions';
 import Loading from '@/Components/Loading';
-import { mapPacking } from '@/utils/FGP';
+import { mapDimension, mapPacking, mapTemperature } from '@/utils/FGP';
 
 
 // helper used inside Row too
@@ -173,13 +173,13 @@ export default function Finished() {
                 key: 'temperature',
                 header: 'Temperature',
                 sortable: true,
-                render: (r) => (r?.temperature?.value ? `${r.temperature.value} ${r.temperature?.unit || ''}` : '—'),
+                render: (r) => (mapTemperature(r?.temperature) ?? '—'),
                 align: 'center',
               },
               {
                 key: 'dimension',
                 header: 'Dimension',
-                render: (r) => (r?.dimension?.value ?? '—'),
+                render: (r) => (mapDimension(r?.dimension) ?? '—'),
                 align: 'center',
               },
               {
@@ -194,15 +194,6 @@ export default function Finished() {
                 render: (r) => (
                   <NavLink href={`/items/packing`}>
                   {mapPacking(r.packing)}
-                    {/* <div className="flex items-center gap-2">
-                      <div>
-                        {r.packing?.name || '\u2014'}{' '}
-                        {r.packing?.brandType && (r.packing.brandType === 'plain' ? r.packing.brandType : '')}
-                      </div>
-                      {r.packing?.productColor ? (
-                        <div className={`px-1 ${r.packing.productColor.includes('red') ? 'text-red-400' : 'text-blue-400'}`}>{r.packing.productColor}</div>
-                      ) : null}
-                    </div> */}
                   </NavLink>
                 ),
               },

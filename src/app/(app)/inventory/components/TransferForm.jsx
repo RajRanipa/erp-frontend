@@ -9,8 +9,12 @@ import ItemSelect from './ItemSelect';
 import WarehouseSelect from './WarehouseSelect';
 import CustomInput from '@/Components/inputs/CustomInput';
 import TextArea from '@/Components/inputs/TextArea';
+import StockItemSelect from './StockItemSelect';
 
-export default function TransferForm({ onSuccess }) {
+export default function TransferForm({
+  onSuccess,
+  warehouses = [],
+}) {
   const [form, setForm] = useState({
     itemId: '',
     fromWarehouseId: '',
@@ -92,7 +96,7 @@ export default function TransferForm({ onSuccess }) {
         </button>
       </div>
 
-      <ItemSelect
+      <StockItemSelect
         value={form.itemId}
         onChange={(v) => handleChange({ itemId: v })}
         required
@@ -105,16 +109,18 @@ export default function TransferForm({ onSuccess }) {
           value={form.fromWarehouseId}
           onChange={(v) => handleChange({ fromWarehouseId: v })}
           required
+          options={warehouses.map(w => ({ value: String(w._id), label: w.name }))}
         />
         <WarehouseSelect
           label="To Warehouse"
           value={form.toWarehouseId}
           onChange={(v) => handleChange({ toWarehouseId: v })}
           required
+          options={warehouses.map(w => ({ value: String(w._id), label: w.name }))}
         />
       </div>
       {sameWarehouse && (
-        <p className="text-xs text-red-500 mb-1">
+        <p className="text-xs text-red-400 mb-1">
           From and To warehouse cannot be the same.
         </p>
       )}

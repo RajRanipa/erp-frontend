@@ -26,4 +26,14 @@ const mapDimension = (dm) => {
   if (parts.length === 0) return '';
   return `${parts.join(' × ')}${unit}`.trim();
 };
-export { mapPacking , mapDimension };
+
+const mapTemperature = (tp) => {
+  const value = tp?.value || null;
+  const unit = tp?.unit ? ` ${tp.unit}` : '';
+  const classList = value > 1400 ? 'text-red-400' : value > 1200 ? 'text-blue-400' : 'text-green-400';
+  <span className={classList}>{`${value} ${unit}`}</span>
+  return <span className={classList}>{`${value} ${unit}`}</span>
+};
+
+
+export { mapPacking , mapDimension , mapTemperature };

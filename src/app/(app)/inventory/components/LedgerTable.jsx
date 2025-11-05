@@ -1,8 +1,6 @@
 'use client';
 // frontend-erp/src/app/(app)/inventory/components/LedgerTable.jsx
-import { useEffect, useMemo, useState } from 'react';
-import { axiosInstance } from '@/lib/axiosInstance';
-import { Toast } from '@/Components/toast';
+import { useMemo } from 'react';
 import SelectInput from '@/Components/inputs/SelectInput';
 import Table from '@/Components/layout/Table';
 import { mapDimension, mapPacking } from '@/utils/FGP';
@@ -16,138 +14,65 @@ const TYPE_BADGE = {
   REPACK: 'bg-purple-100 text-purple-700',
 };
 
-export default function LedgerTable({ filters: controlledFilters, onFiltersChange }) {
-  // data
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [limit, setLimit] = useState(200);
-
-  // local filters (used only when parent didn't provide controlled filters)
-  const [localFilters, setLocalFilters] = useState({
-    itemId: '',
-    warehouseId: '',
-    batchNo: '',
-    uom: '',
-    productType: '',
-    query: '',
-    txnType: '',
-  });
-
-  // decide source of truth
-  const filters = controlledFilters || localFilters;
-  const setFilters = onFiltersChange || setLocalFilters;
-
-  // local UI states derived from filters
-  const [q, setQ] = useState('');
-  const [pt, setPt] = useState('');
-  const [txn, setTxn] = useState('');
-
-  // whenever parent changes filters, sync but ONLY fields that were actually sent
-  useEffect(() => {
-    if (!filters) return;
-    setQ((prev) =>
-      filters.query !== undefined ? (filters.query || '') : prev
-    );
-    setPt((prev) =>
-      filters.productType !== undefined ? filters.productType : prev
-    );
-    setTxn((prev) =>
-      filters.txnType !== undefined ? (filters.txnType || '') : prev
-    );
-  }, [filters]);
-
-  // fetch ledger data
-  const fetchLedger = async (currentLimit = limit) => {
-    setLoading(true);
-    setError('');
-    try {
-      const res = await axiosInstance.get(`/api/inventory/ledger?limit=${currentLimit}`);
-      const list = Array.isArray(res?.data?.data) ? res.data.data : [];
-      setRows(list);
-    } catch (e) {
-      const msg = e?.response?.data?.message || 'Failed to load movements';
-      setError(msg);
-      Toast.error(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // initial load
-  useEffect(() => {
-    fetchLedger(limit);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // refetch when limit changes
-  useEffect(() => {
-    fetchLedger(limit);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [limit]);
+/**
+ * LedgerTable (pure presentational)
+ *
+ * Props:
+ * - rows: InventoryLedger[] (already fetched by parent)
+ * - loading?: boolean
+ * - error?: string
+ * - filters?: { query?: string, productType?: string, txnType?: string }
+ * - limit?: number
+ * - onLimitChange?: (n:number) => void
+ * - onRefresh?: () => void
+ */
+export default function LedgerTable({
+  rows = [],
+  loading = false,
+  error = '',
+  filters = {},
+  limit = 200,
+  onLimitChange,
+  onRefresh,
+}) {
+  const q = filters.query || '';
+  const pt = filters.productType || '';
+  const txn = filters.txnType || '';
 
   // filtered rows based on q, productType, txnType
   const filteredRows = useMemo(() => {
-    // normalize
     const needle = (q || '').toLowerCase().trim();
     const ptId = pt ? String(pt) : '';
-    const activeTxn =
-      txn && txn.toLowerCase() !== 'all types'
-        ? txn.toLowerCase().trim()
-        : '';
+    const activeTxn = txn && txn.toLowerCase() !== 'all types' ? txn.toLowerCase().trim() : '';
 
-    // console.log("needle :- ", needle, "ptId :- ", ptId, "activeTxn :- ", activeTxn)
     if (!needle && !ptId && !activeTxn) return rows;
 
     const str = (v) => (v == null ? '' : String(v)).toLowerCase();
 
     return rows.filter((r) => {
       const item = r.itemId || {};
-
-      // txn type on row
       const txnTypeStr = str(r?.txnType);
-
-      // productType can be on row or nested under item
       const rowPt = String(r?.productType || item?.productType || '');
 
-      // temperature
-      const tempStr = item?.temperature
-        ? `${item.temperature?.value ?? ''} ${item.temperature?.unit ?? ''}`
-        : '';
-      // density
-      const denStr = item?.density
-        ? `${item.density?.value ?? ''} ${item.density?.unit ?? ''}`
-        : '';
-      // dimension / size
+      const tempStr = item?.temperature ? `${item.temperature?.value ?? ''} ${item.temperature?.unit ?? ''}` : '';
+      const denStr = item?.density ? `${item.density?.value ?? ''} ${item.density?.unit ?? ''}` : '';
       const dimStr = item?.dimension ? mapDimension(item.dimension) : '';
-      // packing
       const pack = item?.packing || {};
-      const packStr = [
-        pack?.name,
-        pack?.brandType,
-        pack?.productColor,
-        pack?.product_unit || pack?.unit,
-      ]
+      const packStr = [pack?.name, pack?.brandType, pack?.productColor, pack?.product_unit || pack?.unit]
         .filter(Boolean)
         .join(' ');
-
       const nameStr = item?.name || '';
 
-      const haystack = [tempStr, denStr, dimStr, packStr, nameStr]
-        .map(str)
-        .join(' | ');
+      const haystack = [tempStr, denStr, dimStr, packStr, nameStr].map(str).join(' | ');
 
-      // individual matches
       const matchQ = !needle || haystack.includes(needle);
       const matchPt = !ptId || rowPt === ptId;
       const matchTxn = !activeTxn || txnTypeStr === activeTxn;
 
-      // AND all active filters
       return matchQ && matchPt && matchTxn;
     });
   }, [rows, q, pt, txn]);
 
-  // columns
   const columns = useMemo(
     () => [
       {
@@ -161,11 +86,7 @@ export default function LedgerTable({ filters: controlledFilters, onFiltersChang
         header: 'Type',
         sortable: true,
         render: (r) => (
-          <span
-            className={`px-2 py-0.5 rounded text-xs ${
-              TYPE_BADGE[r.txnType] || 'bg-gray-100 text-gray-700'
-            }`}
-          >
+          <span className={`px-2 py-0.5 rounded text-xs ${TYPE_BADGE[r.txnType] || 'bg-gray-100 text-gray-700'}`}>
             {r.txnType}
           </span>
         ),
@@ -181,16 +102,8 @@ export default function LedgerTable({ filters: controlledFilters, onFiltersChang
         sortable: true,
         render: (r) =>
           r.itemId?.temperature ? (
-            <span
-              className={`${
-                r.itemId?.temperature?.value > 1400
-                  ? 'text-red-400'
-                  : 'text-blue-400'
-              }`}
-            >
-              {r.itemId?.temperature?.value +
-                ' ' +
-                r.itemId?.temperature?.unit}
+            <span className={`${r.itemId?.temperature?.value > 1400 ? 'text-red-400' : 'text-blue-400'}`}>
+              {r.itemId?.temperature?.value + ' ' + r.itemId?.temperature?.unit}
             </span>
           ) : (
             '—'
@@ -200,24 +113,19 @@ export default function LedgerTable({ filters: controlledFilters, onFiltersChang
         key: 'density',
         header: 'Density',
         sortable: true,
-        render: (r) =>
-          r.itemId?.density
-            ? r.itemId?.density?.value + ' ' + r.itemId?.density?.unit
-            : '—',
+        render: (r) => (r.itemId?.density ? r.itemId?.density?.value + ' ' + r.itemId?.density?.unit : '—'),
       },
       {
         key: 'dimension',
         header: 'Dimension',
         sortable: true,
-        render: (r) =>
-          r.itemId?.dimension ? mapDimension(r.itemId?.dimension) : '—',
+        render: (r) => (r.itemId?.dimension ? mapDimension(r.itemId?.dimension) : '—'),
       },
       {
         key: 'packing',
         header: 'packing',
         sortable: true,
-        render: (r) =>
-          r.itemId?.packing ? mapPacking(r.itemId?.packing) : '—',
+        render: (r) => (r.itemId?.packing ? mapPacking(r.itemId?.packing) : '—'),
       },
       {
         key: 'warehouse',
@@ -247,11 +155,8 @@ export default function LedgerTable({ filters: controlledFilters, onFiltersChang
         key: 'ref',
         header: 'Ref',
         render: (r) => (
-          <div
-            className="truncate max-w-[220px]"
-            title={`${r.refType || ''} ${r.refId || ''}`.trim()}
-          >
-            {(r.refType || '—')} {r.refId || ''}
+          <div className="truncate max-w-[220px]" title={`${r.refType || ''} ${r.refId || ''}`.trim()}>
+            {r.refType || '—'} {r.refId || ''}
           </div>
         ),
       },
@@ -270,9 +175,7 @@ export default function LedgerTable({ filters: controlledFilters, onFiltersChang
       <div className="px-3 py-2 border-b border-color-200 bg-white-100 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-2">
           <span className="font-medium">Stock Movements</span>
-          <span className="text-xs text-white-500">
-            ({filteredRows.length} shown)
-          </span>
+          <span className="text-xs text-white-500">({filteredRows.length} shown)</span>
         </div>
 
         <div className="flex gap-2 items-center">
@@ -280,22 +183,16 @@ export default function LedgerTable({ filters: controlledFilters, onFiltersChang
             key={'limit'}
             name="limit"
             value={limit || 50}
-            onChange={(e) => setLimit(Number(e.target.value))}
-            options={[50, 100, 200, 500].map((n) => ({
-              value: n,
-              label: n,
-            }))}
+            onChange={(e) => onLimitChange?.(Number(e.target.value))}
+            options={[50, 100, 200, 500].map((n) => ({ value: n, label: n }))}
             className="px-2 py-1 text-sm min-w-[70px]"
             parent_className="mb-0"
           />
-          <button
-            className="text-sm underline"
-            onClick={() => fetchLedger(limit)}
-            disabled={loading}
-            title="Refresh"
-          >
-            {loading ? 'Loading…' : 'Refresh'}
-          </button>
+          {onRefresh && (
+            <button className="text-sm underline" onClick={onRefresh} disabled={loading} title="Refresh">
+              {loading ? 'Loading…' : 'Refresh'}
+            </button>
+          )}
         </div>
       </div>
 

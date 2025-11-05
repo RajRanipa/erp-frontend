@@ -12,8 +12,8 @@
   --most: var(--color-neutral-100);
   --mos-t: var(--color-neutral-700);
 
-  --most-secondary: var(--color-white);
-  --most-secondary-t: var(--color-black);
+  --most-secondary: rgba(255, 255, 255, 1);
+  --most-secondary-t: rgba(2, 2, 2, 1);
 
   --action: var(--color-blue-700);
   --action-hover: var(--color-blue-800);
@@ -22,7 +22,7 @@
   --border-200: var(--color-gray-300);
   --border-300: var(--color-gray-200);
 
-  --white-100: rgba(0, 0, 0, 0.1);
+  --white-100: rgba(0, 0, 0, 0.05);
   --white-200: rgba(0, 0, 0, 0.2);
   --white-300: rgba(0, 0, 0, 0.3);
   --white-400: rgba(0, 0, 0, 0.4);
@@ -31,6 +31,7 @@
   --white-700: rgba(0, 0, 0, 0.7);
   --white-800: rgba(0, 0, 0, 0.8);
   --white-900: rgba(0, 0, 0, 0.9);
+  --white: rgba(0, 0, 0, 1);
 
   --black-100: rgba(255, 255, 255, 0.1);
   --black-200: rgba(255, 255, 255, 0.2);
@@ -41,7 +42,9 @@
   --black-700: rgba(255, 255, 255, 0.7);
   --black-800: rgba(255, 255, 255, 0.8);
   --black-900: rgba(255, 255, 255, 0.9);
+  --black: rgba(255, 255, 255, 1);
 
+  --color-l-loading:rgba(0, 0, 0, 0.05);
   --error: var(--color-red-600);
   --scrollbar-thumb:rgba(0, 0, 0, 0.2);
 }
@@ -75,6 +78,7 @@
     --black-700: rgba(0, 0, 0, 0.7);
     --black-800: rgba(0, 0, 0, 0.8);
     --black-900: rgba(0, 0, 0, 0.9);
+    --black: rgba(0, 0, 0, 1);
 
     --white-100: rgba(255, 255, 255, 0.1);
     --white-200: rgba(255, 255, 255, 0.2);
@@ -85,7 +89,9 @@
     --white-700: rgba(255, 255, 255, 0.7);
     --white-800: rgba(255, 255, 255, 0.8);
     --white-900: rgba(255, 255, 255, 0.9);
-
+    --white: rgba(255, 255, 255, 1);
+    
+    --color-l-loading:rgba(255, 255, 255, 0.07);
     --error: var(--color-red-400);
     --scrollbar-thumb:rgba(255, 255, 255, 0.2);
   }
@@ -119,6 +125,7 @@
   --color-black-700: var(--black-700);
   --color-black-800: var(--black-800);
   --color-black-900: var(--black-900);
+  --color-black: var(--black);
 
   --color-white-100: var(--white-100);
   --color-white-200: var(--white-200);
@@ -129,7 +136,9 @@
   --color-white-700: var(--white-700);
   --color-white-800: var(--white-800);
   --color-white-900: var(--white-900);
+  --color-white: var(--white);
 
+  --color-loading: var(--color-l-loading);
   --color-error: var(--error);
   --color-scrollbar-thumb:var(--scrollbar-thumb)
 }
@@ -170,7 +179,10 @@ input:-webkit-autofill:hover {
 }
 
 .btn-primary {
-  @apply  bg-action text-white hover:bg-action-hover;
+  @apply  bg-action text-[#fff] hover:bg-action-hover;
+}
+.btn-submit {
+  @apply  bg-teal-600 text-[#fff] hover:bg-action-hover;
 }
 
 .btn-secondary {
@@ -182,7 +194,7 @@ input:-webkit-autofill:hover {
 }
 
 .btn-secondary-active {
-  @apply  transition-colors duration-150 bg-sky-600 text-white;
+  @apply  transition-colors duration-150 bg-sky-600 text-[#fff];
 }
 
 .btn-ghost {
@@ -228,6 +240,7 @@ button {
   cursor: pointer;
 }
 
-button:hover, [class *= btn-]:hover {
+button:hover:not([disabled]), 
+[class *= btn-]:hover:not([disabled]) {
   cursor: pointer;
 }

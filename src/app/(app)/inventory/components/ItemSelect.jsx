@@ -134,6 +134,7 @@ export default function ItemSelect({
         dropdownHeight={"max-h-60"}
         onFocus={onFocus}
         readOnly={readOnly}
+        inputLoading={loading}
       />}
       {/* <SelectTypeInput
         inputRef={densitySelectRef}

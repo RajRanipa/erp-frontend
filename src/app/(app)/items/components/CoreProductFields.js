@@ -47,6 +47,7 @@ const CoreProductFields = ({ formData, onChange, errors }) => {
                   options={field.options}
                   apiget={field?.apiget}
                   apipost={field?.apipost}
+                  allowCustomValue={field?.allowCustomValue || false}
                 />
               </div>
             );

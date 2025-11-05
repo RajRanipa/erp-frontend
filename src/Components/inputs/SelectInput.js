@@ -2,6 +2,7 @@
 "use client";
 import { cn } from "../../utils/cn";
 import React, { useState, forwardRef } from "react";
+import Loading from "../Loading";
 
 // SelectInput: Styled select input matching CustomInput styles
 const SelectInput = forwardRef(
@@ -17,6 +18,7 @@ const SelectInput = forwardRef(
       parent_className = "",
       id,
       placeholder,
+      loading,
       ...rest
     },
     ref
@@ -51,43 +53,45 @@ const SelectInput = forwardRef(
 
     return (
       <div className={cn(`mb-5 w-auto`, parent_className)}>
-        {label && (
-          <label
-            htmlFor={id || name}
-            className="block mb-1 text-sm font-medium text-primary-text"
-          >
-            {label}
-            {required && <span className="text-error ml-1">*</span>}
-          </label>
-        )}
-        <select
-          id={id || name}
-          name={name}
-          ref={ref}
-          value={value}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required={required}
-          className={cn(finalInputClass)}
-          aria-invalid={!!error}
-          {...rest}
-        >
-          {placeholder && (
-            <option value="" disabled className="text-gray-400"> {/* this was hidden before */}
-              {placeholder}
-            </option>
+        {loading ? <Loading variant='skeleton' className='h-9' /> : <>
+          {label && (
+            <label
+              htmlFor={id || name}
+              className="block mb-1 text-sm font-medium text-primary-text"
+            >
+              {label}
+              {required && <span className="text-error ml-1">*</span>}
+            </label>
           )}
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        {error && (
-          <p className="mt-1 text-sm text-error" role="alert">
-            {error}
-          </p>
-        )}
+          <select
+            id={id || name}
+            name={name}
+            ref={ref}
+            value={value}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required={required}
+            className={cn(finalInputClass)}
+            aria-invalid={!!error}
+            {...rest}
+          >
+            {placeholder && (
+              <option value="" disabled className="text-gray-400"> {/* this was hidden before */}
+                {placeholder}
+              </option>
+            )}
+            {options.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          {error && (
+            <p className="mt-1 text-sm text-error" role="alert">
+              {error}
+            </p>
+          )}
+        </>}
       </div>
     );
   }

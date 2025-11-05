@@ -9,7 +9,10 @@ import CustomInput from '@/Components/inputs/CustomInput';
 import TextArea from '@/Components/inputs/TextArea';
 import StockItemSelect from './StockItemSelect';
 
-export default function PackingChangeForm({ onSuccess }) {
+export default function PackingChangeForm({
+    onSuccess,
+    warehouses = [],
+}) {
     const [form, setForm] = useState({
         fromItemId: '',
         toItemId: '',
@@ -26,10 +29,10 @@ export default function PackingChangeForm({ onSuccess }) {
     const [itemForm, setItemForm] = useState(false);
     const [fromMeta, setFromMeta] = useState(null);
     const [toMeta, setToMeta] = useState(null);
-
+    const [error, setError] = useState(false);
 
     const sameItem = form.fromItemId && form.toItemId && form.fromItemId === form.toItemId;
-    console.log('form.fromItemId', form.fromItemId);
+
     // console.log('form.toItemId', form.toItemId);
     const qtyNumber = useMemo(() => {
         const n = Number(form.qty);
@@ -37,6 +40,10 @@ export default function PackingChangeForm({ onSuccess }) {
     }, [form.qty]);
 
     const isQtyValid = Number.isFinite(qtyNumber) && qtyNumber > 0;
+
+    useEffect(() => {
+        if (form.qty) setError(!isQtyValid);
+    }, [isQtyValid, form.qty, qtyNumber])
 
     const isValid = Boolean(
         form.fromItemId &&
@@ -56,22 +63,23 @@ export default function PackingChangeForm({ onSuccess }) {
         if (isFromChange && itemObj) {
             const derived = {};
             if (itemObj.temperature?._id) derived.temperature = itemObj.temperature._id;
-            if (itemObj.density?._id)     derived.density     = itemObj.density._id;
-            if (itemObj.dimension?._id)   derived.dimension   = itemObj.dimension._id;
-            if (itemObj?.productType)     derived.productType = itemObj.productType;
+            if (itemObj.density?._id) derived.density = itemObj.density._id;
+            if (itemObj.dimension?._id) derived.dimension = itemObj.dimension._id;
+            if (itemObj?.productType) derived.productType = itemObj.productType;
 
             setItemParams(prev => {
                 const base = Array.isArray(prev)
-                  ? (prev[0] || initialParam)
-                  : (prev || initialParam);
+                    ? (prev[0] || initialParam)
+                    : (prev || initialParam);
                 const next0 = { ...initialParam, ...base, ...derived };
-                return [ next0 ];
+                return [next0];
             });
             // Enable the "To Item" select once a valid from item is chosen
             console.log('itemForm', itemForm);
             setItemForm(true);
         }
-
+        console.log('itemForm', itemForm, form.fromItemId);
+        if (form.fromItemId) setItemForm(true);
         setForm((f) => ({ ...f, ...patch }));
         console.log('itemParams --> ', itemParams);
     };
@@ -147,7 +155,7 @@ export default function PackingChangeForm({ onSuccess }) {
             <div className="grid md:grid-cols-2 gap-3 py-2">
                 <div>
                     <StockItemSelect
-                        name = "fromItemId"
+                        name="fromItemId"
                         label="From Item (current packing)"
                         value={form.fromItemId}
                         onChange={(v, i) => handleChange({ fromItemId: v }, i)}
@@ -159,7 +167,7 @@ export default function PackingChangeForm({ onSuccess }) {
                 </div>
                 <div>
                     {itemForm && <StockItemSelect
-                        name = "toItemId"
+                        name="toItemId"
                         label="To Item (target packing)"
                         value={form.toItemId}
                         onChange={(v, i) => handleChange({ toItemId: v }, i)}
@@ -194,6 +202,7 @@ export default function PackingChangeForm({ onSuccess }) {
                     required
                     label="Warehouse"
                     disabled={loading}
+                    options={warehouses.map(w => ({ value: String(w._id), label: w.name }))}
                 />
                 <CustomInput
                     label="UOM"
@@ -216,6 +225,7 @@ export default function PackingChangeForm({ onSuccess }) {
                     required
                     placeholder="quantity > 0"
                     disabled={loading}
+                    err={error && 'Invalid quantity'}
                 />
                 <CustomInput
                     label="Batch"

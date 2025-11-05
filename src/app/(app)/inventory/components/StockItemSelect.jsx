@@ -86,7 +86,7 @@ export default function StockItemSelect({
 
   const options = useMemo(() => {
     return (items || []).map((it) => ({
-      value: it._id || it.id,
+      value: it?.itemId._id || it?.itemId.id,
       label: formateLabel(it),
     }));
   }, [items]);
@@ -137,21 +137,8 @@ export default function StockItemSelect({
         dropdownHeight={"max-h-60"}
         onFocus={onFocus}
         readOnly={readOnly}
+        inputLoading={loading}
       />}
-      {/* <SelectTypeInput
-        inputRef={densitySelectRef}
-        name="density"
-        label="Density"
-        placeholder="e.g 96"
-        buttonName="Add New Density"
-        value={formData.density}
-        onChange={onChange}
-        apiget="/api/densities"
-        apiparams="by-id"
-        params={params}
-        callBack={handleOpen}
-        required
-      /> */}
     </div>
   );
 }

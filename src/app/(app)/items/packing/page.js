@@ -13,6 +13,7 @@ import Table from '@/Components/layout/Table';
 import StatusActions from '../components/StatusActions';
 import NavLink from '@/Components/NavLink';
 import Loading from '@/Components/Loading';
+import { mapDimension } from '@/utils/FGP';
 
 export default function Packing() {
 
@@ -133,7 +134,7 @@ export default function Packing() {
                   },
                   { key: 'product_unit', header: 'Unit', render: r => r.product_unit || '\u2014' },
                   { key: 'minimumStock', header: 'Minimum Stock', render: r => r.minimumStock ?? '\u2014' },
-                  { key: 'dimension', header: 'Dimension', render: r => r?.dimension?.value || '\u2014' },
+                  { key: 'dimension', header: 'Dimension', render: r => mapDimension(r?.dimension) || '\u2014' },
                   { key: 'description', header: 'Description', render: r => r.description || '\u2014' },
                   { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
                   {

@@ -39,7 +39,7 @@ export default function Temperature({ formData, onChange, className = '' }) {
 
   return (
     <div className={cn(`w-full flex items-start justify-start gap-2 ${className}`)}>
-      <SelectTypeInput
+      {!open && <SelectTypeInput
         inputRef={temperatureSelectRef}
         name="temperature"
         label="Temperature"
@@ -52,7 +52,7 @@ export default function Temperature({ formData, onChange, className = '' }) {
         params={params}
         callBack={handleOpen}
         required
-      />
+      />}
 
       {/* {open && */}
         <TemperatureDialog

@@ -21,10 +21,8 @@ export default function Dimension({ formData, onChange, className = '' }) {
   const handleSaved = useCallback((doc) => {
     // doc may contain _id or value
     const newVal = doc?._id ? String(doc._id) : (doc?.value || '');
-    // onChange?.({ target: { name: 'dimension', value: newVal } });
-    console.log("newVal", newVal);
+    onChange?.({ target: { name: 'dimension', value: newVal } });
     // formData.dimension = newVal;
-    // formData.save();
     setOpen(false);
   }, [onChange]);
 
@@ -39,21 +37,7 @@ export default function Dimension({ formData, onChange, className = '' }) {
   return (
     <div className={cn(`w-full flex items-start justify-start gap-2 ${className}`)}>
 
-      {open ? <SelectTypeInput
-        name="dimension"
-        label="Dimension"
-        placeholder="1000 × 500 × 50"
-        buttonName="Add New Dimension"
-        value={formData.dimension}
-        onChange={onChange}
-        apiget="/api/dimensions"
-        apiparams="by-id"
-        params={dparams}
-        callBack={handleOpen}
-        readOnly
-        required
-        inputRef={dimenstionRef}
-      /> : <SelectTypeInput
+      {!open && <SelectTypeInput
         name="dimension"
         label="Dimension"
         placeholder="1000 × 500 × 50"

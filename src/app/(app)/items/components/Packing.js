@@ -54,7 +54,7 @@ export default function Packing({ formData, onChange, className = '' }) {
 
   return (
     <div className={cn(`w-full flex items-start justify-start gap-2 ${className}`)}>
-      <SelectTypeInput
+      {!open && <SelectTypeInput
         inputRef={packingSelectRef}
         name="packing"
         label="Packing"
@@ -67,7 +67,8 @@ export default function Packing({ formData, onChange, className = '' }) {
         params={params}
         callBack={handleOpen}
         required
-      />
+        dropdownHeight={"max-h-60"}
+      />}
 
       {/* <PackingDialog
         open={open}

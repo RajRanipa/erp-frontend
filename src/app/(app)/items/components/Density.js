@@ -38,7 +38,7 @@ export default function Density({ formData, onChange, className = '' }) {
 
   return (
     <div className={cn(`w-full flex items-start justify-start gap-2 ${className}`)}>
-      <SelectTypeInput
+      {!open && <SelectTypeInput
         inputRef={densitySelectRef}
         name="density"
         label="Density"
@@ -51,7 +51,7 @@ export default function Density({ formData, onChange, className = '' }) {
         params={params}
         callBack={handleOpen}
         required
-      />
+      />}
 
       {/* {open &&  */}
       <DensityDialog

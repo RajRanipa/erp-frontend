@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { cn } from '../../utils/cn';
 import { axiosInstance } from '@/lib/axiosInstance';
+import Loading from '../Loading';
 
 // -------------- helpers --------------
 const normalizeOption = (item) => {
@@ -96,13 +97,14 @@ const SelectTypeInput = ({
   err,
   onFocus,
   autoFocus = false,
+  inputLoading,
 }) => {
   // local UI only
   const [inputValue, setInputValue] = useState('');   // what user sees
   const [options, setOptions] = useState(() => normalizeArray(optionsProp || []));
   const [showOptions, setShowOptions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(inputLoading || false);
   const [fetching, setFetching] = useState(false);
   const [created, setCreated] = useState(false);
   const [info, setInfo] = useState('');
@@ -127,7 +129,7 @@ const SelectTypeInput = ({
 
   // Avoid infinite onChange loops by remembering last emitted pair
   const lastSyncRef = useRef({ value: null, label: null });
-  
+
   // stable emitter so callbacks can depend on it safely
   const emitChange = useCallback((val, labelText) => {
     onChange?.({
@@ -429,130 +431,132 @@ const SelectTypeInput = ({
 
   return (
     <div ref={rootRef} className={cn(`mb-5 w-full relative ${parent_className}`)}>
-      {label ? (
-        <label
-          htmlFor={name}
-          className="block text-sm font-medium text-primary-text mb-1"
-        >
-          {label} {required && <span className="text-error ml-1">*</span>}
-        </label>
-      ) : null}
+      {loading ? <Loading variant='skeleton' className='h-9' /> : <>
+        {label ? (
+          <label
+            htmlFor={name}
+            className="block text-sm font-medium text-primary-text mb-1"
+          >
+            {label} {required && <span className="text-error ml-1">*</span>}
+          </label>
+        ) : null}
 
-      <div className="flex items-center gap-2">
-        <div className="flex-1 relative">
-          <input
-            id={id || name}
-            name={name}
-            type={type}
-            value={inputValue}
-            placeholder={loading ? 'Saving...' : placeholder}
-            onChange={handleChange}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            readOnly={readOnly}
-            ref={inputRef}
-            autoComplete="off"
-            disabled={loading}
-            aria-invalid={!!displayErr}
-            aria-describedby={errorId}
-            className={cn(
-              `block w-full px-3 py-2 border sm:text-sm rounded-lg shadow-sm placeholder-white-400 focus:outline-none focus:ring-2`,
-              displayErr
-                ? 'border-error focus:ring-error focus:border-error'
-                : 'border-white-100 focus:ring-blue-500 focus:border-blue-500',
-              readOnly ? 'bg-black-200 pointer-events-none' : '',
-              loading ? 'bg-gray-100 text-gray-400' : '',
-              className
-            )}
-            autoFocus={autoFocus}
-            tabIndex={readOnly ? -1 : 0}
-          />
+        <div className="flex items-center gap-2">
+          <div className="flex-1 relative">
+            <input
+              id={id || name}
+              name={name}
+              type={type}
+              value={inputValue}
+              placeholder={loading ? 'Saving...' : placeholder}
+              onChange={handleChange}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+              readOnly={readOnly}
+              ref={inputRef}
+              autoComplete="off"
+              disabled={loading}
+              aria-invalid={!!displayErr}
+              aria-describedby={errorId}
+              className={cn(
+                `block w-full px-3 py-2 border sm:text-sm rounded-lg shadow-sm placeholder-white-400 focus:outline-none focus:ring-2`,
+                displayErr
+                  ? 'border-error focus:ring-error focus:border-error'
+                  : 'border-white-100 focus:ring-blue-500 focus:border-blue-500',
+                readOnly ? 'bg-black-200 pointer-events-none' : '',
+                loading ? 'bg-gray-100 text-gray-400' : '',
+                className
+              )}
+              autoFocus={autoFocus}
+              tabIndex={readOnly ? -1 : 0}
+            />
 
-          {!loading && (
-            inputValue && !shouldShowCreateButton && !readOnly ? (
-              <button
-                type="button"
-                aria-label="Clear selection"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-md text-white-300 scale-90 hover:text-white-700 w-[20px] h-[20px] flex justify-center items-center"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={clearSelection}
-                ref={clearBtnRef}
-                tabIndex={0}
-              >
-                ✕
-              </button>
-            ) : (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 scale-75 pointer-events-none w-[20px] h-[20px] flex justify-center items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5"
+            {!loading && (
+              inputValue && !shouldShowCreateButton && !readOnly ? (
+                <button
+                  type="button"
+                  aria-label="Clear selection"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-md text-white-300 scale-90 hover:text-white-700 w-[20px] h-[20px] flex justify-center items-center"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={clearSelection}
+                  ref={clearBtnRef}
+                  tabIndex={0}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                </svg>
-              </span>
-            )
+                  ✕
+                </button>
+              ) : (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 scale-75 pointer-events-none w-[20px] h-[20px] flex justify-center items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </span>
+              )
+            )}
+          </div>
+
+          {shouldShowCreateButton && (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={handleCreateAndSave}
+              onMouseDown={(e) => e.preventDefault()}
+              onBlur={handleBlur}
+              disabled={loading}
+            // tabIndex={0}
+            >
+              {loading ? 'Saving...' : buttonName || 'Create & Save'}
+            </button>
           )}
         </div>
 
-        {shouldShowCreateButton && (
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={handleCreateAndSave}
-            onMouseDown={(e) => e.preventDefault()}
-            onBlur={handleBlur}
-            disabled={loading}
-            // tabIndex={0}
-          >
-            {loading ? 'Saving...' : buttonName || 'Create & Save'}
-          </button>
-        )}
-      </div>
-
-      {showOptions && filteredOptions.length > 0 && (
-        <div className="absolute z-30 rounded-lg w-full" ref={dropdownRef}>
-          <div
-            className={cn(
-              'mb-5 mt-1 bg-black-400 border border-white-300 overflow-hidden shadow-lg rounded-lg backdrop-blur-2xl',
-              dropdownHeight
-            )}
-          >
-            <ul className={cn('overflow-y-auto w-full p-1.5', dropdownHeight)}>
-              {filteredOptions.map((opt, idx) => (
-                <li
-                  key={idx}
-                  ref={(el) => {
-                    listItemRefs.current[idx] = el;
-                  }}
-                  className={cn(
-                    'px-3 py-2 cursor-pointer text-sm rounded-lg',
-                    idx === highlightedIndex ? 'bg-white-100' : ''
-                  )}
-                  onMouseDown={() => handleSelect(opt)}
-                  onMouseEnter={() => setHighlightedIndex(idx)}
-                  dangerouslySetInnerHTML={{ __html: opt.label }}
-                />
-              ))}
-            </ul>
+        {showOptions && filteredOptions.length > 0 && (
+          <div className="absolute z-30 rounded-lg w-full" ref={dropdownRef}>
+            <div
+              className={cn(
+                'mb-5 mt-1 bg-black-200 border border-white-100 overflow-hidden shadow-lg rounded-lg backdrop-blur-2xl',
+                dropdownHeight
+              )}
+            >
+              <ul className={cn('overflow-y-auto w-full p-1.5', dropdownHeight)}>
+                {filteredOptions.map((opt, idx) => (
+                  <li
+                    key={idx}
+                    ref={(el) => {
+                      listItemRefs.current[idx] = el;
+                    }}
+                    className={cn(
+                      'px-3 py-2 cursor-pointer text-sm rounded-lg',
+                      idx === highlightedIndex ? 'bg-white-100' : ''
+                    )}
+                    onMouseDown={() => handleSelect(opt)}
+                    onMouseEnter={() => setHighlightedIndex(idx)}
+                    dangerouslySetInnerHTML={{ __html: opt.label }}
+                  />
+                ))}
+              </ul>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {displayErr && (
-        <p id={errorId} className="mt-1 text-sm text-error absolute">
-          {displayErr}
-        </p>
-      )}
-      {!displayErr && info && (
-        <p className="mt-1 text-xs text-primary-text absolute px-2 lowercase">
-          {info}
-        </p>
-      )}
+        {displayErr && (
+          <p id={errorId} className="mt-1 text-sm text-error absolute">
+            {displayErr}
+          </p>
+        )}
+        {!displayErr && info && (
+          <p className="mt-1 text-xs text-primary-text absolute px-2 lowercase">
+            {info}
+          </p>
+        )}
+        </>}
     </div>
   );
 };

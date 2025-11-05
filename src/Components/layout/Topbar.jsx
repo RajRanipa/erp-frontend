@@ -3,8 +3,9 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useUser } from "@/context/UserContext";
+import { cn } from '@/utils/cn';
 
-const Topbar = () => {
+const Topbar = ({ setOpen = () => {}, open, className = '' }) => {
   const { userName, companyName } = useUser() || {};
     // let userName = "John Doe";
     // let companyName = "ABC Company";
@@ -25,8 +26,19 @@ const Topbar = () => {
   }, [ companyName]);
 
   return (
-    <header className="min-h-16 min-w-screen bg-primary z-10 flex items-center px-6 justify-between top-0">
+    <header className={cn("min-h-12 min-w-screen bg-primary z-10 flex items-center px-2 lg:px-5 justify-between top-0", className)}>
+      <div className='flex items-center gap-3'>
+      <button
+        className={cn(' scale-75 btn-ghost flex items-center justify-center')}
+        onClick={() => setOpen(prev => !prev)}
+        aria-pressed={!!open}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
+        </svg>
+      </button>
       <h1 className="text-lg font-medium text-primary-text hover:bg-actionHover capitalize">{cName}</h1>
+      </div>
       <div className="flex items-center gap-4">
         {/* Notification icon, user avatar, etc */}
         <span>🔔</span>

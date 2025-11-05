@@ -62,7 +62,7 @@ export function Skeleton({
           position: absolute;
           inset: 0;
           transform: translateX(-100%);
-          background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.08) 50%, rgba(255,255,255,0) 100%);
+          background: linear-gradient(90deg, rgba(255,255,255,0) 0%, var(--color-loading) 50%, rgba(255,255,255,0) 100%);
           animation: shimmer 1.2s infinite;
         }
       `}</style>
@@ -71,6 +71,7 @@ export function Skeleton({
 }
 
 /**
+ * background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.08) 50%, rgba(255,255,255,0) 100%);
  * Loading – one component to cover spinner, overlay, and skeleton states.
  *
  * Props:
