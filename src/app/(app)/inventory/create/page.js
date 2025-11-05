@@ -56,7 +56,7 @@ export default function AddInventory() {
 
                     {!loading && hasWarehouse && (
                         <>
-                            {activeTab && can('inventory:receive') && (
+                            {(activeTab === 'RECEIPT' || activeTab === 'ISSUE' || activeTab === 'ADJUST') && can('inventory:receive') && (
                                 <MovementForm
                                     mode={activeTab}
                                     defaultWarehouseId={defaultWarehouseId}

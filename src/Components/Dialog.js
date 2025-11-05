@@ -199,7 +199,7 @@ const Dialog = memo(function Dialog({
           {(title || onClose) && (
             <div className="flex items-center justify-between gap-2 p-3 border-b border-color-100">
               {typeof title === 'string' ? <h3 className="text-lg font-semibold capitalize">{title}</h3> : title}
-              {onClose && <button type="button" className="btn btn-ghost" onClick={onClose} aria-label="Close dialog">✕</button>}
+              {onClose && <button type="button" className="btn btn-ghost flex items-center justify-center" onClick={onClose} aria-label="Close dialog">✕</button>}
             </div>
           )}
           <div ref={childrenRef} className="p-4 space-y-3 overflow-auto h-[-webkit-fill-available]">{children}</div>

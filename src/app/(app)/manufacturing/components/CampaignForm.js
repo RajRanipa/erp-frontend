@@ -56,20 +56,23 @@ export default function CampaignForm({
             startDate: normalizeDate(initialValues?.startDate),
             endDate: normalizeDate(initialValues?.endDate),
         };
-        setFormData(prev => {
-            const same =
-                prev?.name === (next.name ?? '') &&
-                prev?.startDate === (next.startDate ?? '') &&
-                prev?.endDate === (next.endDate ?? '') &&
-                prev?.status === (next.status ?? '') &&
-                (prev?.remarks ?? '') === (next.remarks ?? '');
-            return same ? prev : next;
-        });
-        // Reset UI state only when inputs actually changed
-        setErrors({});
-        setTouched({});
-        setResetKey(k => k + 1);
-    }, [initKey, initialValues]);
+
+        // Compare against current state; bail if no effective changes
+        const changed = !(
+            (formData?.name ?? '') === (next.name ?? '') &&
+            (formData?.startDate ?? '') === (next.startDate ?? '') &&
+            (formData?.endDate ?? '') === (next.endDate ?? '') &&
+            (formData?.status ?? '') === (next.status ?? '') &&
+            ((formData?.remarks ?? '') === (next.remarks ?? ''))
+        );
+
+        if (changed) {
+            setFormData(next);
+            setErrors({});
+            setTouched({});
+            setResetKey(k => k + 1);
+        }
+    }, [initKey]);
 
     const validate = (values) => {
         const e = {};

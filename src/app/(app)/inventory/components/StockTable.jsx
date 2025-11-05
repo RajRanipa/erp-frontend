@@ -107,7 +107,7 @@ export default function StockTable({
         header: 'Warehouse',
         sortable: true,
         render: (r) => r.warehouseId?.name || r.warehouseId || '—',
-      },
+      },/* for mobile version i want to hide this column from tabel so it's look good on mobile */
       {
         key: 'batchNo',
         header: 'Batch',

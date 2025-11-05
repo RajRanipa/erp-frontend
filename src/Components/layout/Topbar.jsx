@@ -5,7 +5,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useUser } from "@/context/UserContext";
 import { cn } from '@/utils/cn';
 
-const Topbar = ({ setOpen = () => {}, open, className = '' }) => {
+const Topbar = ({ setOpen = () => {}, open }) => {
   const { userName, companyName } = useUser() || {};
     // let userName = "John Doe";
     // let companyName = "ABC Company";
@@ -26,12 +26,11 @@ const Topbar = ({ setOpen = () => {}, open, className = '' }) => {
   }, [ companyName]);
 
   return (
-    <header className={cn("min-h-12 min-w-screen bg-primary z-10 flex items-center px-2 lg:px-5 justify-between top-0", className)}>
+    <header className="min-h-12 min-w-screen bg-primary z-10 flex items-center px-2 lg:px-5 justify-between top-0">
       <div className='flex items-center gap-3'>
-      <button
-        className={cn(' scale-75 btn-ghost flex items-center justify-center')}
+      <button 
+        className={cn('lg:hidden btn-ghost flex items-center justify-center')} 
         onClick={() => setOpen(prev => !prev)}
-        aria-pressed={!!open}
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />

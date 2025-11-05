@@ -160,7 +160,7 @@ export default function WizardShell({ formData, setupProgress = {}, serverProgre
                 type="button"
                 onClick={goBack}
                 disabled={activeIndex === 0 || saving}
-                className="btn-ghost disabled:opacity-50"
+                className="btn-ghost disabled:opacity-50 flex items-center justify-center"
                 aria-label="Back"
                 title="Back"
               >

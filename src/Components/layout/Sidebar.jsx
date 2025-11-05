@@ -112,27 +112,30 @@ const Sidebar = ({ open, setOpen }) => {
       <aside
         role="complementary"
         aria-label="Sidebar"
-        aria-hidden={!open}
         className={cn(
           // base
-          'bg-primary text-primary-text max-h-full overflow-hidden p-[17px] pt-2 transition-all duration-300',
+          'lg:bg-primary text-primary-text max-h-full overflow-hidden lg:p-[17px] lg:pt-2 transition-all lg:duration-300 duration-200 ',
           // layout: slide-in on mobile, static on desktop
-          'fixed top-12 left-0 z-40 h-screen w-64 lg:static',
+          'fixed top-12 left-0 z-40 h-screen w-full lg:static bg-black-100/10 backdrop-blur-md',
           // visibility: mobile uses `open`, desktop always visible
-          open ? 'translate-x-0' : '-translate-x-full',
+          open ? 'backdrop-blur-xs' : 'backdrop-blur-[0px] z-0',
           'lg:translate-x-0',
           // width behavior only on lg
           collapsed ? 'lg:w-20' : 'lg:w-64',
-          'w-full',
           // display rules so it’s hidden on mobile when closed, always block on lg
           // open ? 'block' : 'hidden',
           'lg:block'
         )}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        {...( open ? {onClick: () => setOpen(false)} : {} )}
       >
         <div
-          className={cn('h-full w-fit p-0 flex flex-col rounded-lg', collapsed ? 'lg:items-center' : 'lg:items-start')}
+          className={cn(
+            'h-full w-56 lg:w-fit p-0 flex bg-primary flex-col rounded-r-lg lg:rounded-lg transition-all duration-300 lg:translate-x-0', 
+            collapsed ? 'lg:items-center' : 'lg:items-start',
+            open ? 'translate-x-0' : '-translate-x-full',
+            )}
         >
           <nav className="relative flex-1 space-y-2 overflow-auto h-full w-full" id="sidebar_nav">
             {sidebarList.map((item, index) => (
