@@ -98,6 +98,7 @@ const SelectTypeInput = ({
   onFocus,
   autoFocus = false,
   inputLoading,
+  icon,
 }) => {
   // local UI only
   const [inputValue, setInputValue] = useState('');   // what user sees
@@ -441,12 +442,18 @@ const SelectTypeInput = ({
           </label>
         ) : null}
 
-        <div className="flex items-center gap-2">
-          <div className="flex-1 relative">
+        <div className="relative flex items-center gap-2">
+        {icon && (
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white-300">
+            {icon}
+          </div>
+        )}
+          {/* <div className="flex-1 relative"> */}
             <input
               id={id || name}
               name={name}
               type={type}
+              required={required}
               value={inputValue}
               placeholder={loading ? 'Saving...' : placeholder}
               onChange={handleChange}
@@ -460,7 +467,8 @@ const SelectTypeInput = ({
               aria-invalid={!!displayErr}
               aria-describedby={errorId}
               className={cn(
-                `block w-full px-3 py-2 border sm:text-sm rounded-lg shadow-sm placeholder-white-400 focus:outline-none focus:ring-2`,
+                `block w-full px-3 py-2 border sm:text-sm rounded-lg shadow-sm placeholder-white-400 focus:outline-none focus:ring-2
+                ${icon ? 'pl-10' : ''}`,
                 displayErr
                   ? 'border-error focus:ring-error focus:border-error'
                   : 'border-white-100 focus:ring-blue-500 focus:border-blue-500',
@@ -500,7 +508,7 @@ const SelectTypeInput = ({
                 </span>
               )
             )}
-          </div>
+          {/* </div> */}
 
           {shouldShowCreateButton && (
             <button

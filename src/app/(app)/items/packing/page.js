@@ -14,6 +14,7 @@ import StatusActions from '../components/StatusActions';
 import NavLink from '@/Components/NavLink';
 import Loading from '@/Components/Loading';
 import { mapDimension } from '@/utils/FGP';
+import { searchIcon } from '@/utils/SVG';
 
 export default function Packing() {
 
@@ -107,18 +108,21 @@ export default function Packing() {
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-h2 font-semibold mb-5">Packing Material</h1>
             <div className="flex gap-2 items-center flex-[0_1_30%] relative">
-              {loading ? <Loading variant='skeleton' /> : (filteredItems && filteredItems.length > 0) &&<CustomInput
+              {loading ? <Loading variant='skeleton' className='h-9'/> : 
+              (items && items.length > 0) &&
+              <CustomInput
                 name="search_items"
                 placeholder="Search by name size"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                icon={searchIcon()}
               />}
             </div>
           </div>
           {loading && <Loading variant='skeleton' className='h-full'/>}
           {error && <p>Error: {error}</p>}
           {!loading && !error && (
-            (filteredItems && filteredItems.length === 0) ?
+            (items && items.length === 0) ?
               <div className='flex flex-col items-center justify-center w-full p-4 gap-3'>
                 <span className="text-secondary-text">No items found.</span>
                 <NavLink href={`/items/create`} type="button">Add New Packing Material</NavLink>

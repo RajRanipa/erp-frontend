@@ -14,6 +14,7 @@ import useAuthz from '@/hook/useAuthz';
 import StatusActions from '../components/StatusActions';
 import NavLink from '@/Components/NavLink';
 import Loading from '@/Components/Loading';
+import { searchIcon } from '@/utils/SVG';
 
 export default function Raw() {
 
@@ -94,22 +95,25 @@ export default function Raw() {
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-h2 font-semibold mb-5">Raw Materials</h1>
             <div className="flex gap-2 items-center flex-[0_1_30%]">
-              {loading ? <Loading variant='skeleton' /> : (filteredItems && filteredItems.length > 0) && <CustomInput
-                name="search_items"
-                placeholder="Search name / grade / unit"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />}
+              {loading ? <Loading variant='skeleton' className='h-9' /> :
+                (items && items.length > 0) &&
+                <CustomInput
+                  name="search_items"
+                  placeholder="Search name / grade / unit"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  icon={searchIcon()}
+                />}
             </div>
           </div>
 
-          {loading && <Loading variant='skeleton' className='h-full'/>}
+          {loading && <Loading variant='skeleton' className='h-full' />}
           {error && <p>Error: {error}</p>}
           {/* { can('items:status:update') && (
             
           )} */}
           {!loading && !error && (
-            (filteredItems && filteredItems.length === 0) ?
+            (items && items.length === 0) ?
               <div className='flex flex-col items-center justify-center w-full p-4 gap-3'>
                 <span className="text-secondary-text">No items found.</span>
                 <NavLink href={`/items/create`} type="button">Add New Raw Material</NavLink>

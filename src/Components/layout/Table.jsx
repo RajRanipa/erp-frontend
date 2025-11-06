@@ -2,22 +2,22 @@ import { cn } from '@/utils/cn';
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 
 export default function Table(
-    { 
-        columns, 
-        data, 
-        rowKey = r=>r.id, 
-        selectable='none', 
-        selectedKeys, 
-        onSelectionChange, 
-        sortable=true, 
-        sortBy: controlledSort, 
-        onSortChange, 
-        loading, 
-        emptyMessage='No rows', 
-        className='', 
-        getFooter,
-        pageSize: propPageSize // <-- added prop
-    }) {
+  {
+    columns,
+    data,
+    rowKey = r => r.id,
+    selectable = 'none',
+    selectedKeys,
+    onSelectionChange,
+    sortable = true,
+    sortBy: controlledSort,
+    onSortChange,
+    loading,
+    emptyMessage = 'No rows',
+    className = '',
+    getFooter,
+    pageSize: propPageSize // <-- added prop
+  }) {
   /** @type {{key: string, direction: 'asc'|'desc'} | null} */
   const [localSort, setLocalSort] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,12 +26,12 @@ export default function Table(
   // console.log("columns", columns);
   const sorted = useMemo(() => {
     if (!sort) return data;
-    const col = columns.find(c=>c.key===sort.key);
+    const col = columns.find(c => c.key === sort.key);
     if (!col) return data;
-    return [...data].sort((a,b)=>{
+    return [...data].sort((a, b) => {
       const av = a[sort.key], bv = b[sort.key];
-      if (av==null) return 1;
-      if (bv==null) return -1;
+      if (av == null) return 1;
+      if (bv == null) return -1;
       if (av === bv) return 0;
       return sort.direction === 'asc' ? (av > bv ? 1 : -1) : (av > bv ? -1 : 1);
     });
@@ -73,7 +73,7 @@ export default function Table(
   };
 
   if (loading) return <div className="p-4">Loading…</div>;
-  if (!sorted || sorted.length === 0) return <div className="p-4 text-sm text-muted">{emptyMessage}</div>;
+  // if (!sorted || sorted.length === 0) return <div className="p-4 text-sm text-muted">{emptyMessage}</div>;
 
   return (
     <div className={`table-wrapper rounded-lg border border-white-100 overflow-x-auto overflow-y-hidden ${className}`}>
@@ -96,10 +96,10 @@ export default function Table(
               </th>
             )}
             {columns.map(col => (
-              <th key={col.key} style={{width: col.width}} className={cn("px-3 py-2 text-left text-sm font-medium text-secondary-text", col?.className || '')}>
+              <th key={col.key} style={{ width: col.width }} className={cn("px-3 py-2 text-left text-sm font-medium text-secondary-text", col?.className || '')}>
                 <div className="flex items-center gap-2">
-                  <span onClick={()=>col.sortable && toggleSort(col.key)} className="cursor-pointer select-none">{col.header}</span>
-                  {sort?.key === col.key && <span>{sort.direction==='asc'?'↑':'↓'}</span>}
+                  <span onClick={() => col.sortable && toggleSort(col.key)} className="cursor-pointer select-none">{col.header}</span>
+                  {sort?.key === col.key && <span>{sort.direction === 'asc' ? '↑' : '↓'}</span>}
                 </div>
               </th>
             ))}
@@ -109,8 +109,8 @@ export default function Table(
           {paginatedRows.map((row, idx) => {
             const key = rowKey(row);
             return (
-              <tr key={key} className={`hover:bg-white-100 ${idx%2? '': 'bg-white-100/30'}`}>
-                {selectable!=='none' && <td className="px-3 py-2 text-center"><input type="checkbox" checked={(selectedKeys||[]).includes(key)} onChange={()=>handleSelect(key)} /></td>}
+              <tr key={key} className={`hover:bg-white-100 ${idx % 2 ? '' : 'bg-white-100/30'}`}>
+                {selectable !== 'none' && <td className="px-3 py-2 text-center"><input type="checkbox" checked={(selectedKeys || []).includes(key)} onChange={() => handleSelect(key)} /></td>}
                 {columns.map(col => (
                   <td key={col.key} className={cn("px-3 py-2 text-sm", col?.className || '')}>
                     {col.render ? col.render(row, idx) : row[col.key]}
@@ -119,6 +119,12 @@ export default function Table(
               </tr>
             );
           })}
+          {(!sorted || sorted.length === 0) &&
+            <tr>
+              <td className="p-4 text-sm text-muted text-center" colSpan={columns.length + (selectable !== 'none' ? 1 : 0)}>
+                {emptyMessage}
+              </td>
+            </tr>}
         </tbody>
         {getFooter && (
           <tfoot className="bg-white-200 font-semibold sticky bottom-0">
@@ -145,7 +151,7 @@ export default function Table(
             }}
             className="border rounded px-1 py-0.5"
           >
-            {[5,10,15,20,50,100].map(n => <option key={n} value={n}>{n}</option>)}
+            {[5, 10, 15, 20, 50, 100].map(n => <option key={n} value={n}>{n}</option>)}
           </select>
         </div>
 

@@ -7,6 +7,8 @@ import { useActiveCampaign } from "./ActiveCampaignProvider";
 import { axiosInstance } from "@/lib/axiosInstance";
 import { Toast } from "@/Components/toast";
 import { useRouter, usePathname } from "next/navigation";
+import EditButton from "@/Components/buttons/EditButton";
+import DeleteButton from "@/Components/buttons/DeleteButton";
 
 const formatDMY = (d) => {
     if (!d) return '';
@@ -123,30 +125,8 @@ export default function ProductionDashboard({ children }) {
                                         <p>End: {formatDMY(c.endDate)}</p>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleEdit(c._id)}
-                                            className="inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 cursor-pointer"
-                                            aria-label="Edit campaign"
-                                            title="Edit"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-5 w-5">
-                                                <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M16.862 3.487a2.25 2.25 0 113.182 3.182L8.25 18.463 3 19.5l1.037-5.25L16.862 3.487z" />
-                                                <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M15.75 4.5l3.75 3.75" />
-                                            </svg>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={(e) => handleDelete(c._id, c.name, e.currentTarget)}
-                                            className="inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-red-100 text-error focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-error cursor-pointer"
-                                            aria-label="Delete campaign"
-                                            title="Delete"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-5 w-5">
-                                                <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M9 7v10m6-10v10M4 7h16l-1 13a2 2 0 01-2 2H7a2 2 0 01-2-2L4 7z" />
-                                                <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M9 4h6a1 1 0 011 1v2H8V5a1 1 0 011-1z" />
-                                            </svg>
-                                        </button>
+                                        <EditButton itemName="Campaign" onClick={() => handleEdit(c._id)}/>
+                                        <DeleteButton itemName="Campaign" onClick={(e) => handleDelete(c._id, c.name, e.currentTarget)} />
                                     </div>
                                 </div>
                             </div>

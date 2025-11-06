@@ -108,7 +108,6 @@ const Sidebar = ({ open, setOpen }) => {
 
   return (
     <>
-      
       <aside
         role="complementary"
         aria-label="Sidebar"

@@ -5,6 +5,7 @@ import NavLink from '@/Components/NavLink';
 import { ActiveCampaignProvider, useActiveCampaign } from './ActiveCampaignProvider';
 import { NavListProvider, useNavList } from './NavListContext';
 import React, { useState, useEffect, useRef } from 'react';
+import { downArrow } from '@/utils/SVG';
 
 // The sticky bar content that reads from context
 const NavList = [
@@ -60,9 +61,9 @@ function ManufacturingBar() {
                             onClick={() => setShowDropdown((prev) => !prev)}
                             type="button"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-6 h-6 transform transition-transform duration-300 ${showDropdown ? 'rotate-180' : ''}`}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                            </svg>
+                            <span className={`transform transition-transform duration-300 text-xl`}>
+                                {downArrow()}
+                            </span>
                         </button>}
                         {showDropdown && campaignList.length>0 && (
                             <div className="absolute right-0 mt-2 w-56 border border-color-100 rounded-lg shadow-lg z-20 bg-black-300 text-secondary-text backdrop-blur-sm ">

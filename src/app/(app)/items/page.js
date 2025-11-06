@@ -7,29 +7,16 @@ import NavLink from '@/Components/NavLink';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from "@/Components/toast";
 import useAuthz from '@/hook/useAuthz';
+import { addIcon } from '@/utils/SVG';
+import Loading from '@/Components/Loading';
 export default function Items({ children }) {
   
   const { can } = useAuthz();
-  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
     
   useEffect(() => {
-        const fetchItems = async () => {
-            console.log("fetchItems called");
-            try {
-                const response = await axiosInstance.get('/api/items')
-                // console.log("response", response);
-                setItems(response.data);
-                setLoading(false);
-            } catch (error) {
-                setError(error.message);
-                setLoading(false);
-                Toast.error("Failed to fetch campaign");
-            }
-        };
-        // fetchItems();
-    }, []);
+        if (can('items:create')) setLoading(false);
+    }, [can]);
     
   return (
     <>
@@ -55,10 +42,12 @@ export default function Items({ children }) {
             Packing Material
           </NavLink>
         </div>
-        <div className='flex gap-2'>
+        <div className='flex gap-2 relative'>
+          {loading && <Loading variant='skeleton' className='h-7 min-w-[140px]'/>}
           {can('items:create') && (
-            <NavLink href="/items/create" type={"button"}> Create Item </NavLink>
-          )}
+            <NavLink href="/items/create" type={"button"}><span className='flex items-center gap-2'> {addIcon()} Create Item </span></NavLink>
+          ) 
+          }
         </div>
       </DisplayBar>
       <DisplayMain>

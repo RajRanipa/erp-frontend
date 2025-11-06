@@ -14,6 +14,7 @@ import Table from '@/Components/layout/Table.jsx';
 import StatusActions from '../components/StatusActions';
 import Loading from '@/Components/Loading';
 import { mapDimension, mapPacking, mapTemperature } from '@/utils/FGP';
+import { searchIcon } from '@/utils/SVG';
 
 
 // helper used inside Row too
@@ -137,7 +138,7 @@ export default function Finished() {
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-h2 font-semibold mb-5">Finished Goods</h1>
           <div className="flex gap-2 items-center flex-[0_1_30%] relative">
-            {loading ? <Loading variant='skeleton' /> : ((rows && rows.length > 0) && <>
+            {loading ? <Loading variant='skeleton' className='h-9' /> : ((items && items.length > 0) && <>
               <SelectInput
                 name="product_type"
                 value={productTypeFilter}
@@ -151,13 +152,14 @@ export default function Finished() {
                 onChange={e => setQ(e.target.value)}
                 value={q}
                 className="w-full"
+                icon={searchIcon()}
               />
             </>)}
           </div>
         </div>
         {/* <Loading variant='skeleton' className='h-full' /> */}
         {loading ? <Loading variant='skeleton' className='h-full' /> : error ? <div className="p-4 text-red-500">{error}</div> : (
-          (rows && rows.length === 0) ?
+          (items && items.length === 0) ?
             <div className='flex flex-col items-center justify-center w-full p-4 gap-3'>
               <span className="text-secondary-text">No items found.</span>
               <NavLink href={`/items/create`} type="button">Add new Finished Good</NavLink>

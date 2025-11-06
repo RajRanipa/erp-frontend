@@ -29,6 +29,7 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
     paramRequirements,
   } = useProductForm({ mode, initialData });
   const [catagory, setCatagory] = useState(null);
+  const [loading, setLoading] = useState(false);
   
   const handleLocalChange = useCallback((eOrName) => {
   // console.log('handleLocalChange', eOrName);
@@ -53,6 +54,7 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setLoading(true);
     try {
       const doc = await submit(mode);
       console.log('doc', doc);
@@ -67,6 +69,8 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
       }
     } catch (err) {
       // errors already handled in hook
+    } finally {
+      setLoading(false);
     }
   }, [submit, mode, router, onsubmit]);
 
@@ -119,14 +123,15 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
               />
           </div>}
         </div>
-        <button
-          type="submit"
-          className="btn btn-primary mt-4"
-        >
-          {mode === 'create' ? 'Save Product' : 'Update Product'}
-        </button>
+        <SubmitButton 
+          loading={loading} 
+          label={mode === 'create' ? 'Save Product' : 'Update Product'} 
+          className='mt-4'
+        />
+
       </form>
     </div>
   );
 }
 import { productParameters } from '../../../../config/productConfig';
+import SubmitButton from '@/Components/buttons/SubmitButton';

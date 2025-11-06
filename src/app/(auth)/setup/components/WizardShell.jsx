@@ -10,6 +10,7 @@ import Step4Currency from './Step4Currency';
 import Step5Logo from './Step5Logo';
 import Step6Modules from './Step6Modules';
 import Step7Review from './Step7Review';
+import { leftArrow, rightArrow } from '@/utils/SVG.jsx';
 
 const COMPONENTS = {
   companyBasics: Step1CompanyInfo,
@@ -164,15 +165,7 @@ export default function WizardShell({ formData, setupProgress = {}, serverProgre
                 aria-label="Back"
                 title="Back"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none" viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-6 h-6 transition-all duration-300 group-hover:-translate-x-1"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                </svg>
+                <span className='text-lg transition-all duration-300 group-hover:-translate-x-1'>{leftArrow()}</span>
               </button>
               {/* Tooltip */}
               <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 text-[11px] rounded px-2 py-1 bg-gray-900 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow">
@@ -188,16 +181,7 @@ export default function WizardShell({ formData, setupProgress = {}, serverProgre
                 aria-label="Next"
                 title="Next"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-6 h-6 transition-all duration-300 group-hover:-translate-x-1"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                </svg>
+                <span className='text-lg transition-all duration-300 group-hover:-translate-x-1'>{rightArrow()}</span>
               </button>
               {/* Tooltip */}
               <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 text-[11px] rounded px-2 py-1 bg-gray-900 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow">

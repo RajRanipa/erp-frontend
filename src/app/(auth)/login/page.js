@@ -9,6 +9,7 @@ import { useCheckAuth } from '@/utils/checkAuth';
 const LoginContent = () => {
   // const redirectTo =  '/dashboard';
   const [form, setForm] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { setUserContext } = useUser();
   const { checkAuth } = useCheckAuth();
@@ -72,8 +73,9 @@ const LoginContent = () => {
         <button
           type="submit"
           className="btn-primary w-full my-3"
+          disabled={loading}
         >
-          Login
+          {loading ? 'Logging in...' : 'Login'}
         </button>
 
         <p className="text-center text-sm text-secondary-text mt-4">

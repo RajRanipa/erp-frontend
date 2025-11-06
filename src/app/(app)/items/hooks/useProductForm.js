@@ -4,7 +4,53 @@ import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { productParameters } from '../../../../config/productConfig';
 // import { formReducer } from '../../(app)/items/components/formReducer';
+
 import { Toast } from '@/Components/toast';
+
+// --- simple client-side validators ---
+function isBlank(v) {
+  return v == null || (typeof v === 'string' && v.trim() === '');
+}
+
+function validate(localFormData, enabledParams) {
+  const errs = {};
+
+  // Base required fields (adjust as needed)
+  if (isBlank(localFormData.category)) errs.category = 'Category is required';
+  if (isBlank(localFormData.name)) errs.name = 'Name is required';
+  if (isBlank(localFormData.product_unit)) errs.product_unit = 'Unit is required';
+
+  // Numeric checks
+  if (!isBlank(localFormData.minimumStock) && Number.isNaN(Number(localFormData.minimumStock))) {
+    errs.minimumStock = 'Minimum stock must be a number';
+  }
+  if (!isBlank(localFormData.currentStock) && Number.isNaN(Number(localFormData.currentStock))) {
+    errs.currentStock = 'Current stock must be a number';
+  }
+
+  // Parameter-driven checks based on your productParameters config
+  (productParameters || []).forEach((param) => {
+    if (!enabledParams[param.key]) return;
+
+    const fields = Array.isArray(param.fields) ? param.fields : [];
+    fields.forEach((f) => {
+      const fname = typeof f === 'string' ? f : f?.name;
+      if (!fname) return;
+      if (isBlank(localFormData[fname])) {
+        errs[fname] = 'Required';
+      }
+    });
+
+    if (param.unitName && isBlank(localFormData[param.unitName])) {
+      errs[param.unitName] = 'Required';
+    }
+    if (param.uniqueName && isBlank(localFormData[param.uniqueName])) {
+      errs[param.uniqueName] = 'Required';
+    }
+  });
+
+  return errs;
+}
 
 // --- formReducer logic (inlined from formReducer.js) ---
 const formReducer = (state, action) => {
@@ -203,26 +249,39 @@ export default function useProductForm({ mode = 'create', initialData = {} } = {
     }
 
     const submit = useCallback(async (modeArg = mode, id) => {
-        try {
-            setErrors({});
-            const payload = transformFormData(formData, enabledParameters);
-            if (modeArg === 'create') {
-                const res = await axiosInstance.post('/api/items', payload);
-                Toast.success(res?.data?.message );
-                return res?.data?.data || res?.data;
-            } else {
-                const docId = id || formData._id;
-                if (!docId) throw new Error('Missing id for update');
-                const res = await axiosInstance.put(`/api/items/${docId}`, payload);
-                Toast.success(res?.data?.message || 'Updated',{ duration: 4000, autoClose: true, placement: "top-center", animation: "top-bottom" });
-                return res?.data?.data || res?.data;
-            }
-        } catch (err) {
-            console.error('submit error', err);
-            if (err?.response?.data?.errors) setErrors(err.response.data.errors);
-            Toast.error(err?.response?.data?.message || err.message || 'Failed');
-            throw err;
+      try {
+        setErrors({});
+
+        // Run client-side validation first
+        const clientErrors = validate(formData, enabledParameters);
+        if (Object.keys(clientErrors).length) {
+          setErrors(clientErrors);
+          Toast.error('Please fix the highlighted fields');
+          throw new Error('Client validation failed');
         }
+
+        const payload = transformFormData(formData, enabledParameters);
+        // console.log('submit payload:', payload);
+
+        if (modeArg === 'create') {
+          const res = await axiosInstance.post('/api/items', payload);
+          Toast.success(res?.data?.message);
+          return res?.data?.data || res?.data;
+        } else {
+          const docId = id || formData._id;
+          if (!docId) throw new Error('Missing id for update');
+          const res = await axiosInstance.put(`/api/items/${docId}`, payload);
+          Toast.success(res?.data?.message || 'Updated');
+          return res?.data?.data || res?.data;
+        }
+      } catch (err) {
+        console.error('submit error', err);
+        if (err?.response?.data?.errors) setErrors(err.response.data.errors);
+        if (!String(err.message || '').includes('Client validation failed')) {
+          Toast.error(err?.response?.data?.message || err.message || 'Failed');
+        }
+        throw err;
+      }
     }, [formData, enabledParameters, mode]);
 
     const remove = useCallback(async (id) => {

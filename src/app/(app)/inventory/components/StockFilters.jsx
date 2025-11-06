@@ -2,6 +2,7 @@
 // src/app/(app)/inventory/components/StockFilters.jsx
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import CustomInput from '@/Components/inputs/CustomInput';
+import { filter1Icon, filter2Icon, searchIcon} from '@/utils/SVG';
 
 /**
  * StockFilters (fully controlled)
@@ -90,6 +91,7 @@ export default function StockFilters({
             value={filters.productType}
             onChange={handleProductTypeChange}
             apiget="/api/product-type"
+            icon={filter1Icon()}
           />
 
           {/* Txn type (optional) */}
@@ -101,6 +103,7 @@ export default function StockFilters({
               onChange={handleTxnTypeChange}
               options={txnTypeOptions}
               className="min-w-[120px]"
+              icon={filter2Icon()}
             />
           )}
 
@@ -112,6 +115,7 @@ export default function StockFilters({
             placeholder="Search: temp / density / size / packing"
             value={filters.query}
             onChange={handleQueryChange}
+            icon={searchIcon()}
           />
         </div>
       </div>

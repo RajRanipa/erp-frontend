@@ -9,8 +9,8 @@ export default function NavLink({ href, children, activeClass, inactiveClass, cl
   // console.log("isActive",isActive, pathname, href)
   
   if (type && type.toLowerCase() === 'button') {
-    activeClass = "btn-primary";
-    inactiveClass = "cursor-pointer px-3 py-1.5 rounded-lg text-secondary-text hover:text-action-hover bg-most-secondary "
+    activeClass = "cursor-pointer px-3 py-0.5 rounded-md text-[#fff] bg-action";
+    inactiveClass = "cursor-pointer px-3 py-0.5 rounded-md text-secondary-text hover:bg-primary bg-most-secondary"
   } else {
     activeClass = 'cursor-pointer text-action'
     inactiveClass = 'cursor-pointer text-secondary-text hover:text-action-hover'
