@@ -6,6 +6,7 @@ import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
 import SubmitButton from '@/Components/buttons/SubmitButton';
+import RoleSelect from './RoleSelect';
 
 const roleOptions = [
   { value: 'staff', label: 'Staff' },
@@ -45,12 +46,17 @@ export default function InviteForm({ onInvited }) {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
-      <SelectTypeInput
+      {/* <SelectTypeInput
         label="Role"
         name="role"
         value={role}
         options={roleOptions}
         onChange={(e) => setRole(e?.target?.value || 'staff')}
+      /> */}
+      <RoleSelect
+        label="Role"
+        value={role}
+        onChange={(e) => setRole(e?.target?.value)}
       />
       <SubmitButton label="Invite" loading={submitting} disabled={submitting} className='mb-5'/>
     </form>

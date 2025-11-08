@@ -42,10 +42,10 @@ const TextArea = forwardRef(({
           required={required}
           ref={ref}
           rows={rows}
-          className={cn(`block w-full rounded-lg border shadow-sm px-3 py-2 text-most-text focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm resize-y
+          className={cn(`block w-full rounded-lg border shadow-sm px-3 py-2 text-most-text focus:outline-none focus:border-0.5 focus:ring-3 focus:ring-blue-500/30 focus:border-blue-500 sm:text-sm resize-y
             ${className}
             ${icon ? 'pl-10' : ''}
-            ${showError ? 'border-error focus:ring-error focus:border-error' : 'border-white-100'}
+            ${showError ? 'border-error focus:ring-error/30 focus:border-error' : 'border-white-100'}
           `)}
         />
       </div>

@@ -6,15 +6,8 @@ import { Toast } from '@/Components/toast';
 import Table from '@/Components/layout/Table';
 import CustomInput from '@/Components/inputs/CustomInput';
 import SelectInput from '@/Components/inputs/SelectInput';
+import RoleSelect from '../components/RoleSelect';
 
-const ROLE_OPTIONS = [
-  { label: 'owner', value: 'owner' },
-  { label: 'manager', value: 'manager' },
-  { label: 'store_operator', value: 'store_operator' },
-  { label: 'production_manager', value: 'production_manager' },
-  { label: 'accountant', value: 'accountant' },
-  { label: 'investor', value: 'investor' },
-];
 
 export default function ManageUsersPage() {
   const [rows, setRows] = useState([]);
@@ -101,7 +94,7 @@ export default function ManageUsersPage() {
   console.log('rows', rows);
   return (
     <div className="w-full space-y-3">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 mb-5">
         <div className="text-lg font-semibold">Manage Users</div>
         <div className="flex items-center gap-2">
           <CustomInput
@@ -146,11 +139,10 @@ export default function ManageUsersPage() {
               header: 'Role',
               sortable: true,
               render: (r) => (
-                <SelectInput
-                  className="border rounded px-2 py-1 text-sm w-fit"
+                <RoleSelect
+                  className="border rounded-lg px-2 py-1 text-sm w-fit"
                   value={r.role || 'viewer'}
                   onChange={(e) => handleRoleChange(r._id, e.target.value)}
-                  options={ROLE_OPTIONS}
                   name="role"
                 />
               ),

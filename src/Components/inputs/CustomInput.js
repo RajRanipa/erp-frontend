@@ -87,10 +87,11 @@ const CustomInput = ({
           aria-describedby={errorId}
           className={cn(` block w-full px-3 py-2 border sm:text-sm
           ${ displayErr ? 'border-error' : 'border-white-100' } 
-          rounded-lg shadow-sm placeholder-white-400 focus:outline-none focus:ring-2 
+          rounded-lg shadow-sm placeholder-white-400 focus:outline-none
+          focus:border-0.5 focus:ring-3
           ${ (displayErr && readOnly)
-              ? 'focus:ring-error focus:border-error'
-              : 'focus:ring-blue-500 focus:border-blue-500' } 
+              ? 'focus:ring-error focus:ring-3 focus:border-error focus:border-0.5 '
+              : 'focus:ring-blue-500/30  focus:border-blue-500 focus:border-0.5' } 
           ${readOnly ? 'bg-black-200 pointer-events-none' : ''} 
                ${icon ? 'pl-10' : ''}
           ${ type === 'password' ? 'pr-10' : '' }

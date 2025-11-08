@@ -45,14 +45,14 @@ const SelectInput = forwardRef(
     const baseInputClass =
       "capitalize block w-full rounded-lg border px-3 py-2 text-most-text shadow-sm focus:outline-none sm:text-sm " +
       "transition-colors duration-150 " +
-      "border-white-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
+      "border-white-100 focus:border-blue-500 focus:border-0.5 focus:ring-3 focus:ring-blue-500/30";
     const errorInputClass =
-      "border-error focus:border-error focus:ring-error";
+      "border-error focus:border-error focus:ring-error/30";
     const finalInputClass =
       baseInputClass + (error ? " " + errorInputClass : "") + (className ? " " + className : "");
 
     return (
-      <div className={cn(`mb-5 w-auto`, parent_className)}>
+      <div className={cn(`mb-5 w-full relative`, parent_className)}>
         {loading ? <Loading variant='skeleton' className='h-9' /> : <>
           {label && (
             <label

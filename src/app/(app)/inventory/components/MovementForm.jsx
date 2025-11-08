@@ -155,7 +155,7 @@ function MovementForm({
               onChange={(e) => handleChange({ qty: e.target.value })}
               required
               placeholder={mode === 'ADJUST' ? '± Quantity' : 'Quantity > 0'}
-              min={mode === 'ADJUST' ? undefined : 0.0001}
+              // min={mode === 'ADJUST' ? undefined : 0.0001}
               err={error && 'Invalid quantity'}
             />
             <CustomInput

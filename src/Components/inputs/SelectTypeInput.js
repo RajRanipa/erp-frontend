@@ -467,11 +467,11 @@ const SelectTypeInput = ({
               aria-invalid={!!displayErr}
               aria-describedby={errorId}
               className={cn(
-                `block w-full px-3 py-2 border sm:text-sm rounded-lg shadow-sm placeholder-white-400 focus:outline-none focus:ring-2
+                `block w-full px-3 py-2 border sm:text-sm rounded-lg shadow-sm placeholder-white-400 focus:outline-none focus:border-0.5 focus:ring-3
                 ${icon ? 'pl-10' : ''}`,
                 displayErr
-                  ? 'border-error focus:ring-error focus:border-error'
-                  : 'border-white-100 focus:ring-blue-500 focus:border-blue-500',
+                  ? 'border-error focus:ring-error/30 focus:border-error'
+                  : 'border-white-100 focus:ring-blue-500/30 focus:border-blue-500',
                 readOnly ? 'bg-black-200 pointer-events-none' : '',
                 loading ? 'bg-gray-100 text-gray-400' : '',
                 className
