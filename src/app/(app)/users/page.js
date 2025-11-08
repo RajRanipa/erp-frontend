@@ -21,7 +21,7 @@ export default function UsersPage() {
     // If you haven't created a list endpoint yet, temporarily store invites client-side after actions.
     try {
       setLoading(true);
-      const res = await axiosInstance.get('/api/users/invite'); // implement this list on backend or adjust path
+      const res = await axiosInstance.get('/api/users/invite?status=pending'); // implement this list on backend or adjust path
       setInvites(Array.isArray(res?.data?.data) ? res.data.data : []);
     } catch (e) {
       // optional: silently ignore if list route not implemented
@@ -49,13 +49,18 @@ export default function UsersPage() {
     Toast.warning('Invite revoked');
     setInvites((prev) => prev.filter(i => i._id !== id));
   };
+
+  const handleRemove = async (id) => {
+    await axiosInstance.delete(`/api/users/${id}`);
+    Toast.warning('User removed');
+    // If your table mixes invites & users, you may not have this id in `invites`.
+    // Optionally re-fetch both invites and members; for now, just refresh invites list.
+    fetchInvites();
+  };
+
   console.log("invites", invites);
   return (
-    <>
-      <DisplayBar title="Users" href="/users">
-        
-      </DisplayBar>
-      <DisplayMain>
+    <div>
       {canInvite && <InviteForm onInvited={handleInvited} />}
         <div className="space-y-6">
           {canInvite ? (
@@ -64,12 +69,12 @@ export default function UsersPage() {
               loading={loading}
               onResend={handleResend}
               onRevoke={handleRevoke}
+              onRemove={handleRemove}
             />
           ) : (
             <div className="text-white-500">You don’t have permission to invite users.</div>
           )}
         </div>
-      </DisplayMain>
-    </>
+    </div>
   );
 }

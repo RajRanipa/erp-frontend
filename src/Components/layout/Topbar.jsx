@@ -6,6 +6,7 @@ import { useUser } from "@/context/UserContext";
 import { cn } from '@/utils/cn';
 import { logoutIcon } from '@/utils/SVG';
 import Loading from '../Loading';
+import LogOutBtn from '../buttons/LogOutBtn';
 
 const Topbar = ({ setOpen = () => { }, open }) => {
   const { userName, companyName } = useUser() || {};
@@ -49,9 +50,7 @@ const Topbar = ({ setOpen = () => { }, open }) => {
             {userlogo}
           </span>
         </button>
-        <button aria-label='logout' className='btn-ghost flex items-center justify-center p-2 text-sm'>
-          {logoutIcon()}
-        </button>
+        <LogOutBtn/>
       </div>
     </> :
     <Loading variant="skeleton" className='h-10'/>

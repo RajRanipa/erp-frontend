@@ -6,7 +6,6 @@ import SelectInput from '@/Components/inputs/SelectInput';
 import CustomInput from '@/Components/inputs/CustomInput';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
-import Items from '../page';
 import NavLink from '@/Components/NavLink';
 import EditButton from '@/Components/buttons/EditButton';
 import DeleteButton from '@/Components/buttons/DeleteButton';
@@ -133,7 +132,7 @@ export default function Finished() {
   };
 
   return (
-    <Items>
+    <div>
       <div className="Items-page h-full flex flex-col">
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-h2 font-semibold mb-5">Finished Goods</h1>
@@ -228,7 +227,7 @@ export default function Finished() {
             />
         )}
       </div>
-    </Items>
+    </div>
   );
 }
 

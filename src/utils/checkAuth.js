@@ -36,7 +36,7 @@ export function useCheckAuth() {
         if (!res.data.user.isSetupCompleted) {
           router.push('/setup');
         } else {
-          router.push('/dashboard');
+          router.push('/setup');
         }
       }
     } catch (err) {

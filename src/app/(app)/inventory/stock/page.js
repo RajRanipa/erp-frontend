@@ -50,7 +50,7 @@ export default function InventoryStock() {
   const ready = !loading && !error; // show table once the initial fetch resolved (even if empty)
 
   return (
-    <Inventory>
+    <div>
       {ready ? <div className="space-y-4">
         {(rows && rows.length>0) ? <>
           {/* Filters always visible (recommended) */}
@@ -70,6 +70,6 @@ export default function InventoryStock() {
           />
         </>: <div className='flex items-center justify-center gap-0 text-white-500 flex-col min-h-50 capitalize'>Add Receipt Entry for items <NavLink href="/inventory/create" type='link' className='underline text-action'>here</NavLink> to get started.</div>}
       </div> : <Loading variant='skeleton' className='h-full' />}
-    </Inventory>
+    </div>
   );
 }

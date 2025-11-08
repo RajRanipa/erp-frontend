@@ -38,14 +38,14 @@ export default function AddInventory() {
         </button>
     );
     return (
-        <Inventory>
+        <div>
             <div className='w-full h-full flex flex-col'>
                 <div className='w-full flex gap-2 z-1 relative top-[1px] h-fit'>
-                    <TabButton id="RECEIPT">Receipt</TabButton>
-                    <TabButton id="ISSUE">Issue</TabButton>
-                    <TabButton id="ADJUST">Adjust</TabButton>
+                    {can('inventory:receipt') && <TabButton id="RECEIPT">Receipt</TabButton>}
+                    {can('inventory:issue') && <TabButton id="ISSUE">Issue</TabButton>}
+                    {can('inventory:adjust') && <TabButton id="ADJUST">Adjust</TabButton>}
                     {false && <TabButton id="TRANSFER">Transfer</TabButton>}
-                    <TabButton id="REPACK">Re-packing</TabButton>
+                    {can('inventory:repack') && <TabButton id="REPACK">Re-packing</TabButton>}
                 </div>
 
                 <div className={cn(`h-full min-h-fit p-1 gap-6 border border-t rounded-b-lg border-color-200 ${activeTab === 'RECEIPT' ? 'rounded-e-lg' : 'rounded-lg'} z-0 relative mb-2`)}>
@@ -56,7 +56,8 @@ export default function AddInventory() {
 
                     {!loading && hasWarehouse && (
                         <>
-                            {(activeTab === 'RECEIPT' || activeTab === 'ISSUE' || activeTab === 'ADJUST') && can('inventory:receive') && (
+                            {(activeTab === 'RECEIPT' || activeTab === 'ISSUE' || activeTab === 'ADJUST') && 
+                            (can(`inventory:${activeTab.toLowerCase()}`)) && (
                                 <MovementForm
                                     mode={activeTab}
                                     defaultWarehouseId={defaultWarehouseId}
@@ -75,7 +76,7 @@ export default function AddInventory() {
                 </div>
                 {/* )} */}
             </div>
-        </Inventory>
+        </div>
     );
 }
 

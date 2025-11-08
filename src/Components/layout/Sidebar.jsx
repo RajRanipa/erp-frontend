@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import NavLink from '../NavLink';
 import { cn } from '@/utils/cn';
+import useAuthz from '@/hook/useAuthz';
 
 // Memoized SidebarItem component
 const SidebarItem = React.memo(function SidebarItem({
@@ -37,9 +38,10 @@ const SidebarItem = React.memo(function SidebarItem({
 const Sidebar = ({ open, setOpen }) => {
   const [collapsed, setCollapsed] = useState(true);
   const pathname = usePathname();
+  const { can } = useAuthz();
 
   // Memoize sidebar list
-  const sidebarList = useMemo(
+  const fullsidebarList = useMemo(
     () => [
       { name: 'Dashboard', href: '/dashboard', icon: '📊' },
       { name: 'Inventory', href: '/inventory', icon: '📦' },
@@ -51,6 +53,14 @@ const Sidebar = ({ open, setOpen }) => {
     ],
     []
   );
+const sidebarList = useMemo(() => {
+  try {
+    return fullsidebarList.filter(item => can(`${item.name.toLowerCase()}:read`));
+  } catch {
+    return fullsidebarList;
+  }
+}, [fullsidebarList, can]);
+
 
   // Compute activeIndex directly from pathname and sidebarList
   const activeIndex = useMemo(() => {

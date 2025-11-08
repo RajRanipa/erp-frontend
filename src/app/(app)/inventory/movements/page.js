@@ -50,7 +50,7 @@ export default function InventoryMovement() {
   };
 
   return (
-    <Inventory>
+    <div>
       {/* Loading state */}
       {loading && (
         <div className="space-y-4">
@@ -76,7 +76,7 @@ export default function InventoryMovement() {
           }
         </div>
       }
-    </Inventory>
+    </div>
   );
 }
 

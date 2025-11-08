@@ -5,6 +5,7 @@ import CustomInput from '@/Components/inputs/CustomInput';
 import { axiosInstance, setAccessTokenExpireAt, startAccessTokenTimer } from '@/lib/axiosInstance';
 import { useUser } from '@/context/UserContext';
 import { useCheckAuth } from '@/utils/checkAuth';
+import SubmitButton from '@/Components/buttons/SubmitButton';
 
 const LoginContent = () => {
   // const redirectTo =  '/dashboard';
@@ -19,7 +20,7 @@ const LoginContent = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
+    setLoading(true);
     try {
       const res = await axiosInstance.post('/login', form, { withCredentials: true });
       console.log('Login success response:', res.data);
@@ -34,6 +35,8 @@ const LoginContent = () => {
     } catch (err) {
       console.error('Login error:', err);
       setError(err?.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -70,13 +73,13 @@ const LoginContent = () => {
         </div>
         {error && <p className="text-error text-sm mt-2">{error}</p>}
 
-        <button
+        <SubmitButton
           type="submit"
           className="btn-primary w-full my-3"
-          disabled={loading}
+          loading={loading}
         >
           {loading ? 'Logging in...' : 'Login'}
-        </button>
+        </SubmitButton>
 
         <p className="text-center text-sm text-secondary-text mt-4">
           Don&apos;t have an account?{' '}

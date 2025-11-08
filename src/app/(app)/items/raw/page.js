@@ -2,10 +2,8 @@
 'use client';
 import React, { useEffect, useState, useMemo } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
-import DisplayMain from '@/Components/layout/DisplayMain';
 import { axiosInstance } from '@/lib/axiosInstance';
-import { useToast, useConfirmToast, Toast } from '@/Components/toast';
-import Items from '../page';
+import { Toast } from '@/Components/toast';
 import EditButton from '@/Components/buttons/EditButton';
 import DeleteButton from '@/Components/buttons/DeleteButton';
 import { useRouter } from 'next/navigation';
@@ -90,7 +88,7 @@ export default function Raw() {
 
   return (
     <>
-      {<Items>
+      {<div>
         <div className="Items-page h-full flex flex-col">
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-h2 font-semibold mb-5">Raw Materials</h1>
@@ -148,7 +146,7 @@ export default function Raw() {
               />
           )}
         </div>
-      </Items>}
+      </div>}
     </>
   );
 }
