@@ -13,6 +13,7 @@ import { cn } from '@/utils/cn';
  * - children: optional ReactNode
  */
 export default function SubmitButton({
+  type = 'submit',
   label = 'Submit',
   loading = false,
   disabled = false,
@@ -25,7 +26,7 @@ export default function SubmitButton({
 
   return (
     <button
-      type="submit"
+      type={type}
       disabled={isDisabled}
       onClick={onClick}
       className={cn(

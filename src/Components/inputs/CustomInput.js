@@ -106,7 +106,7 @@ const CustomInput = ({
     <button
       type="button"
       onClick={() => setShowPassword(v => !v)}
-      className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-white-600 focus:outline-none"
+      className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-white-600 focus:outline-none text-white-300"
       aria-label={showPassword ? 'Hide password' : 'Show password'}
       tabIndex={-1}
     >

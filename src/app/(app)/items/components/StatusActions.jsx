@@ -37,7 +37,7 @@ export default function StatusActions({ item, onStatusChange }) {
         status: newStatus,
         reason: `Status changed from ${status} to ${newStatus}`,
       };
-      const res = await axiosInstance.put(`/api/items/${item._id}`, payload);
+      const res = await axiosInstance.put(`/api/items/status/${item._id}`, payload);
       const updated = res.data?.item || { ...item, status: newStatus };
       setStatus(updated.status);
       onStatusChange?.(updated);

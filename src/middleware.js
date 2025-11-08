@@ -5,7 +5,7 @@ const ACCESS_COOKIE_NAME = 'accessToken';
 const JWT_SECRET = process.env.JWT_ACCESS_SECRET;
 
 // Public routes that don't require auth
-const PUBLIC_PATHS = ['/', '/login', '/signup', '/api', '/favicon.ico', '/_next'];
+const PUBLIC_PATHS = ['/', '/login', '/signup', '/api', '/favicon.ico', '/_next', '/accept-invite'];
 
 function isStaticAsset(pathname) {
   return (
