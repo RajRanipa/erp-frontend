@@ -24,7 +24,7 @@ const SidebarItem = React.memo(function SidebarItem({
       href={item.href}
       className={navLinkClass}
       type="link"
-      {...( open ? {onClick: () => setOpen(false)} : {} )}
+      {...(open ? { onClick: () => setOpen(false) } : {})}
     >
       <span className="text-xl">{item.icon}</span>
       {(!collapsed || open) && <span>{item.name}</span>}
@@ -38,7 +38,6 @@ const SidebarItem = React.memo(function SidebarItem({
 const Sidebar = ({ open, setOpen }) => {
   const [collapsed, setCollapsed] = useState(true);
   const pathname = usePathname();
-  const { can } = useAuthz();
 
   // Memoize sidebar list
   const fullsidebarList = useMemo(
@@ -53,18 +52,36 @@ const Sidebar = ({ open, setOpen }) => {
     ],
     []
   );
-const sidebarList = useMemo(() => {
-  try {
-    return fullsidebarList.filter(item => can(`${item.name.toLowerCase()}:read`));
-  } catch {
-    return fullsidebarList;
-  }
-}, [fullsidebarList, can]);
+
+  // Prefer a stable permissions set over calling a changing `can` function.
+  // Update your useAuthz hook to expose `permissions` (array of strings) if it doesn't already.
+  const { permissions = [], can } = useAuthz();
+
+  // Build a stable Set for O(1) checks; memoized so it only changes when permissions change.
+  const allow = useMemo(() => new Set(permissions), [permissions]);
+
+  // Helper to test permission keys without relying on an unstable function reference.
+  const hasPerm = useCallback((base) => {
+    const key = String(base || '').toLowerCase();
+    return (
+      allow.has(`${key}:full`) ||
+      allow.has(`${key}:read`) ||
+      // Back-compat: some roles may grant module-wide access like 'dashboard:full'
+      allow.has('*:full')
+    );
+  }, [allow]);
+
+  // Filter once per permissions change; no console.log here to avoid noise on hover re-renders.
+  const sidebarList = useMemo(() => {
+    // If permissions are not available (e.g., before auth loads), show nothing to avoid flicker.
+    if (!permissions || permissions.length === 0) return [];
+    return fullsidebarList.filter(item => hasPerm(item.name));
+  }, [fullsidebarList, permissions, hasPerm]);
 
 
   // Compute activeIndex directly from pathname and sidebarList
   const activeIndex = useMemo(() => {
-    return sidebarList.findIndex(item =>{return pathname.startsWith(item.href)});
+    return sidebarList.findIndex(item => { return pathname.startsWith(item.href) });
     // return sidebarList.findIndex(item =>{ item.href === pathname });
   }, [pathname, sidebarList]);
 
@@ -138,14 +155,14 @@ const sidebarList = useMemo(() => {
         )}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        {...( open ? {onClick: () => setOpen(false)} : {} )}
+        {...(open ? { onClick: () => setOpen(false) } : {})}
       >
         <div
           className={cn(
-            'h-full w-56 lg:w-fit p-0 flex bg-primary flex-col rounded-r-lg lg:rounded-lg transition-all duration-300 lg:translate-x-0', 
+            'h-full w-56 lg:w-fit p-0 flex bg-primary flex-col rounded-r-lg lg:rounded-lg transition-all duration-300 lg:translate-x-0',
             collapsed ? 'lg:items-center' : 'lg:items-start',
             open ? 'translate-x-0' : '-translate-x-full',
-            )}
+          )}
         >
           <nav className="relative flex-1 space-y-2 overflow-auto h-full w-full" id="sidebar_nav">
             {sidebarList.map((item, index) => (
@@ -157,7 +174,7 @@ const sidebarList = useMemo(() => {
                 index={index}
                 collapsed={collapsed}
                 active={activeIndex === index}
-                navLinkClass={ navLinkClassExpanded}
+                navLinkClass={navLinkClassExpanded}
                 activeSpanClass={activeSpanClass}
                 inactiveSpanClass={inactiveSpanClass}
               />

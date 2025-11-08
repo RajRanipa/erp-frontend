@@ -1,7 +1,6 @@
-// frontend-erp/src/app/(app)/inventory/components/MovementForm.jsx
 'use client';
 
-import React, { useEffect, useMemo, useState, useCallback, memo } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef, memo } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
 import ItemSelect from './ItemSelect';
@@ -33,7 +32,18 @@ function MovementForm({
 }) {
   const title = useMemo(() => MODE_TITLES[mode] || mode, [mode]);
 
-  const [form, setForm] = useState({
+  // track if user has interacted with qty to avoid showing validation too early
+  const qtyTouched = useRef(false);
+
+  // reusable qty validator that depends on mode
+  const validateQty = useCallback((raw) => {
+    const n = Number(raw);
+    if (!Number.isFinite(n)) return false;
+    if (mode === 'ADJUST') return n !== 0; // can be positive or negative, but not zero
+    return n > 0; // receipt/issue must be strictly positive
+  }, [mode]);
+
+  const initialForm = useMemo(() => ({
     itemId: '',
     warehouseId: defaultWarehouseId,
     qty: '',
@@ -41,20 +51,25 @@ function MovementForm({
     batchNo: '',
     bin: '',
     note: '',
-  });
+  }), [defaultWarehouseId]);
+
+  const [form, setForm] = useState(initialForm);
+  const [formVersion, setFormVersion] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
-  const isQtyValid = useMemo(() => {
-    const n = Number(form.qty);
-    if (!Number.isFinite(n)) return false;
-    if (mode === 'ADJUST') return n !== 0;
-    return n > 0;
-  }, [form.qty, mode]);
-
   useEffect(() => {
-    if (form.qty) setError(!isQtyValid);
-  }, [isQtyValid, form.qty]);
+    setForm(f => ({ ...f, warehouseId: defaultWarehouseId }));
+  }, [defaultWarehouseId]);
+
+  const resetForm = useCallback(() => {
+    setForm(initialForm);
+    qtyTouched.current = false;
+    setError(false);
+    setFormVersion(v => v + 1);
+  }, [initialForm]);
+
+  const isQtyValid = validateQty(form.qty);
 
   const isValid = useMemo(
     () => Boolean(form.itemId && form.warehouseId && form.uom && isQtyValid),
@@ -70,8 +85,17 @@ function MovementForm({
     setForm((f) => ({ ...f, ...patch }));
   }, []);
 
+  const handleQtyChange = useCallback((e) => {
+    const raw = e.target.value;
+    qtyTouched.current = true;
+    setForm((f) => ({ ...f, qty: raw }));
+    // validate only on qty change
+    setError(!validateQty(raw));
+  }, [validateQty]);
+
   const submit = useCallback(
     async (e) => {
+      console.log('form 0', form);
       e.preventDefault();
       e.stopPropagation();
       if (!isValid) return;
@@ -93,8 +117,13 @@ function MovementForm({
         const res = await axiosInstance.post(url, body);
 
         if (res?.data?.status) {
+          console.log('res.data', res.data);
           Toast.success(`${title} posted`);
-          setForm((f) => ({ ...f, qty: '', note: '' }));
+          resetForm();
+          // (Optional) blur to avoid any lingering native hints on focused input
+          if (document.activeElement && document.activeElement.blur) {
+            document.activeElement.blur();
+          }
           onSuccess?.(res.data);
         } else {
           const msg = res?.data?.message || `Failed to post ${title.toLowerCase()}`;
@@ -110,12 +139,12 @@ function MovementForm({
         setLoading(false);
       }
     },
-    [form.itemId, form.warehouseId, form.qty, form.uom, form.batchNo, form.bin, form.note, isValid, mode, onSuccess, title]
+    [form, isValid, mode, onSuccess, title, resetForm]
   );
 
   return (
     <div className="relative">
-      <form onSubmit={submit} className={`rounded-lg p-3 space-y-3`}>
+      <form key={formVersion} onSubmit={submit} noValidate className={`rounded-lg p-3 space-y-3`}>
         <div className="flex flex-col justify-between">
           <h3 className="font-bold text-xl text-most-text mb-2">{title}</h3>
 
@@ -152,7 +181,7 @@ function MovementForm({
               type="number"
               step="any"
               value={form.qty}
-              onChange={(e) => handleChange({ qty: e.target.value })}
+              onChange={handleQtyChange}
               required
               placeholder={mode === 'ADJUST' ? '± Quantity' : 'Quantity > 0'}
               // min={mode === 'ADJUST' ? undefined : 0.0001}
