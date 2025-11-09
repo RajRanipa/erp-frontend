@@ -34,6 +34,7 @@ function MovementForm({
 
   // track if user has interacted with qty to avoid showing validation too early
   const qtyTouched = useRef(false);
+  const lastFetchedItemId = useRef(null);
 
   // reusable qty validator that depends on mode
   const validateQty = useCallback((raw) => {
@@ -92,6 +93,49 @@ function MovementForm({
     // validate only on qty change
     setError(!validateQty(raw));
   }, [validateQty]);
+
+  // Auto-fill UOM when item changes (editable by user afterwards)
+  useEffect(() => {
+    const currentItemId = form.itemId?.trim?.() || '';
+    // If item cleared, also clear UOM and reset tracker
+    console.log('currentItemId', currentItemId);
+    if (!currentItemId) {
+      if (lastFetchedItemId.current !== null) {
+        setForm(f => ({ ...f, uom: '' }));
+        lastFetchedItemId.current = null;
+      }
+      return;
+    }
+
+    // Only fetch if the item actually changed
+    if (currentItemId === lastFetchedItemId.current) return;
+    lastFetchedItemId.current = currentItemId;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await axiosInstance.get(`/api/items/uom/${currentItemId}`);
+        // Try common shapes: {data:{uom}}, {data:{UOM}}, {uom}, {UOM}
+        const payload = res?.data || {};
+        const dataNode = payload?.data || payload;
+        const fetchedUom =
+          dataNode?.uom ??
+          dataNode?.UOM ??
+          payload?.uom ??
+          payload?.UOM ??
+          '';
+
+        if (!cancelled) {
+          // Set the fetched UOM, but keep the field editable
+          setForm(f => ({ ...f, uom: fetchedUom || f.uom || '' }));
+        }
+      } catch (e) {
+        // Silently ignore fetch errors; user can still type UOM manually
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [form.itemId, axiosInstance]);
 
   const submit = useCallback(
     async (e) => {
@@ -217,6 +261,7 @@ function MovementForm({
               onChange={(e) => handleChange({ note: e.target.value })}
               rows={2}
               placeholder={`Add a note for this ${title.toLowerCase()} (optional)`}
+              className="h-[38px]"
             />
           </div>
 

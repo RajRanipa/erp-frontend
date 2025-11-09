@@ -106,7 +106,7 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
 
           {catagory && formData.category_label && <CoreProductFields formData={formData} onChange={handleLocalChange} errors={errors} />}
 
-          {catagory && (formData.category_label === 'raw material'|| formData.productType) && formData.name && formData.product_unit && 
+          {catagory && (formData.category_label === 'raw material'|| formData.productType) && formData.name && formData.UOM && 
           <div className='col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 bg-white-100 p-4 rounded-lg flex flex-col items-start justify-start gap-2 shadow-sm'>
               <h2 className="text-lg font-bold flex-1/1">Product Parameters</h2>
               <ParameterToggleBar

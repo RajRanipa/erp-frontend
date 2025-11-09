@@ -109,7 +109,7 @@ export default function Table(
           {paginatedRows.map((row, idx) => {
             const key = rowKey(row);
             return (
-              <tr key={key} className={`hover:bg-white-100 ${idx % 2 ? '' : 'bg-white-100/30'}`}>
+              <tr key={key || idx+'_key'} className={`hover:bg-white-100 ${idx % 2 ? '' : 'bg-white-100/30'}`}>
                 {selectable !== 'none' && <td className="px-3 py-2 text-center"><input type="checkbox" checked={(selectedKeys || []).includes(key)} onChange={() => handleSelect(key)} /></td>}
                 {columns.map(col => (
                   <td key={col.key} className={cn("px-3 py-2 text-sm", col?.className || '')}>

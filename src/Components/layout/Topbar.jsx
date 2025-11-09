@@ -27,7 +27,7 @@ const Topbar = ({ setOpen = () => { }, open }) => {
     if (!companyName) return '';
     return companyName
   }, [companyName]);
-  console.log("open", open, "userlogo", userlogo, "cName", cName)
+  // console.log("open", open, "userlogo", userlogo, "cName", cName)
   return (
     <header className="min-h-12 min-w-screen bg-primary z-10 flex items-center px-2 lg:px-5 justify-between top-0">
     { (cName && userlogo) ? <>

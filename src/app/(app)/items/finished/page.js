@@ -201,7 +201,7 @@ export default function Finished() {
               {
                 key: 'unit',
                 header: 'Unit',
-                render: (r) => r.product_unit || '\u2014',
+                render: (r) => r.UOM || '\u2014',
                 align: 'center',
               },
               { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },

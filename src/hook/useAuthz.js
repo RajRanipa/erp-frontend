@@ -4,7 +4,7 @@ import { useUser } from '@/context/UserContext';
 
 // Helper to check wildcard implication
 const impliesFull = (allowed, perm) => {
-  console.log("allowed", allowed.includes(perm) ,"perm", perm)
+  // console.log("allowed", allowed.includes(perm) ,"perm", perm)
   if (allowed.includes(perm)) return true;
   const [resource] = perm.split(':');
   return allowed.includes(`${resource}:full`);

@@ -47,7 +47,7 @@ export default function Raw() {
     return items.filter(it => {
       const name = it.name?.toLowerCase() || '';
       const grade = it.grade?.toLowerCase() || '';
-      const unit = it.product_unit?.toLowerCase() || '';
+      const unit = it.UOM?.toLowerCase() || '';
       const desc = it.description?.toLowerCase() || '';
       return (
         name.includes(lower) ||
@@ -120,7 +120,7 @@ export default function Raw() {
                 columns={[
                   { key: 'name', header: 'Name', sortable: true, render: r => r.name },
                   { key: 'grade', header: 'Grade', render: r => r.grade || '\u2014' },
-                  { key: 'product_unit', header: 'Unit', render: r => r.product_unit || '\u2014' },
+                  { key: 'UOM', header: 'Unit', render: r => r.UOM || '\u2014' },
                   { key: 'minimumStock', header: 'Minimum Stock', render: r => r.minimumStock ?? '\u2014' },
                   { key: 'description', header: 'Description', render: r => r.description || '\u2014' },
                   { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },

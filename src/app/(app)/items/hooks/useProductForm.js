@@ -18,7 +18,7 @@ function validate(localFormData, enabledParams) {
   // Base required fields (adjust as needed)
   if (isBlank(localFormData.category)) errs.category = 'Category is required';
   if (isBlank(localFormData.name)) errs.name = 'Name is required';
-  if (isBlank(localFormData.product_unit)) errs.product_unit = 'Unit is required';
+  if (isBlank(localFormData.UOM)) errs.UOM = 'Unit is required';
 
   // Numeric checks
   if (!isBlank(localFormData.minimumStock) && Number.isNaN(Number(localFormData.minimumStock))) {
@@ -110,7 +110,7 @@ const initialFormStateDefault = {
     category: '',
     category_label: '',
     name: '',
-    product_unit: '',
+    UOM: '',
     currentStock: '',
     minimumStock: '0',
     description: '',

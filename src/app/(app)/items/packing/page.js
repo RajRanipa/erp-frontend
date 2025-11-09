@@ -134,7 +134,7 @@ export default function Packing() {
                       <div className={`${r.productColor.includes('red') ? 'text-red-400' : 'text-blue-400'}`}>{r.productColor}</div>
                     ) : '\u2014'
                   },
-                  { key: 'product_unit', header: 'Unit', render: r => r.product_unit || '\u2014' },
+                  { key: 'UOM', header: 'Unit', render: r => r.UOM || '\u2014' },
                   { key: 'minimumStock', header: 'Minimum Stock', render: r => r.minimumStock ?? '\u2014' },
                   { key: 'dimension', header: 'Dimension', render: r => mapDimension(r?.dimension) || '\u2014' },
                   { key: 'description', header: 'Description', render: r => r.description || '\u2014' },
@@ -172,7 +172,7 @@ packings {
   sku: 'ITEM-WOV-001',
   category: new ObjectId('68cfe5a6c52171ccf85b645e'),
   categoryKey: 'PACKING',
-  product_unit: 'pcs',
+  UOM: 'pcs',
   currentStock: null,
   minimumStock: null,
   purchasePrice: 0,

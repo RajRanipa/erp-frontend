@@ -91,7 +91,7 @@ const coreProductFields = [
             { value: "starch", label: "Starch" },
         ]
     },
-    {type: 'selecttype', name: 'product_unit', label: 'Product Unit', placeholder: 'Product Unit', required: true,
+    {type: 'selecttype', name: 'UOM', label: 'Product Unit', placeholder: 'Product Unit', required: true,
         options: [
             { value: "roll", label: "Roll" },
             { value: "nos", label: "Nos" },

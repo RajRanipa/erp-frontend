@@ -45,7 +45,7 @@ export default function StockTable({
         pack?.name,
         pack?.brandType,
         pack?.productColor,
-        pack?.product_unit || pack?.unit,
+        pack?.UOM || pack?.unit,
       ]
         .filter(Boolean)
         .join(' ');

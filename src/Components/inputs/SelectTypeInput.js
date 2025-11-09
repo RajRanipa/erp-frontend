@@ -10,6 +10,7 @@ import React, {
 import { cn } from '../../utils/cn';
 import { axiosInstance } from '@/lib/axiosInstance';
 import Loading from '../Loading';
+import { downArrow } from '@/utils/SVG';
 
 // -------------- helpers --------------
 const normalizeOption = (item) => {
@@ -31,6 +32,11 @@ const normalizeOption = (item) => {
 const normalizeArray = (arr) => {
   if (!Array.isArray(arr)) return [];
   return arr.map(normalizeOption).filter(Boolean);
+};
+
+const toTitleCase = (s) => {
+  if (typeof s !== 'string') return '';
+  return s.trim().replace(/\s+/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase());
 };
 
 function htmlToPlain(label, saveinfo) {
@@ -255,11 +261,10 @@ const SelectTypeInput = ({
   const handleFocus = useCallback(() => {
     onFocus?.();
     if (readOnly) return;
-    if (options.length > 0) {
-      setShowOptions(true);
-      setHighlightedIndex(0);
-    }
-  }, [onFocus, readOnly, options.length]);
+    // Always open the dropdown on focus so the inline "Create" option can be shown
+    setShowOptions(true);
+    setHighlightedIndex(0);
+  }, [onFocus, readOnly]);
 
   const handleBlur = useCallback(
     (e) => {
@@ -311,39 +316,8 @@ const SelectTypeInput = ({
     [allowCustomValue, options, emitChange]
   );
 
-  const handleKeyDown = useCallback((e) => {
-    if (!showOptions || filteredOptions.length === 0) return;
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setHighlightedIndex((prev) => {
-        if (prev === null || prev === filteredOptions.length - 1) return 0;
-        return prev + 1;
-      });
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setHighlightedIndex((prev) => {
-        if (prev === null || prev === 0) return filteredOptions.length - 1;
-        return prev - 1;
-      });
-    } else if (e.key === 'Enter') {
-      if (highlightedIndex !== null && filteredOptions[highlightedIndex]) {
-        e.preventDefault();
-        handleSelect(filteredOptions[highlightedIndex]);
-      }
-    } else if (e.key === 'Escape') {
-      setShowOptions(false);
-    } else if (e.key === 'Tab') {
-      if (showOptions) {
-        if (highlightedIndex !== null && filteredOptions[highlightedIndex]) {
-          handleSelect(filteredOptions[highlightedIndex]);
-        }
-        setShowOptions(false);
-      }
-      // Let Tab move focus naturally
-    }
-  }, [filteredOptions, highlightedIndex, showOptions, handleSelect]);
-
   // clear from parent / button
+
   const clearSelection = useCallback(() => {
     setInputValue('');
     setShowOptions(false);
@@ -371,6 +345,7 @@ const SelectTypeInput = ({
     if (typeof callBack === 'function') {
       try {
         await callBack({ name, label: val, value: val });
+        // console.log('created');
         setCreated(true);
       } catch (e) {
         setInternalErr(e?.message || 'Callback failed');
@@ -391,6 +366,55 @@ const SelectTypeInput = ({
       setLoading(false);
     }
   }, [inputValue, name, callBack, apipost, fetchOptions, emitChange]);
+
+  const handleKeyDown = useCallback((e) => {
+    const extra = shouldShowCreateButton ? 1 : 0;
+    const listCount = filteredOptions.length + extra;
+    if (!showOptions || listCount === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => {
+        if (prev === null || prev === listCount - 1) return 0;
+        return prev + 1;
+      });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => {
+        if (prev === null || prev === 0) return listCount - 1;
+        return prev - 1;
+      });
+    } else if (e.key === 'Enter') {
+      if (highlightedIndex !== null) {
+        e.preventDefault();
+        if (shouldShowCreateButton && highlightedIndex === 0) {
+          handleCreateAndSave();
+        } else {
+          const baseIndex = shouldShowCreateButton ? highlightedIndex - 1 : highlightedIndex;
+          const opt = filteredOptions[baseIndex];
+          if (opt) handleSelect(opt);
+        }
+      }
+    } else if (e.key === 'Escape') {
+      setShowOptions(false);
+    } else if (e.key === 'Tab') {
+      if (showOptions) {
+        if (highlightedIndex !== null) {
+          if (shouldShowCreateButton && highlightedIndex === 0) {
+            handleCreateAndSave();
+          } else {
+            const baseIndex = shouldShowCreateButton ? highlightedIndex - 1 : highlightedIndex;
+            const opt = filteredOptions[baseIndex];
+            if (opt) handleSelect(opt);
+          }
+        }
+        setShowOptions(false);
+      }
+      // allow natural focus move afterwards
+    }
+  }, [filteredOptions, highlightedIndex, showOptions, handleSelect, handleCreateAndSave, shouldShowCreateButton]);
+
+
 
   // scroll into view
   useEffect(() => {
@@ -428,7 +452,7 @@ const SelectTypeInput = ({
   // Reset refs array length to avoid leftovers when the filtered list shrinks
   useEffect(() => {
     listItemRefs.current = [];
-  }, [filteredOptions]);
+  }, [filteredOptions, shouldShowCreateButton]);
 
   return (
     <div ref={rootRef} className={cn(`mb-5 w-full relative ${parent_className}`)}>
@@ -443,89 +467,65 @@ const SelectTypeInput = ({
         ) : null}
 
         <div className="relative flex items-center gap-2">
-        {icon && (
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white-300">
-            {icon}
-          </div>
-        )}
-          {/* <div className="flex-1 relative"> */}
-            <input
-              id={id || name}
-              name={name}
-              type={type}
-              required={required}
-              value={inputValue}
-              placeholder={loading ? 'Saving...' : placeholder}
-              onChange={handleChange}
-              onFocus={handleFocus}
-              onBlur={handleBlur}
-              onKeyDown={handleKeyDown}
-              readOnly={readOnly}
-              ref={inputRef}
-              autoComplete="off"
-              disabled={loading}
-              aria-invalid={!!displayErr}
-              aria-describedby={errorId}
-              className={cn(
-                `block w-full px-3 py-2 border sm:text-sm rounded-lg shadow-sm placeholder-white-400 focus:outline-none focus:border-0.5 focus:ring-3
+          {icon && (
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white-300">
+              {icon}
+            </div>
+          )}
+          <input
+            id={id || name}
+            name={name}
+            type={type}
+            required={required}
+            value={inputValue}
+            placeholder={loading ? 'Saving...' : placeholder}
+            onChange={handleChange}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            readOnly={readOnly}
+            ref={inputRef}
+            autoComplete="off"
+            disabled={loading}
+            aria-invalid={!!displayErr}
+            aria-describedby={errorId}
+            className={cn(
+              `block flex-2 px-3 py-2 border sm:text-sm rounded-lg shadow-sm placeholder-white-400 focus:outline-none focus:border-0.5 focus:ring-3
                 ${icon ? 'pl-10' : ''}`,
-                displayErr
-                  ? 'border-error focus:ring-error/30 focus:border-error'
-                  : 'border-white-100 focus:ring-blue-500/30 focus:border-blue-500',
-                readOnly ? 'bg-black-200 pointer-events-none' : '',
-                loading ? 'bg-gray-100 text-gray-400' : '',
-                className
-              )}
-              autoFocus={autoFocus}
-              tabIndex={readOnly ? -1 : 0}
-            />
-
-            {!loading && (
-              inputValue && !shouldShowCreateButton && !readOnly ? (
-                <button
-                  type="button"
-                  aria-label="Clear selection"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-md text-white-300 scale-90 hover:text-white-700 w-[20px] h-[20px] flex justify-center items-center"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={clearSelection}
-                  ref={clearBtnRef}
-                  tabIndex={0}
-                >
-                  ✕
-                </button>
-              ) : (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 scale-75 pointer-events-none w-[20px] h-[20px] flex justify-center items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-5 h-5"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                  </svg>
-                </span>
-              )
+              displayErr
+                ? 'border-error focus:ring-error/30 focus:border-error'
+                : 'border-white-100 focus:ring-blue-500/30 focus:border-blue-500',
+              readOnly ? 'bg-black-200 pointer-events-none' : '',
+              loading ? 'bg-gray-100 text-gray-400' : '',
+              className
             )}
-          {/* </div> */}
+            autoFocus={autoFocus}
+            tabIndex={readOnly ? -1 : 0}
+          />
 
-          {shouldShowCreateButton && (
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={handleCreateAndSave}
-              onMouseDown={(e) => e.preventDefault()}
-              onBlur={handleBlur}
-              disabled={loading}
-            // tabIndex={0}
-            >
-              {loading ? 'Saving...' : buttonName || 'Create & Save'}
-            </button>
+          {!loading && (
+            inputValue && !shouldShowCreateButton && !readOnly ? (
+              <button
+                type="button"
+                aria-label="Clear selection"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-md text-white-300 scale-90 hover:text-white-700 w-[20px] h-[20px] flex justify-center items-center"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={clearSelection}
+                ref={clearBtnRef}
+                tabIndex={0}
+              >
+                ✕
+              </button>
+            ) : (
+              !shouldShowCreateButton &&
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-2xl text-white-300 scale-75 pointer-events-none flex justify-center items-center">
+                {downArrow()}
+              </span>
+            )
           )}
         </div>
 
-        {showOptions && filteredOptions.length > 0 && (
+        {showOptions && (filteredOptions.length > 0 || shouldShowCreateButton) && (
           <div className="absolute z-30 rounded-lg w-full" ref={dropdownRef}>
             <div
               className={cn(
@@ -534,18 +534,31 @@ const SelectTypeInput = ({
               )}
             >
               <ul className={cn('overflow-y-auto w-full p-1.5', dropdownHeight)}>
+                {shouldShowCreateButton && (
+                  <li
+                    ref={(el) => { listItemRefs.current[0] = el; }}
+                    className={cn(
+                      'px-3 py-3 cursor-pointer text-sm rounded-lg font-medium',
+                      highlightedIndex === 0 ? 'bg-white-100' : ''
+                    )}
+                    onMouseDown={(e) => { e.preventDefault(); handleCreateAndSave(); }}
+                  >
+                    + Create "{inputValue.trim()}" {label || ''}
+                  </li>
+                )}
                 {filteredOptions.map((opt, idx) => (
                   <li
                     key={idx}
                     ref={(el) => {
-                      listItemRefs.current[idx] = el;
+                      const offset = shouldShowCreateButton ? 1 : 0;
+                      listItemRefs.current[idx + offset] = el;
                     }}
                     className={cn(
                       'px-3 py-2 cursor-pointer text-sm rounded-lg',
-                      idx === highlightedIndex ? 'bg-white-100' : ''
+                      (shouldShowCreateButton ? idx + 1 : idx) === highlightedIndex ? 'bg-white-100' : ''
                     )}
                     onMouseDown={() => handleSelect(opt)}
-                    onMouseEnter={() => setHighlightedIndex(idx)}
+                    onMouseEnter={() => setHighlightedIndex(shouldShowCreateButton ? idx + 1 : idx)}
                     dangerouslySetInnerHTML={{ __html: opt.label }}
                   />
                 ))}
@@ -564,7 +577,7 @@ const SelectTypeInput = ({
             {info}
           </p>
         )}
-        </>}
+      </>}
     </div>
   );
 };

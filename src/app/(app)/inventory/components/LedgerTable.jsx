@@ -58,7 +58,7 @@ export default function LedgerTable({
       const denStr = item?.density ? `${item.density?.value ?? ''} ${item.density?.unit ?? ''}` : '';
       const dimStr = item?.dimension ? mapDimension(item.dimension) : '';
       const pack = item?.packing || {};
-      const packStr = [pack?.name, pack?.brandType, pack?.productColor, pack?.product_unit || pack?.unit]
+      const packStr = [pack?.name, pack?.brandType, pack?.productColor, pack?.UOM || pack?.unit]
         .filter(Boolean)
         .join(' ');
       const nameStr = item?.name || '';

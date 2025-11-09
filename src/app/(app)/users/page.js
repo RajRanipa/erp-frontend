@@ -62,7 +62,7 @@ export default function UsersPage() {
   return (
     <div>
       {canInvite && <InviteForm onInvited={handleInvited} />}
-        <div className="space-y-6">
+        <div className="space-y-6 mt-5">
           {canInvite ? (
             <PendingInvites
               rows={invites}

@@ -1,5 +1,5 @@
 const mapPacking = (packing) => {
-  const unit = packing.product_unit ? `${packing.product_unit}` : '';
+  const unit = packing.UOM ? `${packing.UOM}` : '';
   const name = packing.name ?? '';
   const brandType = packing.brandType ?? '';
   const productColor = packing.productColor ?? '';

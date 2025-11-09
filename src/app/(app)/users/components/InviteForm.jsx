@@ -1,6 +1,6 @@
 // src/app/(app)/users/components/InviteForm.jsx
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import { axiosInstance } from '@/lib/axiosInstance';
@@ -19,16 +19,34 @@ export default function InviteForm({ onInvited }) {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('staff');
   const [submitting, setSubmitting] = useState(false);
+  const [emailError, setEmailError] = useState('');
+
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+  const validateEmail = (v) => {
+    if (!v) return 'Email is required';
+    if (!EMAIL_RE.test(v)) return 'Enter a valid email address';
+    return '';
+  };
+  const onEmailChange = (e) => {
+    const val = e.target.value;
+    setEmail(val);
+    setEmailError(validateEmail(val));
+  };
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!email) return Toast.error('Email is required');
+    const immediateErr = validateEmail(email);
+    if (immediateErr) {
+      setEmailError(immediateErr);
+      return Toast.error(immediateErr);
+    }
     setSubmitting(true);
     try {
       const res = await axiosInstance.post('/api/users/invite', { email, role });
       onInvited?.(res?.data?.data || {});
       setEmail('');
-      setRole('staff');
+      setRole('');
+      setEmailError('');
     } catch (e) {
       const msg = e?.response?.data?.message || 'Failed to send invite';
       Toast.error(msg);
@@ -39,13 +57,14 @@ export default function InviteForm({ onInvited }) {
 
   return (
     <form onSubmit={submit} className="flex items-end gap-2">
-      <CustomInput
-        label="Invite by email"
-        type="email"
-        placeholder="user@example.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+        <CustomInput
+          label="Invite by email"
+          type="email"
+          placeholder="user@example.com"
+          value={email}
+          onChange={onEmailChange}
+          err={emailError}
+        />
       {/* <SelectTypeInput
         label="Role"
         name="role"
@@ -58,7 +77,7 @@ export default function InviteForm({ onInvited }) {
         value={role}
         onChange={(e) => setRole(e?.target?.value)}
       />
-      <SubmitButton label="Invite" loading={submitting} disabled={submitting} className='mb-5'/>
+      <SubmitButton label="Invite" loading={submitting} disabled={submitting || !!emailError || !email} className='mb-5'/>
     </form>
   );
 }
