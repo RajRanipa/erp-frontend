@@ -53,7 +53,7 @@ function firstAllowedRoute(perms = []) {
     // (need.endsWith(':read') && perms.includes(need.replace(':read', ':full'))) ||
     // (need.endsWith(':any') && (perms.includes(need) || perms.includes(need.replace(':any', ':full'))))
 });
-  console.log("hit", hit)
+  // console.log("hit", hit)
   return hit ? hit[0] : '/403';
 }
 

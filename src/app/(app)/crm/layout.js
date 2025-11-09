@@ -12,7 +12,7 @@ function CRMBar() {
     const { navList } = useNavList();
     const { activeParty } = useActiveParty();
     useEffect(() => {
-        console.log("[CRMBar] activeParty updated:", activeParty);
+        // console.log("[CRMBar] activeParty updated:", activeParty);
     }, [activeParty]);
 
     return (

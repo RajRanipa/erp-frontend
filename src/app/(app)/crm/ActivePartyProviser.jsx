@@ -16,7 +16,7 @@ export function ActivePartyProvider({ children }) {
   useEffect(() => {
     const stored = sessionStorage.getItem(STORAGE_KEY);
     if (stored) {
-        console.log("Hydrating activeParty from sessionStorage:", stored);
+        // console.log("Hydrating activeParty from sessionStorage:", stored);
       try {
         setActiveParty(JSON.parse(stored));
       } catch {

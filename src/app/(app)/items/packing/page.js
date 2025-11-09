@@ -25,10 +25,10 @@ export default function Packing() {
   const router = useRouter();
   useEffect(() => {
     const fetchItems = async () => {
-      console.log("fetchItems called");
+      // console.log("fetchItems called");
       try {
         const response = await axiosInstance.get('/api/items/packings')
-        console.log("response", response);
+        // console.log("response", response);
         setItems(response.data);
         setLoading(false);
       } catch (error) {
@@ -75,7 +75,7 @@ export default function Packing() {
     router.push(`/items/edit/${item._id}`);
   };
   const onDelete = async (name, id, triggerEl) => {
-    console.log('delete', name, id);
+    // console.log('delete', name, id);
     try {
       const ok = await Toast.promise(`Delete ${name} packing? This will permanently delete the item. Are you sure?`, {
         confirmText: 'Delete',

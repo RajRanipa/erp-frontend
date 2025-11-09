@@ -34,7 +34,7 @@ const InventoryPage = () => {
   };
 
   const clear = () => {
-    console.log('clear');
+    // console.log('clear');
     setFormData({
       category: '',
       category_label: '',

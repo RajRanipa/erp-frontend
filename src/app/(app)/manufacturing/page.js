@@ -56,16 +56,16 @@ export default function ProductionDashboard({ children }) {
     useEffect(() => {
         // Only clear when we're exactly on /manufacturing
         if (pathname === '/manufacturing' && !didClearRef.current) {
-            console.log("clearActiveCampaign (once) on /manufacturing");
+            // console.log("clearActiveCampaign (once) on /manufacturing");
             clearActiveCampaign();
             didClearRef.current = true; // guard against React StrictMode double-invoke
         }
     }, [pathname, clearActiveCampaign]);
 
      const opencampaigns = (c) => {
-        console.log("opencampaigns called");
+        // console.log("opencampaigns called");
         setActiveCampaign(c); // when i set here it's not working becuse first this called and then again clearActiveCampaign useEffect called
-        console.log("campaign ", campaign);
+        // console.log("campaign ", campaign);
         if (campaign.length > 1) {
             setList(campaign);
         }
@@ -74,10 +74,10 @@ export default function ProductionDashboard({ children }) {
 
     useEffect(() => {
         const fetchCampaign = async () => {
-            console.log("fetchCampaign called");
+            // console.log("fetchCampaign called");
             try {
                 const response = await axiosInstance.get("/api/campaigns");
-                console.log("response", response);
+                // console.log("response", response);
                 setCampaign(response.data);
                 setLoading(false);
             } catch (error) {

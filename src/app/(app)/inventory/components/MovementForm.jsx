@@ -98,7 +98,7 @@ function MovementForm({
   useEffect(() => {
     const currentItemId = form.itemId?.trim?.() || '';
     // If item cleared, also clear UOM and reset tracker
-    console.log('currentItemId', currentItemId);
+    // console.log('currentItemId', currentItemId);
     if (!currentItemId) {
       if (lastFetchedItemId.current !== null) {
         setForm(f => ({ ...f, uom: '' }));
@@ -139,7 +139,7 @@ function MovementForm({
 
   const submit = useCallback(
     async (e) => {
-      console.log('form 0', form);
+      // console.log('form 0', form);
       e.preventDefault();
       e.stopPropagation();
       if (!isValid) return;
@@ -161,7 +161,7 @@ function MovementForm({
         const res = await axiosInstance.post(url, body);
 
         if (res?.data?.status) {
-          console.log('res.data', res.data);
+          // console.log('res.data', res.data);
           Toast.success(`${title} posted`);
           resetForm();
           // (Optional) blur to avoid any lingering native hints on focused input

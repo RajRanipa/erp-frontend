@@ -33,7 +33,7 @@ export default function PackingChangeForm({
 
     const sameItem = form.fromItemId && form.toItemId && form.fromItemId === form.toItemId;
 
-    // console.log('form.toItemId', form.toItemId);
+    // // console.log('form.toItemId', form.toItemId);
     const qtyNumber = useMemo(() => {
         const n = Number(form.qty);
         return Number.isFinite(n) ? n : NaN;
@@ -55,11 +55,11 @@ export default function PackingChangeForm({
     );
 
     const handleChange = (patch, itemObj) => {
-        // console.log('patch, itemObj', patch, itemObj);
+        // // console.log('patch, itemObj', patch, itemObj);
 
         // Only compute derived filters when FROM item changes
         const isFromChange = Object.prototype.hasOwnProperty.call(patch, 'fromItemId');
-        console.log('itemObj', itemObj);
+        // console.log('itemObj', itemObj);
         if (isFromChange && itemObj) {
             const derived = {};
             if (itemObj.temperature?._id) derived.temperature = itemObj.temperature._id;
@@ -75,13 +75,13 @@ export default function PackingChangeForm({
                 return [next0];
             });
             // Enable the "To Item" select once a valid from item is chosen
-            console.log('itemForm', itemForm);
+            // console.log('itemForm', itemForm);
             setItemForm(true);
         }
-        console.log('itemForm', itemForm, form.fromItemId);
+        // console.log('itemForm', itemForm, form.fromItemId);
         if (form.fromItemId) setItemForm(true);
         setForm((f) => ({ ...f, ...patch }));
-        console.log('itemParams --> ', itemParams);
+        // console.log('itemParams --> ', itemParams);
     };
 
     // Prefill/lock UOM from the "from" item

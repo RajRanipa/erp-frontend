@@ -116,14 +116,14 @@ export default function PartyForm({ initial, mode = 'create' }) {
       ...(showBank ? {} : { bank: undefined }),
     };
     try {
-      console.log("payload :- ", payload);
+      // console.log("payload :- ", payload);
       // return;
       if (mode === 'edit') {
         await update(form._id, payload);
         router.push(`/crm/parties/${form._id}`);
       } else {
         const created = await create(payload);
-        console.log("created :- ", created);
+        // console.log("created :- ", created);
         router.push(`/crm/parties/${created._id}`);
       }
     } catch (e) {

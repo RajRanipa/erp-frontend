@@ -62,7 +62,7 @@ export default function PartyViewPage() {
   // If no active party is set (e.g., direct URL visit), send the user back to the list.
   useEffect(() => {
     if (!activeParty?._id) {
-      console.log('No active party, redirecting to list', activeParty);
+      // console.log('No active party, redirecting to list', activeParty);
       // router.replace('/crm/parties');
     }
   }, [activeParty, router]);

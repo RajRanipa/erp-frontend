@@ -13,7 +13,7 @@ export default function AppLayout({ children }) {
     }, []);
 
     useEffect(() => {
-        console.log('open', open);
+        // console.log('open', open);
     }, [open]);
     // const childrenWithProps = React.Children.map(children, (child) => {
     //     if (React.isValidElement(child)) {

@@ -516,7 +516,7 @@ export default function RawMaterials() {
                 }),
                 campaign: formData.campaign ? activeCampaign._id : formData.campaign , // TODO: Use active campaign
             };
-            console.log('payload', payload);
+            // console.log('payload', payload);
             const res = await axiosInstance.post('/api/batches', payload);
 
             Toast.success(res?.data?.message || 'Raw material batch added');

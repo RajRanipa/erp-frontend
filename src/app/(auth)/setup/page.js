@@ -13,9 +13,9 @@ const fetcher = url => axiosInstance.get(url).then(r => r.data);
 export default function SetupPage() {
   const router = useRouter();
   const { companyId, companyName, userId, setUserContext } = useUser();
-  // console.log("userId :- ", userId, )
-  // console.log("companyId :- ",  companyId)
-  // console.log("companyName :- ",   companyName)
+  // // console.log("userId :- ", userId, )
+  // // console.log("companyId :- ",  companyId)
+  // // console.log("companyName :- ",   companyName)
   // ---- Decision Tree ----
   // 1) If neither userId nor companyId in context (fresh tab), hydrate from /api/auth/me
   const profileKey = !companyId && !userId ? '/api/auth/me' : null;
@@ -24,11 +24,11 @@ export default function SetupPage() {
 
   // 2) Effective tenant presence (prefer context; else profile)
   const effectiveCompanyId = companyId || profile?.companyId || null;
-  // console.log("profile", profile)
-  // console.log("effectiveCompanyId", effectiveCompanyId, companyId, "||", profile?.companyId)
+  // // console.log("profile", profile)
+  // // console.log("effectiveCompanyId", effectiveCompanyId, companyId, "||", profile?.companyId)
   // 3) If we have a tenant, fetch company via server-derived endpoint (safer than client id)
   const companyKey = effectiveCompanyId ? '/api/company/me' : null;
-  console.log("companyKey", companyKey)
+  // console.log("companyKey", companyKey)
   const { data: companyRes, error: companyError, isLoading: companyLoading, mutate: mutateCompany } = useSWR(companyKey, fetcher, { revalidateOnFocus: false });
   const company = companyRes?.data;
 
@@ -140,7 +140,7 @@ export default function SetupPage() {
         timezone: partial.timezone ?? formData.timezone,
       };
 
-      console.log('Candidate:', candidate, 'formData', partial);
+      // console.log('Candidate:', candidate, 'formData', partial);
       const { ok, errors } = validateStep(stepKey, candidate);
       if (!ok) {
         console.warn('Validation failed:', errors);
@@ -166,7 +166,7 @@ export default function SetupPage() {
         ...partial,
         setupProgress: { ...(partial?.setupProgress || {}), ...(stepKey ? { [stepKey]: true } : {}) },
       };
-      console.log('effectiveCompanyId:', effectiveCompanyId,'stepKey', stepKey, 'payload', payload);
+      // console.log('effectiveCompanyId:', effectiveCompanyId,'stepKey', stepKey, 'payload', payload);
 
       // Branch: if no company yet, Step 1 should create/link the company
       if (!effectiveCompanyId && stepKey === 'companyBasics') {
@@ -191,7 +191,7 @@ export default function SetupPage() {
         }
       } else {
         // Update existing tenant
-        console.log("payload company patch patch patch patch  ", payload)
+        // console.log("payload company patch patch patch patch  ", payload)
         const upd = await axiosInstance.patch('/api/company', payload);
         const okUpd = upd?.status >= 200 && upd?.status < 300 && (upd?.data?.status ?? true);
         if (!okUpd) {
@@ -226,7 +226,7 @@ export default function SetupPage() {
 
   const handleLogout = () => {
     const res = axiosInstance.post('/logout');
-    console.log('res', res);
+    // console.log('res', res);
   } 
 
   const renderBody = () => {
@@ -239,7 +239,7 @@ export default function SetupPage() {
     if (companyError) {
       return <div className="p-4 text-red-500">Failed to load company details.</div>;
     }
-    console.log('formData formData formData formData formData', formData)
+    // console.log('formData formData formData formData formData', formData)
     if(formData) return (
       <WizardShell
         formData={formData}
