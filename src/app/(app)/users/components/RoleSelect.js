@@ -15,7 +15,7 @@ export default function RoleSelect({ value, onChange, label, className }) {
         <SelectInput
             className={cn(className)}
             value={value || 'viewer'}
-            onChange={() => onChange?.()}
+            onChange={(e) => onChange?.(e)}
             options={ROLE_OPTIONS}
             name="role"
             label={label}
