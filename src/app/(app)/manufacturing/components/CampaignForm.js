@@ -72,7 +72,7 @@ export default function CampaignForm({
             setTouched({});
             setResetKey(k => k + 1);
         }
-    }, [initKey]);
+    }, [initKey, formData?.endDate, formData?.name, formData?.remarks, formData?.startDate, formData?.status, initialValues]);
 
     const validate = (values) => {
         const e = {};

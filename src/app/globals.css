@@ -244,3 +244,11 @@ button:hover:not([disabled]),
 [class *= btn-]:hover:not([disabled]) {
   cursor: pointer;
 }
+
+.dddd{
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  
+}

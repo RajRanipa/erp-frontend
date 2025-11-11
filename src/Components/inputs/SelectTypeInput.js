@@ -223,7 +223,7 @@ const SelectTypeInput = ({
       emitChange?.(normalizedValue, nextLabel);
       // onChange?.({ target: { name, value: normalizedValue }, label: { name, value: nextLabel } });
     }
-  }, [value, options, findOptionByValueOrLabel, onChange, name]);
+  }, [value, options, findOptionByValueOrLabel, onChange, name, emitChange]);
 
   // ------------ 3) validation ------------
   useEffect(() => {
