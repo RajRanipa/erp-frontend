@@ -541,9 +541,8 @@ const SelectTypeInput = ({
                       'px-3 py-3 cursor-pointer text-sm rounded-lg font-medium',
                       highlightedIndex === 0 ? 'bg-white-100' : ''
                     )}
-                    onMouseDown={(e) => { e.preventDefault(); handleCreateAndSave(); }}
-                  >
-                    + Create "{inputValue.trim()}" {label || ''}
+                    onMouseDown={(e) => { e.preventDefault(); handleCreateAndSave(); }}>
+                    + Create &quot;{inputValue.trim()}&quot; {label || ''}
                   </li>
                 )}
                 {filteredOptions.map((opt, idx) => (
