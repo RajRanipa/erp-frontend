@@ -210,8 +210,8 @@ export default function Finished() {
                 header: '',
                 render: (r) => (
                   <div className="flex items-center justify-end gap-2">
-                    <EditButton onClick={() => onEdit(r)} itemName={r.name} />
-                    <DeleteButton onClick={(e) => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} />
+                    <EditButton onClick={() => onEdit(r)} itemName={r.name} requiredPermissions='items:update'  />
+                    <DeleteButton onClick={(e) => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} requiredPermissions='items:delete' />
                   </div>
                 ),
                 align: 'right',

@@ -3,7 +3,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import DensityDialog from './DensityDialog';
-import { cn } from '../../../../utils/cn';
+import { cn } from '@/utils/cn';
 
 export default function Density({ formData, onChange, className = '' }) {
   const [open, setOpen] = useState(false);

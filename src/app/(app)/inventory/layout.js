@@ -7,6 +7,7 @@ import DisplayMain from '@/Components/layout/DisplayMain';
 import useAuthz from '@/hook/useAuthz';
 import NavLink from '@/Components/NavLink';
 import Loading from '@/Components/Loading';
+import { addIcon } from '@/utils/SVG';
 
 export default function InventoryLayout({ children }) {
   const [loading, setLoading] = useState(true); // 'stock' | 'movements' | 'new'
@@ -26,19 +27,19 @@ export default function InventoryLayout({ children }) {
           </div>
           <div className='flex gap-2 relative'>
             {loading || can('inventory:receipt') || can('inventory:issue') || can('inventory:adjust') || can('inventory:transfer') && <Loading variant='skeleton' className='h-7 min-w-[140px]' />}
-            {(can('inventory:receipto') || can('inventory:issue') || can('inventory:adjust') || can('inventory:transfer')) && (
-              <NavLink href="/inventory/create" type='button'>New Movement</NavLink>
+            {((can('inventory:receipto') || can('inventory:issue') || can('inventory:adjust') || can('inventory:transfer'))) && (
+              <NavLink href="/inventory/create" type='button' className='flex items-center gap-2'>{addIcon()} New Movement</NavLink>
             )}
           </div>
         </div>
       </DisplayBar>
 
       <DisplayMain>
-        {children ?? (
-          <div>
-            Inventory Page is in production
-          </div>
-        )}
+          {/* <div> */}
+        {children ?? 
+            'Inventory Page is in production'
+        }
+          {/* </div> */}
       </DisplayMain>
     </>
   );

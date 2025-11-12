@@ -130,7 +130,7 @@ export default function Raw() {
                     render: r => (
                       <div className='flex gap-2 items-center'>
                         <EditButton onClick={() => onEdit(r)} itemName={r.name} />
-                        <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} />
+                        <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name}  requiredPermissions='items:delete'/>
                       </div>
                     ),
                     align: 'right',

@@ -1,6 +1,6 @@
 'use client';
 // src/app/(app)/inventory/stock/page.js
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import Inventory from '../page';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
@@ -22,6 +22,7 @@ export default function InventoryStock() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [refresh, setRefresh] = useState(null);
 
   const fetchStock = useCallback(async () => {
     setLoading(true);
@@ -50,14 +51,18 @@ export default function InventoryStock() {
   const ready = !loading && !error; // show table once the initial fetch resolved (even if empty)
 
   return (
-    <div>
-      {ready ? <div className="space-y-4">
+    <>
+      {ready ? <div className="space-y-4 h-full flex flex-col">
         {(rows && rows.length>0) ? <>
           {/* Filters always visible (recommended) */}
           <StockFilters
+            title="Current Stock"
             value={filters}
             onChange={(patch) => setFilters((prev) => ({ ...prev, ...patch }))}
             showTxnType={false} // hide txnType for Stock page
+            onRefresh={fetchStock}
+            loading={loading}
+            StockFiltersRef={setRefresh}
           />
 
           {/* Table area */}
@@ -65,11 +70,11 @@ export default function InventoryStock() {
             rows={rows}
             loading={loading}
             error={error}
-            onRefresh={fetchStock}
             filters={filters} // used for client-side query + productType filtering
+            refrence={refresh}
           />
         </>: <div className='flex items-center justify-center gap-0 text-white-500 flex-col min-h-50 capitalize'>Add Receipt Entry for items <NavLink href="/inventory/create" type='link' className='underline text-action'>here</NavLink> to get started.</div>}
       </div> : <Loading variant='skeleton' className='h-full' />}
-    </div>
+    </>
   );
 }

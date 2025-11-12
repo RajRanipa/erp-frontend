@@ -12,15 +12,14 @@ import { mapDimension, mapPacking } from '@/utils/FGP';
  * - rows: InventorySnapshot[]   // raw rows from parent (already fetched)
  * - loading?: boolean
  * - error?: string
- * - onRefresh?: () => void      // optional handler for Refresh button
  * - filters?: { productType?: string, query?: string }
  */
 export default function StockTable({
   rows = [],
   loading = false,
   error = '',
-  onRefresh,
   filters = {},
+  refrence = null,
 }) {
   const pt = filters.productType || '';
   const q  = filters.query || '';
@@ -150,22 +149,14 @@ export default function StockTable({
   );
 
   return (
-    <div className="border rounded-lg overflow-hidden border-color-200">
+    <div className=" rounded-lg overflow-hidden flex-1" ref={refrence}>
       {/* Toolbar */}
-      <div className="px-3 py-2 border-b border-color-200 bg-white-100 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      {/* <div className="px-3 py-2 border-b border-color-200 bg-white-100 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-2">
           <span className="font-medium">Stock Snapshot</span>
           <span className="text-xs text-white-500">({filteredRows.length} / {rows.length})</span>
         </div>
-
-        <div className="flex gap-2 items-center">
-          {onRefresh && (
-            <button className="text-sm underline" onClick={onRefresh} disabled={loading}>
-              {loading ? 'Loading…' : 'Refresh'}
-            </button>
-          )}
-        </div>
-      </div>
+      </div> */}
 
       {/* Table */}
       {loading ? (

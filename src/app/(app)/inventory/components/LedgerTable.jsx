@@ -34,6 +34,7 @@ export default function LedgerTable({
   limit = 200,
   onLimitChange,
   onRefresh,
+  refrence = null,
 }) {
   const q = filters.query || '';
   const pt = filters.productType || '';
@@ -170,9 +171,9 @@ export default function LedgerTable({
   );
 
   return (
-    <div className="border rounded-lg overflow-hidden border-color-200">
+    <div className="rounded-lg overflow-hidden flex-1" ref={refrence}>
       {/* Header */}
-      <div className="px-3 py-2 border-b border-color-200 bg-white-100 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      {/* <div className="px-3 py-2 border-b border-color-200 bg-white-100 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-2">
           <span className="font-medium">Stock Movements</span>
           <span className="text-xs text-white-500">({filteredRows.length} shown)</span>
@@ -194,7 +195,7 @@ export default function LedgerTable({
             </button>
           )}
         </div>
-      </div>
+      </div> */}
 
       {/* Table */}
       {loading ? (

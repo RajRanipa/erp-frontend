@@ -24,6 +24,7 @@ export default function InventoryMovement() {
   const [limit, setLimit] = useState(200);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [refresh, setRefresh] = useState(null);
 
   const fetchLedger = useCallback(async () => {
     setLoading(true);
@@ -61,7 +62,14 @@ export default function InventoryMovement() {
       {(!loading && !error) &&
         <div className="space-y-4">
           {rows && rows.length > 0 ? <>
-            <StockFilters value={filters} onChange={handleFiltersChange} />
+            <StockFilters 
+              title="Stock Movements"
+              value={filters} 
+              onChange={handleFiltersChange} 
+              loading={loading}
+              onRefresh={fetchLedger}
+              StockFiltersRef={setRefresh}
+            />
             <LedgerTable
               rows={rows}
               loading={loading}
@@ -69,7 +77,7 @@ export default function InventoryMovement() {
               filters={filters}
               limit={limit}
               onLimitChange={setLimit}
-              onRefresh={fetchLedger}
+              refrence={refresh}
             />
           </> :
             <div className='text-center capitalize text-white-500'>no data found</div>

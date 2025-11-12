@@ -30,7 +30,7 @@ export default function SubmitButton({
       disabled={isDisabled}
       onClick={onClick}
       className={cn(
-        'relative inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium text-[#fff] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
+        'relative inline-flex h-fit items-center justify-center gap-2 rounded-lg px-3.5 py-1.5 font-medium text-[#fff] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ',
         isDisabled
           ? 'bg-white-400 cursor-not-allowed opacity-75'
           : 'bg-teal-600 hover:bg-teal-800 active:bg-primary-darker',
@@ -40,13 +40,14 @@ export default function SubmitButton({
     >
       {loading ? (
         <>
-          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin " />
           <span className="text-sm opacity-80">Processing...</span>
         </>
       ) : (
-        children || <span>{label}</span>
+        children || label 
       )}
     </button>
 
-  );
+);
 }
+// {/* <span className='cursor-pointer'>{label}</span> */}

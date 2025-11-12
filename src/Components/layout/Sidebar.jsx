@@ -49,6 +49,7 @@ const Sidebar = ({ open, setOpen }) => {
       { name: 'CRM', href: '/crm', icon: '👥' },
       { name: 'Warehouse', href: '/warehouses', icon: '🏬' },
       { name: 'Users', href: '/users', icon: '👤' },
+      { name: 'Settings', href: '/settings', icon: '⚙️' },
     ],
     []
   );
