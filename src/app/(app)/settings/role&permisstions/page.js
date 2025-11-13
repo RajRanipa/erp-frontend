@@ -10,6 +10,7 @@ import NewPermission from '../component/NewPermission';
 import DeleteButton from '@/Components/buttons/DeleteButton';
 import SubmitButton from '@/Components/buttons/SubmitButton';
 import { useHighlight } from '@/hook/useHighlight';
+import { useUser } from '@/context/UserContext';
 
 export default function RolePermissionsPage() {
   const [loading, setLoading] = useState(true);
@@ -21,8 +22,9 @@ export default function RolePermissionsPage() {
   const [q, setQ] = useState('');
   const [error, setError] = useState('');
   const [openNew, setOpenNew] = useState(false);
-
+  const { refreshPermissionsNow } = useUser();
   const contentRef = useHighlight(q);
+
   // Initial load: roles + permissions list
   useEffect(() => {
     (async () => {
@@ -52,7 +54,7 @@ export default function RolePermissionsPage() {
     (async () => {
       try {
         setLoading(true);
-        const roleRes = await axiosInstance.get(`/api/permissions/role/${encodeURIComponent(selectedRole)}`);
+        const roleRes = await axiosInstance.get(`/api/permissions/by-role`);
         const keys = roleRes.data?.data?.permissions || [];
         setAssigned(new Set(keys));
       } catch (e) {
@@ -117,6 +119,9 @@ export default function RolePermissionsPage() {
       // refresh assignment from server response to stay in sync
       const newKeys = res.data?.data?.assigned || [];
       setAssigned(new Set(newKeys));
+
+      // 🔥 Tell UserContext to reload permissions
+    refreshPermissionsNow();
     } catch (e) {
       Toast.error(`Save failed: ${e.message}`, 'error');
     } finally {
@@ -140,6 +145,7 @@ export default function RolePermissionsPage() {
         return next;
       });
       Toast.success('Permission deleted');
+      refreshPermissionsNow();
     } catch (e) {
       const msg = e?.response?.data?.message || e?.message || 'Delete failed';
       Toast.error(msg, 'error');
@@ -225,7 +231,7 @@ export default function RolePermissionsPage() {
               // Refresh assigned for the current role (in case we checked "assign now")
               if (selectedRole) {
                 try {
-                  const roleRes = await axiosInstance.get(`/api/permissions/role/${encodeURIComponent(selectedRole)}`);
+                  const roleRes = await axiosInstance.get(`/api/permissions/by-role`);
                   const keys = roleRes.data?.data?.permissions || [];
                   setAssigned(new Set(keys));
                 } catch (err) {

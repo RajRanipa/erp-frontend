@@ -34,6 +34,7 @@ const getInitialState = () => {
 export const UserProvider = ({ children }) => {
   // 2. Initialize with the default state on both server and client
   const [userState, setUserState] = useState(defaultUserState);
+  const [permissionsNeedsRefresh, setPermissionsNeedsRefresh] = useState(false);
   
   // 3. Add a state to track if we're mounted on the client
   const [isMounted, setIsMounted] = useState(false); 
@@ -69,7 +70,10 @@ export const UserProvider = ({ children }) => {
   
   const setUserId = useCallback((userId) => setUserState(s => ({ ...s, userId })), []);
   const setCompanyId = useCallback((companyId) => setUserState(s => ({ ...s, companyId })), []);
-  const setRole = useCallback((role) => setUserState(s => ({ ...s, role })), []);
+  const setRole = useCallback((role) => {
+    setUserState(s => ({ ...s, role }));
+    setPermissionsNeedsRefresh(true);
+  }, []);
   const setCompanyName = useCallback((companyName) => setUserState(s => ({ ...s, companyName })), []);
   const setUserName = useCallback((userName) => setUserState(s => ({ ...s, userName })), []);
   const setEnabledModules = useCallback((enabledModules) => setUserState(s => ({ ...s, enabledModules })), []);
@@ -79,10 +83,54 @@ export const UserProvider = ({ children }) => {
   }, []);
   const clearUserContext = useCallback(() => setUserState(defaultUserState), []);
 
+  const markPermissionsForRefresh = useCallback(() => {
+    setPermissionsNeedsRefresh(true);
+  }, []);
+
+  const refreshPermissionsNow = useCallback(() => {
+    setPermissionsNeedsRefresh(true);
+  }, []);
+  // Auto-refresh permissions when flagged
+  useEffect(() => {
+    if (!isMounted) return;
+    if (!permissionsNeedsRefresh) return;
+
+    let cancelled = false;
+
+    const loadPermissions = async () => {
+      try {
+        // Fetch role permissions
+        console.log('Fetching role permissions...');
+        const res = await fetch('/api/permissions/by-role');
+        if (!res.ok) {
+          throw new Error('Failed to load role permissions');
+        }
+        const json = await res.json();
+        const keys = json?.data?.permissions || [];
+        if (!cancelled) {
+          setPermissions(keys);
+        }
+      } catch (e) {
+        console.error('Role load error:', e);
+      } finally {
+        if (!cancelled) {
+          setPermissionsNeedsRefresh(false);
+        }
+      }
+    };
+
+    loadPermissions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isMounted, permissionsNeedsRefresh, setPermissions]);
+
 
   const value = {
     ...userState,
     user : userState,
+    permissionsNeedsRefresh,
     setUserId,
     setCompanyId,
     setRole,
@@ -90,6 +138,8 @@ export const UserProvider = ({ children }) => {
     setUserName,
     setEnabledModules,
     setPermissions,
+    markPermissionsForRefresh,
+    refreshPermissionsNow,
     setUserContext,
     clearUserContext,
   };
@@ -108,3 +158,21 @@ export const useUser = () => {
   }
   return ctx;
 };
+
+
+  // useEffect(() => {
+  //     (async () => {
+  //       try {
+  //         setLoading(true);
+  //         const roleRes = await axiosInstance.get(`/api/permissions/by-role`);
+  //         const keys = roleRes.data?.data?.permissions || [];
+  //         // console.log('roleRes', roleRes, keys);
+  //         setPermissions(new Set(keys));
+  //       } catch (e) {
+  //         // setError(e.message || 'Failed to load role permissions');
+  //         Toast.error(`Role load error: ${e.message}`, 'error');
+  //       } finally {
+  //         setLoading(false);
+  //       }
+  //     })();
+  //   }, []);

@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation';
 import NavLink from '../NavLink';
 import { cn } from '@/utils/cn';
 import useAuthz from '@/hook/useAuthz';
+import { axiosInstance } from '@/lib/axiosInstance';
+import { Toast } from '../toast';
 
 // Memoized SidebarItem component
 const SidebarItem = React.memo(function SidebarItem({
@@ -37,6 +39,8 @@ const SidebarItem = React.memo(function SidebarItem({
 
 const Sidebar = ({ open, setOpen }) => {
   const [collapsed, setCollapsed] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [permissions, setPermissions] = useState([]); // [keys, setPermissions]
   const pathname = usePathname();
 
   // Memoize sidebar list
@@ -56,7 +60,23 @@ const Sidebar = ({ open, setOpen }) => {
 
   // Prefer a stable permissions set over calling a changing `can` function.
   // Update your useAuthz hook to expose `permissions` (array of strings) if it doesn't already.
-  const { permissions = [], can } = useAuthz();
+  // const { permissions = [], can } = useAuthz();
+  useEffect(() => {
+      (async () => {
+        try {
+          setLoading(true);
+          const roleRes = await axiosInstance.get(`/api/permissions/by-role`);
+          const keys = roleRes.data?.data?.permissions || [];
+          // console.log('roleRes', roleRes, keys);
+          setPermissions(new Set(keys));
+        } catch (e) {
+          // setError(e.message || 'Failed to load role permissions');
+          Toast.error(`Role load error: ${e.message}`, 'error');
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }, []);
 
   // Build a stable Set for O(1) checks; memoized so it only changes when permissions change.
   const allow = useMemo(() => new Set(permissions), [permissions]);

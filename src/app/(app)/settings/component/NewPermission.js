@@ -8,6 +8,7 @@ import {axiosInstance} from '@/lib/axiosInstance';
 import { cn } from '@/utils/cn';
 import { addIcon } from '@/utils/SVG';
 import { Toast } from '@/Components/toast';
+import { useUser } from '@/context/UserContext';
 
 /**
  * NewPermission
@@ -25,6 +26,7 @@ const NewPermission = ({ open, setOpen, onCreated, selectedRole }) => {
     const [assignNow, setAssignNow] = useState(Boolean(selectedRole));
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const { refreshPermissionsNow } = useUser();
 
     // normalize: trim, spaces->_, strip non word except colon, lowercase
     const normalizedKey = useMemo(() => {
@@ -86,6 +88,7 @@ const NewPermission = ({ open, setOpen, onCreated, selectedRole }) => {
             setOpen(false);
             reset();
             Toast.success('Permission created');
+            refreshPermissionsNow();
         } catch (err) {
             const msg = err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Failed to create permission';
             setError(msg);
