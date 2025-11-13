@@ -48,7 +48,7 @@ export default function RoleSelect({
             try {
                 setLoading(true);
                 const res = await axiosInstance.get('/api/permissions/roles');
-                const data = res?.data?.data || res?.data || [];
+                const data = res?.data?.roles || res?.data || [];
                 setRoles(Array.isArray(data) ? data : []);
             } catch (e) {
                 console.error('Failed to load roles', e);
@@ -62,7 +62,6 @@ export default function RoleSelect({
     const options = useMemo(() => {
         return roles.map((r) => ({ value: r, label: r }));
     }, [roles]);
-
     // When user types in SelectTypeInput, keep local query for deciding "create"
 
     // Triggered by the SelectTypeInput "Create ..." row
@@ -130,7 +129,7 @@ export default function RoleSelect({
 
     return (
         <div className={cn(parent_className, 'mb-5 w-full relative')}>
-            {!showDialog && <SelectTypeInput
+            {(!showDialog && options && options.length > 0) && <SelectTypeInput
                 inputRef={roleSelectRef}
                 name={'role'}
                 label={label}

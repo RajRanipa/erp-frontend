@@ -14,14 +14,26 @@ export default function SettingLayout({ children }) {
   
   const { can } = useAuthz();
   const [loading, setLoading] = useState(false);
-    
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    if (  
+      can('roles:read') ||
+      can('users:permissions:read') ||
+      can('users:permissions:create') ||
+      can('users:permissions:update') ||
+      can('users:permissions:delete')
+    ) setMounted(true);
+  }, [can]);
+
+    console.log("can", can('users:permissions:create'))
     
   return (
     <>
       <DisplayBar title="Settings" href="/settings">
         <div className="flex gap-4">
         
-          {can('users:permissions:create') && <NavLink
+          {mounted && <NavLink
             href="/settings/role&permisstions"
             className="cursor-pointer"
             // onClick={() => setFilterType('finished')}

@@ -66,7 +66,7 @@ const Sidebar = ({ open, setOpen }) => {
         try {
           setLoading(true);
           const roleRes = await axiosInstance.get(`/api/permissions/by-role`);
-          const keys = roleRes.data?.data?.permissions || [];
+          const keys = roleRes.data?.permissions || [];
           // console.log('roleRes', roleRes, keys);
           setPermissions(new Set(keys));
         } catch (e) {

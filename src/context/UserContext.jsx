@@ -1,5 +1,6 @@
 // src/app/context/UserContext.jsx
 'use client'
+import { axiosInstance } from '@/lib/axiosInstance';
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const UserContext = createContext();
@@ -101,12 +102,14 @@ export const UserProvider = ({ children }) => {
       try {
         // Fetch role permissions
         console.log('Fetching role permissions...');
-        const res = await fetch('/api/permissions/by-role');
-        if (!res.ok) {
+        const res = await axiosInstance.get('/api/permissions/by-role');
+        console.log('Role permissions:', res);
+        if (!res?.data?.status) {
           throw new Error('Failed to load role permissions');
         }
-        const json = await res.json();
-        const keys = json?.data?.permissions || [];
+        // const json = await res.json();
+        const keys = res.data?.permissions || [];
+        console.log('Role permissions cancelled:', cancelled);
         if (!cancelled) {
           setPermissions(keys);
         }
