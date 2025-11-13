@@ -20,13 +20,15 @@ export default function SettingLayout({ children }) {
     <>
       <DisplayBar title="Settings" href="/settings">
         <div className="flex gap-4">
-          <NavLink
+        
+          {can('users:permissions:create') && <NavLink
             href="/settings/role&permisstions"
             className="cursor-pointer"
             // onClick={() => setFilterType('finished')}
           >
             role & permisstions
           </NavLink>
+          }
 
         </div>
         <div className='flex gap-2 relative'>
