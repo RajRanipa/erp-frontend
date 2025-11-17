@@ -84,7 +84,7 @@ export default function Packing({ formData, onChange, className = '' }) {
           title="Add a new packing item"
           onClose={handleClose}
           side="right"
-          size="lg"
+          size="xl"
           getBackFocus={packingSelectRef}
         >
           <ItemForm

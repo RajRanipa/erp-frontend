@@ -31,7 +31,7 @@
   --white-700: rgba(0, 0, 0, 0.7);
   --white-800: rgba(0, 0, 0, 0.8);
   --white-900: rgba(0, 0, 0, 0.9);
-  --white: rgba(0, 0, 0, 1);
+  --white-loading: rgba(0, 0, 0, 1);
 
   --black-100: rgba(255, 255, 255, 0.1);
   --black-200: rgba(255, 255, 255, 0.2);
@@ -42,7 +42,7 @@
   --black-700: rgba(255, 255, 255, 0.7);
   --black-800: rgba(255, 255, 255, 0.8);
   --black-900: rgba(255, 255, 255, 0.9);
-  --black: rgba(255, 255, 255, 1);
+  --black-loading: rgba(255, 255, 255, 1);
 
   --color-l-loading:rgba(0, 0, 0, 0.05);
   --error: var(--color-red-600);
@@ -78,7 +78,7 @@
     --black-700: rgba(0, 0, 0, 0.7);
     --black-800: rgba(0, 0, 0, 0.8);
     --black-900: rgba(0, 0, 0, 0.9);
-    --black: rgba(0, 0, 0, 1);
+    --black-loading: rgba(0, 0, 0, 1);
 
     --white-100: rgba(255, 255, 255, 0.1);
     --white-200: rgba(255, 255, 255, 0.2);
@@ -89,7 +89,7 @@
     --white-700: rgba(255, 255, 255, 0.7);
     --white-800: rgba(255, 255, 255, 0.8);
     --white-900: rgba(255, 255, 255, 0.9);
-    --white: rgba(255, 255, 255, 1);
+    --white-loading: rgba(255, 255, 255, 1);
     
     --color-l-loading:rgba(255, 255, 255, 0.07);
     --error: var(--color-red-400);
@@ -125,7 +125,7 @@
   --color-black-700: var(--black-700);
   --color-black-800: var(--black-800);
   --color-black-900: var(--black-900);
-  --color-black: var(--black);
+  --color-black-loading: var(--black-loading);
 
   --color-white-100: var(--white-100);
   --color-white-200: var(--white-200);
@@ -136,7 +136,7 @@
   --color-white-700: var(--white-700);
   --color-white-800: var(--white-800);
   --color-white-900: var(--white-900);
-  --color-white: var(--white);
+  --color-white-loading: var(--white-loading);
 
   --color-loading: var(--color-l-loading);
   --color-error: var(--error);

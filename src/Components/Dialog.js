@@ -192,7 +192,7 @@ const Dialog = memo(function Dialog({
           tabIndex={-1}
           role="dialog"
           aria-modal="true"
-          className={`bg-zinc-800 text-secondary-text flex flex-col w-full ${sizeClass} ${className} ${isCenter ? 'rounded-lg' : 'h-full'}
+          className={`bg-zinc-100 dark:bg-zinc-800 shadow-lg text-secondary-text flex flex-col w-full ${sizeClass} ${className} ${isCenter ? 'rounded-lg' : 'h-full'}
             transform transition-all duration-300 ease-out will-change-transform
             ${shown ? 'translate-x-0 scale-100 opacity-100' : side === 'right' ? 'translate-x-full' : side === 'left' ? '-translate-x-full' : 'scale-95 opacity-0'}`}
         >

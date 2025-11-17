@@ -47,7 +47,7 @@ export function Skeleton({
       {Array.from({ length: lines }).map((_, i) => (
         <div
           key={i}
-          className="relative overflow-hidden bg-white/5 rounded-lg h-full min-h-[16px]"
+          className="relative overflow-hidden bg-white-loading/5 rounded-lg h-full min-h-[16px]"
           style={{ width: w}}
         >
           <div className="shimmer" />
