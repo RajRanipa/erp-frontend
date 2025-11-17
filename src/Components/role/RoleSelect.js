@@ -23,7 +23,7 @@ export default function RoleSelect({
     value,
     onChange,
     onCreateRole, // async (newKey) => { ... }  -> parent should create role server-side
-    label = 'Role',
+    label = '',
     placeholder = 'Select a role…',
     disabled = false,
     parent_className = '',

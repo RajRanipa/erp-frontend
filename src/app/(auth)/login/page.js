@@ -32,7 +32,6 @@ const LoginContent = () => {
   // Prefill email from query param (e.g. redirected from signup)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
     try {
       const params = new URLSearchParams(window.location.search);
       const emailFromQuery = params.get('email');

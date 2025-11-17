@@ -5,8 +5,7 @@ import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
 import Table from '@/Components/layout/Table';
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectInput from '@/Components/inputs/SelectInput';
-import RoleSelect from './components/RoleSelect';
+import RoleSelect from '@/Components/role/RoleSelect';
 
 
 export default function ManageUsersPage() {
@@ -29,6 +28,7 @@ export default function ManageUsersPage() {
         : Array.isArray(res?.data)
         ? res.data
         : [];
+        console.log('list', list);  
       setRows(list);
     } catch (e) {
       const msg = e?.response?.data?.message || 'Failed to load users';
@@ -148,6 +148,7 @@ export default function ManageUsersPage() {
               sortable: true,
               render: (r) => (
                 <RoleSelect
+                  parent_className='w-fit'
                   className="border rounded-lg px-2 py-1 text-sm w-fit"
                   value={r.role || 'viewer'}
                   onChange={(e) => handleRoleChange(r._id, e.target.value)}

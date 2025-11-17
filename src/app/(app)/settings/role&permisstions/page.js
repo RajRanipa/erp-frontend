@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance'
 import SelectInput from '@/Components/inputs/SelectInput';
 import CustomInput from '@/Components/inputs/CustomInput';
-import RoleSelect from '../../../../Components/role/RoleSelect';
+import RoleSelect from '@/Components/role/RoleSelect';
 import CheckBox from '@/Components/inputs/CheckBox';
 import { Toast } from '@/Components/toast';
 import NewPermission from '../component/NewPermission';
