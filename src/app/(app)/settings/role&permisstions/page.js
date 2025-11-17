@@ -3,15 +3,15 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance'
 import SelectInput from '@/Components/inputs/SelectInput';
 import CustomInput from '@/Components/inputs/CustomInput';
-import RoleSelect from '../component/RoleSelect';
+import RoleSelect from '../../../../Components/role/RoleSelect';
 import CheckBox from '@/Components/inputs/CheckBox';
 import { Toast } from '@/Components/toast';
 import NewPermission from '../component/NewPermission';
 import DeleteButton from '@/Components/buttons/DeleteButton';
 import SubmitButton from '@/Components/buttons/SubmitButton';
-import { useHighlight } from '@/hook/useHighlight';
+import { useHighlight } from '@/hooks/useHighlight';
 import { useUser } from '@/context/UserContext';
-import useAuthz from '@/hook/useAuthz';
+import useAuthz from '@/hooks/useAuthz';
 import Loading from '@/Components/Loading';
 
 export default function RolePermissionsPage() {
@@ -34,7 +34,7 @@ export default function RolePermissionsPage() {
   const { can } = useAuthz();
 
   useEffect(() => {
-    // setLoading(true);
+    setLoading(true);
     if (can('roles:read')) setRolesRead(true);
     if (can('users:permissions:create')) setCreate(true);
     if (can('users:permissions:update')) setUpdate(true);

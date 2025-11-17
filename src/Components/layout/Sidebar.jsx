@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import NavLink from '../NavLink';
 import { cn } from '@/utils/cn';
-import useAuthz from '@/hook/useAuthz';
+import useAuthz from '@/hooks/useAuthz';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '../toast';
 
@@ -80,7 +80,7 @@ const Sidebar = ({ open, setOpen }) => {
 
   // Build a stable Set for O(1) checks; memoized so it only changes when permissions change.
   const allow = useMemo(() => new Set(permissions), [permissions]);
-
+  // console.log('allow', allow);
   // Helper to test permission keys without relying on an unstable function reference.
   const hasPerm = useCallback((base) => {
     const key = String(base || '').toLowerCase();
@@ -95,6 +95,7 @@ const Sidebar = ({ open, setOpen }) => {
   // Filter once per permissions change; no console.log here to avoid noise on hover re-renders.
   const sidebarList = useMemo(() => {
     // If permissions are not available (e.g., before auth loads), show nothing to avoid flicker.
+    // console.log('permissions', permissions); 
     if (!permissions || permissions.length === 0) return [];
     return fullsidebarList.filter(item => hasPerm(item.name));
   }, [fullsidebarList, permissions, hasPerm]);

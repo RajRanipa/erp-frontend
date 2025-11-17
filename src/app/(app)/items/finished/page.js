@@ -52,7 +52,7 @@ export default function Finished() {
         if (!mounted) return;
 
         const itemsData = itemsRes.data || [];
-        console.log('itemsData', itemsData);
+        // console.log('itemsData', itemsData);
         // return;
         setItems(itemsData);
 

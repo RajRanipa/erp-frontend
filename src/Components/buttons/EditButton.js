@@ -1,7 +1,7 @@
 import { cn } from '@/utils/cn';
 import { editIcon } from '@/utils/SVG';
 import React, { useEffect } from 'react';
-import useAuthz from '@/hook/useAuthz';
+import useAuthz from '@/hooks/useAuthz';
 // src/app/components/EditButton.js
 
 export default function EditButton({ onClick, itemName = '', className = '', requiredPermissions = '' }) {

@@ -3,7 +3,7 @@
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import CustomInput from '@/Components/inputs/CustomInput';
 import { filter1Icon, filter2Icon, searchIcon } from '@/utils/SVG';
-import { useHighlight } from '@/hook/useHighlight';
+import { useHighlight } from '@/hooks/useHighlight';
 import { useEffect } from 'react';
 
 /**

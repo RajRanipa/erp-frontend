@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
-import useAuthz from '@/hook/useAuthz';
+import useAuthz from '@/hooks/useAuthz';
 import SelectInput from '@/Components/inputs/SelectInput';
 
 const STATUS_OPTIONS = [

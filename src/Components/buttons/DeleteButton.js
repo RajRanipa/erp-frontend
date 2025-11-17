@@ -1,6 +1,6 @@
 import { deleteIcon } from '@/utils/SVG';
 import React, { useEffect, useState } from 'react';
-import useAuthz from '@/hook/useAuthz';
+import useAuthz from '@/hooks/useAuthz';
 
 export default function DeleteButton({ onClick, itemName = '', requiredPermissions = '' }) {
   const { can } = useAuthz();

@@ -2,6 +2,7 @@
 'use client';
 import React, { useMemo } from 'react';
 import Table from '@/Components/layout/Table';
+import SubmitButton from '@/Components/buttons/SubmitButton';
 
 function formatDateTime(v) {
   if (!v) return '—';
@@ -14,7 +15,7 @@ function formatDateTime(v) {
   }
 }
 
-function actionButtons(row, { onResend, onRevoke, onRemove }) {
+function actionButtons(row, { onResend, onRevoke }, loading) {
   const status = row?.status;
   if (!status) return '—';
 
@@ -22,37 +23,30 @@ function actionButtons(row, { onResend, onRevoke, onRemove }) {
     if (status === 'pending') {
       return (
         <div className="flex gap-2 justify-end">
-          <button
+          {/* <button
             type="button"
             className="px-2 py-1 bg-yellow-600 text-white rounded"
             onClick={() => onResend?.(row._id)}
             title="Resend invite"
           >
             Resend
-          </button>
-          <button
+          </button> */}
+          <SubmitButton
             type="button"
-            className="btn-danger px-2 py-1"
+            onClick={() => onResend?.(row._id)}
+            title="Resend invite"
+            loading={loading}
+          >
+            Resend
+          </SubmitButton>
+          <SubmitButton
+            type="button"
+            className="bg-yellow-600 text-white hover:bg-yellow-700"
             onClick={() => onRevoke?.(row._id)}
             title="Revoke invite"
           >
             Revoke
-          </button>
-        </div>
-      );
-    }
-
-    if (status === 'accepted') {
-      return (
-        <div className="flex gap-2 justify-end">
-          <button
-            type="button"
-            className="btn-danger px-2 py-1"
-            onClick={() => onRemove?.(row._id)}
-            title="Remove user from company"
-          >
-            Remove User
-          </button>
+          </SubmitButton>
         </div>
       );
     }
@@ -65,7 +59,7 @@ function actionButtons(row, { onResend, onRevoke, onRemove }) {
 
 
 
-export default function PendingInvites({ rows = [], loading = false, onResend, onRevoke, onRemove, pageSize = 10 }) {
+export default function PendingInvites({ rows = [], loading = false, onResend, onRevoke, pageSize = 10 }) {
   const columns = useMemo(() => ([
     {
       key: 'email',
@@ -104,9 +98,9 @@ export default function PendingInvites({ rows = [], loading = false, onResend, o
       key: 'actions',
       header: '',
       align: 'right',
-      render: (r) => actionButtons(r, { onResend, onRevoke, onRemove }),
+      render: (r) => actionButtons(r, { onResend, onRevoke }, loading),
     },
-  ]), [onResend, onRevoke, onRemove]);
+  ]), [onResend, onRevoke]);
 
   return (
     <Table

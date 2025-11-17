@@ -128,7 +128,7 @@ export default function RoleSelect({
     }, [showDialog]);
 
     return (
-        <div className={cn(parent_className, 'mb-5 w-full relative')}>
+        <>
             {(!showDialog && options && options.length > 0) && <SelectTypeInput
                 inputRef={roleSelectRef}
                 name={'role'}
@@ -142,6 +142,7 @@ export default function RoleSelect({
                 buttonName="create new role"
                 callBack={setShowDialog}
                 dropdownHeight='min-h-fit'
+                parent_className={parent_className}
             />}
 
             <Dialog
@@ -192,6 +193,6 @@ export default function RoleSelect({
                 </div>
             </Dialog>
 
-        </div>
+        </>
     );
 }

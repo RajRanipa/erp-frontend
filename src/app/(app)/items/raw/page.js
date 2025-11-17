@@ -8,7 +8,7 @@ import EditButton from '@/Components/buttons/EditButton';
 import DeleteButton from '@/Components/buttons/DeleteButton';
 import { useRouter } from 'next/navigation';
 import Table from '@/Components/layout/Table';
-import useAuthz from '@/hook/useAuthz';
+import useAuthz from '@/hooks/useAuthz';
 import StatusActions from '../components/StatusActions';
 import NavLink from '@/Components/NavLink';
 import Loading from '@/Components/Loading';

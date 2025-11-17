@@ -6,7 +6,7 @@ import DisplayMain from '@/Components/layout/DisplayMain';
 import NavLink from '@/Components/NavLink';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from "@/Components/toast";
-import useAuthz from '@/hook/useAuthz';
+import useAuthz from '@/hooks/useAuthz';
 import { addIcon } from '@/utils/SVG';
 import Loading from '@/Components/Loading';
 export default function Items({ children }) {

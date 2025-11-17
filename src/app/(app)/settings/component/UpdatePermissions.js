@@ -8,6 +8,6 @@ import {axiosInstance} from '@/lib/axiosInstance';
 import { cn } from '@/utils/cn';
 import { addIcon } from '@/utils/SVG';
 import { Toast } from '@/Components/toast';
-import { useAuthz } from '@/hook/useAuthz'; 
+import { useAuthz } from '@/hooks/useAuthz'; 
 
 // this file should be use for updating permissions of a role like dashboard:read -> dashboard:write or dasboard:read -> dashboard:read

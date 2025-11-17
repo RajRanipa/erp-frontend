@@ -3,14 +3,14 @@
 import React, { useReducer, useCallback, useMemo, useState, memo } from 'react';
 import Inventory from '../page';
 import { Toast } from '@/Components/toast';
-import useAuthz from '@/hook/useAuthz';
+import useAuthz from '@/hooks/useAuthz';
 import MovementForm from '../components/MovementForm';
 import TransferForm from '../components/TransferForm';
 import PackingChangeForm from '../components/PackingChangeForm';
 import { cn } from '@/utils/cn';
 import Loading from '@/Components/Loading';
 import NavLink from '@/Components/NavLink';
-import { useWarehouses } from '@/hook/useWarehouses';
+import { useWarehouses } from '@/hooks/useWarehouses';
 
 
 const EmptyWarehouse = () => (

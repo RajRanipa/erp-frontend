@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import DisplayBar from '@/Components/layout/DisplayBar';
 import DisplayMain from '@/Components/layout/DisplayMain';
-import useAuthz from '@/hook/useAuthz';
+import useAuthz from '@/hooks/useAuthz';
 import NavLink from '@/Components/NavLink';
 import Loading from '@/Components/Loading';
 import { addIcon } from '@/utils/SVG';

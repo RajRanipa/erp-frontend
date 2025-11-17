@@ -4,7 +4,7 @@ import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import DisplayMain from '@/Components/layout/DisplayMain';
 import { Toast } from '@/Components/toast';
 import { useState } from 'react';
-import useAuthz from '@/hook/useAuthz';
+import useAuthz from '@/hooks/useAuthz';
 
 const InventoryPage = () => {
   const [formData, setFormData] = useState({

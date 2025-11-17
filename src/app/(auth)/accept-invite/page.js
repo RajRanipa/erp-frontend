@@ -14,6 +14,14 @@ function getToken() {
   return u.searchParams.get('token') || '';
 }
 
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+const validateEmail = (v) => {
+  if (!v) return 'Email is required';
+  if (!EMAIL_RE.test(v)) return 'Enter a valid email address';
+  return '';
+};
+
 export default function AcceptInvitePage() {
   const [token] = useState(getToken());
   const [meta, setMeta] = useState(null);
@@ -25,7 +33,8 @@ export default function AcceptInvitePage() {
   const validate = useCallback(async () => {
     try {
       const res = await axiosInstance.get(`/auth/invite/validate`, { params: { token } });
-      setMeta(res?.data?.data || null);
+      setMeta(res?.data || null);
+      setName(res?.data?.name || '');
     } catch (e) {
       const msg = e?.response?.data?.message || 'Invalid or expired invite';
       Toast.error(msg);

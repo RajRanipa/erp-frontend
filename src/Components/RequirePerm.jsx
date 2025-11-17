@@ -2,7 +2,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import useAuthz from '@/hook/useAuthz';
+import useAuthz from '@/hooks/useAuthz';
 
 export default function RequirePerm({ perm, children }) {
   const { can, ready } = useAuthz(); // ensure `ready` tells when user/permissions loaded

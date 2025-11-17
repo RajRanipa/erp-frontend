@@ -11,7 +11,7 @@ export default function UsersPage({ children }) {
             <DisplayBar title="Users" href="/users">
                 <div className='w-full flex items-center justify-between'>
                     <div className="flex items-center gap-2">
-                        <NavLink href="/users/manage" type="link" >manage users</NavLink>
+                        <NavLink href="/users/invite" type="link" >invite users</NavLink>
                     </div>
                 </div>
             </DisplayBar>
