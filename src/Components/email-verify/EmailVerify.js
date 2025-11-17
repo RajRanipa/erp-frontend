@@ -21,8 +21,8 @@ const EmailVerify = ({ mode = 'signup', email, onSuccess }) => {
     : '/signup/verify-otp';
 
   const resendEndpoint = isLoginMode
-    ? '/auth/login/resend-otp'
-    : '/auth/signup/resend-otp';
+    ? '/login/resend-otp'
+    : '/signup/resend-otp';
 
   const {
     otp,
