@@ -169,7 +169,7 @@ export default function TemperatureDialog({
       )}
     >
       <div className="space-y-3">
-        <CustomInput inputRef={lengthInputRef} type="number" label={"Value"} name="value" placeholder="e.g. 7850" value={dialogData.value} onChange={onDraftChange} />
+        <CustomInput autoFocus inputRef={lengthInputRef} type="number" label={"Value"} name="value" placeholder="e.g. 7850" value={dialogData.value} onChange={onDraftChange} />
         <UnitSelect name="unit" label="Unit" type="Temperature" value={dialogData.unit} onChange={onDraftChange} required />
 
         <SelectTypeInput

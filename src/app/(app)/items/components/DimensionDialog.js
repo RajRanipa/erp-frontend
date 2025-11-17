@@ -168,7 +168,7 @@ export default function DimensionDialog({
       )}
     >
       <div className="space-y-3">
-        <CustomInput type="number" label={"Length"} name="length" placeholder="1000" value={dialogData.length} onChange={onDraftChange} />
+        <CustomInput autoFocus type="number" label={"Length"} name="length" placeholder="1000" value={dialogData.length} onChange={onDraftChange} />
         <CustomInput type="number" label={"Width"} name="width" placeholder="500" value={dialogData.width} onChange={onDraftChange} />
         <CustomInput type="number" label={"Thickness"} name="thickness" placeholder="25" value={dialogData.thickness} onChange={onDraftChange} />
         <UnitSelect name="unit" label="Unit" type="Dimension" value={dialogData.unit} onChange={onDraftChange} required />
