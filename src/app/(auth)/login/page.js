@@ -6,7 +6,6 @@ import { axiosInstance, setAccessTokenExpireAt } from '@/lib/axiosInstance';
 import { useUser } from '@/context/UserContext';
 import { useCheckAuth } from '@/utils/checkAuth';
 import SubmitButton from '@/Components/buttons/SubmitButton';
-import { useSearchParams } from 'next/navigation';
 import EmailVerify from '@/Components/email-verify/EmailVerify';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
@@ -24,8 +23,6 @@ const LoginContent = () => {
   const [error, setError] = useState('');
   const { setUserContext } = useUser();
   const { checkAuth } = useCheckAuth();
-  const searchParams = useSearchParams();
-  const emailFromQuery = searchParams.get('email');
 
   // authMode: 'password' | 'otp'
   const [authMode, setAuthMode] = useState('password');
@@ -34,10 +31,18 @@ const LoginContent = () => {
 
   // Prefill email from query param (e.g. redirected from signup)
   useEffect(() => {
-    if (emailFromQuery) {
-      setForm((prev) => ({ ...prev, email: emailFromQuery }));
+    if (typeof window === 'undefined') return;
+
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const emailFromQuery = params.get('email');
+      if (emailFromQuery) {
+        setForm((prev) => ({ ...prev, email: emailFromQuery }));
+      }
+    } catch (err) {
+      console.error('Error parsing email from query params:', err);
     }
-  }, [emailFromQuery]);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
