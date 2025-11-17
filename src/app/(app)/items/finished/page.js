@@ -14,6 +14,7 @@ import StatusActions from '../components/StatusActions';
 import Loading from '@/Components/Loading';
 import { mapDimension, mapPacking, mapTemperature } from '@/utils/FGP';
 import { searchIcon } from '@/utils/SVG';
+import { formatDateDMY } from '@/utils/date';
 
 
 // helper used inside Row too
@@ -52,7 +53,7 @@ export default function Finished() {
         if (!mounted) return;
 
         const itemsData = itemsRes.data || [];
-        // console.log('itemsData', itemsData);
+        console.log('itemsData', itemsData);
         // return;
         setItems(itemsData);
 
@@ -136,7 +137,7 @@ export default function Finished() {
       <div className="Items-page h-full flex flex-col">
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-h2 font-semibold mb-5">Finished Goods</h1>
-          <div className="flex gap-2 items-center flex-[0_1_30%] relative">
+          <div className="flex gap-2 items-center relative w-fit">
             {loading ? <Loading variant='skeleton' className='h-9' /> : ((items && items.length > 0) && <>
               <SelectInput
                 name="product_type"
@@ -144,13 +145,14 @@ export default function Finished() {
                 onChange={e => setProductTypeFilter(e.target.value)}
                 options={[{ value: '', label: 'All types' }, ...productTypes]}
                 className="w-fit"
+                parent_className="w-fit"
               />
               <CustomInput
                 name="search_items"
                 placeholder="Search name / packing / unit / type"
                 onChange={e => setQ(e.target.value)}
                 value={q}
-                className="w-full"
+                parent_className="min-w-[280px] w-fit"
                 icon={searchIcon()}
               />
             </>)}
@@ -193,7 +195,7 @@ export default function Finished() {
                 key: 'packing',
                 header: 'Packing',
                 render: (r) => (
-                  <NavLink href={`/items/packing`}>
+                  <NavLink href={`/items/packing`} >
                   {mapPacking(r.packing)}
                   </NavLink>
                 ),
@@ -206,15 +208,37 @@ export default function Finished() {
               },
               { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
               {
+                key: 'updated',
+                header: 'Updated',
+                render: (r) => (
+                  <div className="flex items-start justify-center flex-col">
+                    <div><span className='text-xs text-white-600 capitalize'>{r?.createdBy?.fullName ?? '—'}</span></div>
+                    {r?.createdBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.createdAt)}</span></div>}
+                  </div>
+                ),
+                align: 'right',
+              },
+              {
+                key: 'created',
+                header: 'Created',
+                render: (r) => (
+                  <div className="flex items-start justify-center flex-col">
+                    <div><span className='text-xs text-white-600 capitalize'>{r?.updatedBy?.fullName ?? '—'}</span></div>
+                    {r?.updatedBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.createdAt) ?? '—'}</span></div>}
+                  </div>
+                ),
+                align: 'right',
+              },
+              {
                 key: 'actions',
-                header: '',
+                header: 'Actions',
                 render: (r) => (
                   <div className="flex items-center justify-end gap-2">
                     <EditButton onClick={() => onEdit(r)} itemName={r.name} requiredPermissions='items:update'  />
                     <DeleteButton onClick={(e) => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} requiredPermissions='items:delete' />
                   </div>
                 ),
-                align: 'right',
+                align: 'left',
               },
             ]}
               data={rows}

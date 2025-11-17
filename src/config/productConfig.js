@@ -126,7 +126,7 @@ const coreProductFields = [
         required: false,
         conditional: (formData = {}) => {
             const cat = String((formData.category_label ?? '')).trim().toLowerCase();
-            return cat.includes('raw') || cat.includes('finished');
+            return cat.includes('raw') || cat.includes('finished') || cat.includes('packing');
         }
     },
     {

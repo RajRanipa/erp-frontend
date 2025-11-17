@@ -41,8 +41,8 @@ export default function AddInventory() {
         <div>
             <div className='w-full h-full flex flex-col'>
                 <div className='w-full flex gap-2 z-1 relative top-[1px] h-fit'>
-                    {can('inventory:receipt') && <TabButton id="RECEIPT">Receipt</TabButton>}
-                    {can('inventory:issue') && <TabButton id="ISSUE">Issue</TabButton>}
+                    {can('inventory:receipt') && <TabButton id="RECEIPT">Receipt <span className='text-xs text-white-500'>Add Stock</span></TabButton>}
+                    {can('inventory:issue') && <TabButton id="ISSUE">Issue <span className='text-xs text-white-500'>Reduce Stock</span></TabButton>}
                     {can('inventory:adjust') && <TabButton id="ADJUST">Adjust</TabButton>}
                     {false && <TabButton id="TRANSFER">Transfer</TabButton>}
                     {can('inventory:repack') && <TabButton id="REPACK">Re-packing</TabButton>}

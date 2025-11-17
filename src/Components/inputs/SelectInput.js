@@ -45,7 +45,7 @@ const SelectInput = forwardRef(
     const baseInputClass =
       "capitalize block w-full rounded-lg border px-3 py-2 text-most-text shadow-sm focus:outline-none sm:text-sm " +
       "transition-colors duration-150 " +
-      "border-white-100 focus:border-blue-500 focus:border-0.5 focus:ring-3 focus:ring-blue-500/30";
+      "border-white-200 focus:border-blue-500 focus:border-0.5 focus:ring-3 focus:ring-blue-500/30";
     const errorInputClass =
       "border-error focus:border-error focus:ring-error/30";
     const finalInputClass =

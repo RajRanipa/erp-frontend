@@ -60,7 +60,7 @@ export default function RadioButton({
                 onChange={handleChange}
                 onBlur={handleBlur}
                 required={required}
-                className="form-radio border-white-100 text-indigo-600 focus:ring-indigo-500"
+                className="form-radio border-white-200 text-indigo-600 focus:ring-indigo-500"
               />
               <span className="ml-2 text-primary-text">{option.label}</span>
             </label>

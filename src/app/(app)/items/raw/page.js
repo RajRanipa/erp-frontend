@@ -13,6 +13,7 @@ import StatusActions from '../components/StatusActions';
 import NavLink from '@/Components/NavLink';
 import Loading from '@/Components/Loading';
 import { searchIcon } from '@/utils/SVG';
+import { formatDateDMY } from '@/utils/date';
 
 export default function Raw() {
 
@@ -92,7 +93,7 @@ export default function Raw() {
         <div className="Items-page h-full flex flex-col">
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-h2 font-semibold mb-5">Raw Materials</h1>
-            <div className="flex gap-2 items-center flex-[0_1_30%]">
+            <div className="flex gap-2 items-center">
               {loading ? <Loading variant='skeleton' className='h-9' /> :
                 (items && items.length > 0) &&
                 <CustomInput
@@ -101,6 +102,7 @@ export default function Raw() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   icon={searchIcon()}
+                  parent_className="min-w-[280px] w-fit"
                 />}
             </div>
           </div>
@@ -125,12 +127,34 @@ export default function Raw() {
                   { key: 'description', header: 'Description', render: r => r.description || '\u2014' },
                   { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
                   {
+                    key: 'updated',
+                    header: 'Updated',
+                    render: (r) => (
+                      <div className="flex items-start justify-center flex-col">
+                        <div><span className='text-xs text-white-600 capitalize'>{r?.createdBy?.fullName ?? '—'}</span></div>
+                        {r?.createdBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.createdAt)}</span></div>}
+                      </div>
+                    ),
+                    align: 'right',
+                  },
+                  {
+                    key: 'created',
+                    header: 'Created',
+                    render: (r) => (
+                      <div className="flex items-start justify-center flex-col">
+                        <div><span className='text-xs text-white-600 capitalize'>{r?.updatedBy?.fullName ?? '—'}</span></div>
+                        {r?.updatedBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.createdAt) ?? '—'}</span></div>}
+                      </div>
+                    ),
+                    align: 'right',
+                  },
+                  {
                     key: 'actions',
                     header: '',
                     render: r => (
                       <div className='flex gap-2 items-center'>
                         <EditButton onClick={() => onEdit(r)} itemName={r.name} />
-                        <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name}  requiredPermissions='items:delete'/>
+                        <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} requiredPermissions='items:delete' />
                       </div>
                     ),
                     align: 'right',

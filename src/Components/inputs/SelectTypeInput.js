@@ -494,7 +494,7 @@ const SelectTypeInput = ({
                 ${icon ? 'pl-10' : ''}`,
               displayErr
                 ? 'border-error focus:ring-error/30 focus:border-error'
-                : 'border-white-100 focus:ring-blue-500/30 focus:border-blue-500',
+                : 'border-white-200 focus:ring-blue-500/30 focus:border-blue-500',
               readOnly ? 'bg-black-200 pointer-events-none' : '',
               loading ? 'bg-gray-100 text-gray-400' : '',
               className
@@ -529,7 +529,7 @@ const SelectTypeInput = ({
           <div className="absolute z-30 rounded-lg w-full" ref={dropdownRef}>
             <div
               className={cn(
-                'mb-5 mt-1 bg-black-200 border border-white-100 overflow-hidden shadow-lg rounded-lg backdrop-blur-2xl',
+                'mb-5 mt-1 bg-black-200 border border-white-200 overflow-hidden shadow-lg rounded-lg backdrop-blur-2xl',
                 dropdownHeight
               )}
             >
