@@ -148,7 +148,7 @@ export default function ManageUsersPage() {
               sortable: true,
               render: (r) => (
                 <RoleSelect
-                  parent_className='w-fit'
+                  parent_className='w-fit mb-0'
                   className="border rounded-lg px-2 py-1 text-sm w-fit"
                   value={r.role || 'viewer'}
                   onChange={(e) => handleRoleChange(r._id, e.target.value)}
