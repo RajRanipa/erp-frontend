@@ -52,7 +52,13 @@ export default function InventoryStock() {
 
   return (
     <>
-      {ready ? <div className="space-y-4 h-full flex flex-col">
+      {loading &&  (
+              <div className="space-y-4 h-full flex flex-col gap-2">
+                <Loading variant="skeleton" className="h-[40px]" />
+                <Loading variant="skeleton" className="flex-1" />
+              </div>
+            )}
+      {ready && <div className="space-y-4 h-full flex flex-col">
         {(rows && rows.length>0) ? <>
           {/* Filters always visible (recommended) */}
           <StockFilters
@@ -74,7 +80,8 @@ export default function InventoryStock() {
             refrence={refresh}
           />
         </>: <div className='flex items-center justify-center gap-0 text-white-500 flex-col min-h-50 capitalize'>Add Receipt Entry for items <NavLink href="/inventory/create" type='link' className='underline text-action'>here</NavLink> to get started.</div>}
-      </div> : <Loading variant='skeleton' className='h-full' />}
+      </div> 
+       }
     </>
   );
 }

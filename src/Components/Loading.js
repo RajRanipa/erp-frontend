@@ -2,10 +2,7 @@
 
 'use client';
 import React from 'react';
-
-function cn(...args) {
-  return args.filter(Boolean).join(' ');
-}
+import { cn } from '@/utils/cn';
 
 /**
  * Spinner – accessible, modern spinner.
@@ -111,7 +108,7 @@ export default function Loading({
 
   if (variant === 'skeleton') {
     return (
-      <div className={cn('w-full ', className)}>
+      <div className={cn('w-full', className)}>
         {children || (
           <>
             <Skeleton height={18} className='mb-2 h-full'/>

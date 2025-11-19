@@ -49,18 +49,17 @@ export default function InventoryMovement() {
   const handleFiltersChange = (patch) => {
     setFilters(prev => ({ ...prev, ...patch }));
   };
-
   return (
-    <div>
+    <div className='space-y-4 h-full flex flex-col'>
       {/* Loading state */}
       {loading && (
-        <div className="space-y-4">
-          <Loading variant="skeleton" className="h-[140px]" />
-          <Loading variant="skeleton" className="h-[420px]" />
+        <div className="space-y-4 h-full flex flex-col gap-2">
+          <Loading variant="skeleton" className="h-[40px]" />
+          <Loading variant="skeleton" className="flex-1" />
         </div>
       )}
       {(!loading && !error) &&
-        <div className="space-y-4">
+        <>
           {rows && rows.length > 0 ? <>
             <StockFilters 
               title="Stock Movements"
@@ -82,7 +81,7 @@ export default function InventoryMovement() {
           </> :
             <div className='text-center capitalize text-white-500'>no data found</div>
           }
-        </div>
+        </>
       }
     </div>
   );

@@ -165,7 +165,7 @@ export default function StockTable({
   );
 
   return (
-    <div className=" rounded-lg overflow-hidden flex-1" ref={refrence}>
+    <>
       {/* Toolbar */}
       {/* <div className="px-3 py-2 border-b border-color-200 bg-white-100 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-2">
@@ -186,8 +186,10 @@ export default function StockTable({
           rowKey={(r) => `${r.itemId?._id || r.itemId}-${r.warehouseId?._id || r.warehouseId}-${r.batchNo || 'none'}-${r.uom || ''}`}
           virtualization={filteredRows.length > 200}
           loading={loading}
+          ref={refrence}
+          className='overflow-y-auto'
         />
       )}
-    </div>
+    </>
   );
 }

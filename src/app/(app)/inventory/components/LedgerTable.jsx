@@ -190,33 +190,7 @@ export default function LedgerTable({
   );
 
   return (
-    <div className="rounded-lg overflow-hidden flex-1" ref={refrence}>
-      {/* Header */}
-      {/* <div className="px-3 py-2 border-b border-color-200 bg-white-100 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-2">
-          <span className="font-medium">Stock Movements</span>
-          <span className="text-xs text-white-500">({filteredRows.length} shown)</span>
-        </div>
-
-        <div className="flex gap-2 items-center">
-          <SelectInput
-            key={'limit'}
-            name="limit"
-            value={limit || 50}
-            onChange={(e) => onLimitChange?.(Number(e.target.value))}
-            options={[50, 100, 200, 500].map((n) => ({ value: n, label: n }))}
-            className="px-2 py-1 text-sm min-w-[70px]"
-            parent_className="mb-0"
-          />
-          {onRefresh && (
-            <button className="text-sm underline" onClick={onRefresh} disabled={loading} title="Refresh">
-              {loading ? 'Loading…' : 'Refresh'}
-            </button>
-          )}
-        </div>
-      </div> */}
-
-      {/* Table */}
+    <>
       {loading ? (
         <div className="p-4">Loading…</div>
       ) : error ? (
@@ -228,8 +202,9 @@ export default function LedgerTable({
           rowKey={(r) => r._id}
           virtualization={filteredRows.length > 200}
           loading={loading}
+          className='overflow-y-auto'
         />
       )}
-    </div>
-  );
-}
+      </>
+    );
+  }

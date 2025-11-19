@@ -93,13 +93,14 @@ export default function Raw() {
 
   return (
     <>
-      {<div>
+      {
         <div className="Items-page h-full flex flex-col">
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-h2 font-semibold mb-5">Raw Materials</h1>
             <div className="flex gap-2 items-center">
-              {loading ? <Loading variant='skeleton' className='h-9' /> :
-                (items && items.length > 0) && <>
+              {loading && <Loading variant='skeleton' className='h-9 min-w-[500px] mb-5' />}
+              {
+                (items && items.length > 0 && !loading) && <>
                   <button
                     type="button"
                     onClick={fetchItems}
@@ -145,8 +146,8 @@ export default function Raw() {
                     header: 'Updated',
                     render: (r) => (
                       <div className="flex items-end justify-center flex-col">
-                        <div><span className='text-xs text-white-600 capitalize'>{r?.updatedBy?.fullName ?? '—'}</span></div>
-                        {r?.updatedBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.updatedAt, true)}</span></div>}
+                        <div><span className='text-[0.9em] text-white-600 capitalize'>{r?.updatedBy?.fullName ?? '—'}</span></div>
+                        {r?.updatedBy?.fullName && <div><span className='text-[0.85em] text-white-500'>{formatDateDMY(r?.updatedAt, true)}</span></div>}
                       </div>
                     ),
                     align: 'right',
@@ -159,8 +160,8 @@ export default function Raw() {
                     header: 'Created',
                     render: (r) => (
                       <div className="flex items-end justify-center flex-col">
-                        <div><span className='text-xs text-white-600 capitalize'>{r?.createdBy?.fullName ?? '—'}</span></div>
-                        {r?.createdBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.createdAt, true) ?? '—'}</span></div>}
+                        <div><span className='text-[0.9em] text-white-600 capitalize'>{r?.createdBy?.fullName ?? '—'}</span></div>
+                        {r?.createdBy?.fullName && <div><span className='text-[0.85em] text-white-500'>{formatDateDMY(r?.createdAt, true) ?? '—'}</span></div>}
                       </div>
                     ),
                     align: 'right',
@@ -190,8 +191,7 @@ export default function Raw() {
                 className='shadow-md'
               />
           )}
-        </div>
-      </div>}
+        </div>}
     </>
   );
 }
