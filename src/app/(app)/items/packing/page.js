@@ -112,24 +112,24 @@ export default function Packing() {
           <h1 className="text-h2 font-semibold mb-5">Packing Material</h1>
           <div className="flex gap-2 items-center relative">
             {loading ? <Loading variant='skeleton' className='h-9' /> :
-              (items && items.length > 0) &&<>
-              <button
-                type="button"
-                onClick={fetchItems}
-                disabled={loading}
-                className="btn-secondary flex items-center gap-2 mb-5 px-3 py-2 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <span>↻</span>
-                <span>Refresh</span>
-              </button>
-              <CustomInput
-                name="search_items"
-                placeholder="Search by name size"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                icon={searchIcon()}
-                parent_className="min-w-[280px] w-fit"
-              />
+              (items && items.length > 0) && <>
+                <button
+                  type="button"
+                  onClick={fetchItems}
+                  disabled={loading}
+                  className="btn-secondary flex items-center gap-2 mb-5 px-3 py-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <span>↻</span>
+                  <span>Refresh</span>
+                </button>
+                <CustomInput
+                  name="search_items"
+                  placeholder="Search by name size"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  icon={searchIcon()}
+                  parent_className="min-w-[280px] w-fit"
+                />
               </>}
           </div>
         </div>
@@ -166,6 +166,9 @@ export default function Packing() {
                     </div>
                   ),
                   align: 'right',
+                  group: 'audit',
+                  groupLabel: 'Audit fields',
+                  groupCollapsed: true,   // hidden by default
                 },
                 {
                   key: 'created',
@@ -177,6 +180,9 @@ export default function Packing() {
                     </div>
                   ),
                   align: 'right',
+                  group: 'audit',
+                  groupLabel: 'Audit fields',
+                  groupCollapsed: true,   // hidden by default
                 },
                 {
                   key: 'actions',

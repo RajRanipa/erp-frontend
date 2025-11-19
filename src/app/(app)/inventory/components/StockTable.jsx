@@ -22,8 +22,8 @@ export default function StockTable({
   refrence = null,
 }) {
   const pt = filters.productType || '';
-  const q  = filters.query || '';
-
+  const q = filters.query || '';
+  console.log("rows", rows)
   const filteredRows = useMemo(() => {
     if (!q && !pt) return rows;
     const needle = String(q).toLowerCase().trim();
@@ -107,6 +107,9 @@ export default function StockTable({
         className: 'hidden lg:table-cell',
         sortable: true,
         render: (r) => r.warehouseId?.name || r.warehouseId || '—',
+        group: 'other',
+        groupLabel: 'Other Info',
+        groupCollapsed: true,
       },/* for mobile version i want to hide this column from tabel so it's look good on mobile */
       {
         key: 'batchNo',
@@ -114,6 +117,19 @@ export default function StockTable({
         className: 'hidden lg:table-cell',
         render: (r) => r.batchNo || '—',
         align: 'center',
+        group: 'other',
+        groupLabel: 'Other Info',
+        groupCollapsed: true,
+      },
+      {
+        key: 'bin',
+        header: 'Bin',
+        className: 'hidden lg:table-cell',
+        render: (r) => r.bin || '—',
+        align: 'center',
+        group: 'other',
+        groupLabel: 'Other Info',
+        groupCollapsed: true,
       },
       {
         key: 'onHand',

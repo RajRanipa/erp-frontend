@@ -87,7 +87,7 @@ const CustomInput = ({
           aria-describedby={errorId}
           className={cn(` block w-full px-3 py-2 border sm:text-sm
           ${ displayErr ? 'border-error' : 'border-white-200' } 
-          rounded-lg shadow-sm placeholder-white-400 focus:outline-none
+          rounded-lg shadow-xs placeholder-white-400 focus:outline-none
           focus:border-0.5 focus:ring-3
           ${ (displayErr && readOnly)
               ? 'focus:ring-error focus:ring-3 focus:border-error focus:border-0.5 '

@@ -1,9 +1,8 @@
 'use client';
 // frontend-erp/src/app/(app)/inventory/components/LedgerTable.jsx
 import { useMemo } from 'react';
-import SelectInput from '@/Components/inputs/SelectInput';
 import Table from '@/Components/layout/Table';
-import { mapDimension, mapPacking } from '@/utils/FGP';
+import { mapDimension, mapPacking, mapTemperature } from '@/utils/FGP';
 import { formatDateDMY } from '@/utils/date';
 
 const TYPE_BADGE = {
@@ -39,7 +38,7 @@ export default function LedgerTable({
   const q = filters.query || '';
   const pt = filters.productType || '';
   const txn = filters.txnType || '';
-
+  console.log('rows LedgerTable', rows[0]);
   // filtered rows based on q, productType, txnType
   const filteredRows = useMemo(() => {
     const needle = (q || '').toLowerCase().trim();
@@ -80,7 +79,7 @@ export default function LedgerTable({
         key: 'at',
         header: 'Date',
         sortable: true,
-        render: (r) => formatDateDMY(r.at || r.createdAt, true),
+        render: (r) => <div className='text-sm'>{formatDateDMY(r.at || r.createdAt, true)}</div>,
       },
       {
         key: 'txnType',
@@ -102,13 +101,7 @@ export default function LedgerTable({
         header: 'Temperature',
         sortable: true,
         render: (r) =>
-          r.itemId?.temperature ? (
-            <span className={`${r.itemId?.temperature?.value > 1400 ? 'text-red-400' : 'text-blue-400'}`}>
-              {r.itemId?.temperature?.value + ' ' + r.itemId?.temperature?.unit}
-            </span>
-          ) : (
-            '—'
-          ),
+          r.itemId?.temperature ? mapTemperature(r.itemId?.temperature) : ('—'),
       },
       {
         key: 'density',
@@ -132,6 +125,9 @@ export default function LedgerTable({
         key: 'warehouse',
         header: 'Warehouse',
         render: (r) => r.warehouseId?.name || r.warehouseId || '—',
+        group: 'other',
+        groupLabel: 'Other Info',
+        groupCollapsed: true,
       },
       {
         key: 'quantity',
@@ -151,6 +147,9 @@ export default function LedgerTable({
         header: 'Batch',
         render: (r) => r.batchNo || '—',
         align: 'center',
+        group: 'other',
+        groupLabel: 'Other Info',
+        groupCollapsed: true,
       },
       {
         key: 'ref',
@@ -160,11 +159,31 @@ export default function LedgerTable({
             {r.refType || '—'} {r.refId || ''}
           </div>
         ),
+        group: 'other',
+        groupLabel: 'Other Info',
+        groupCollapsed: true,
       },
       {
         key: 'note',
         header: 'Note',
         render: (r) => r.note || '—',
+        group: 'other',
+        groupLabel: 'Other Info',
+        groupCollapsed: true,
+      },
+      {
+        key: 'created',
+        header: 'Created',
+        render: (r) => (
+          <div className="flex items-end justify-center flex-col">
+            <div><span className='text-xs text-white-600 capitalize'>{r?.by?.fullName ?? '—'}</span></div>
+            {r?.by?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.at, true)}</span></div>}
+          </div>
+        ),
+        align: 'right',
+        group: 'audit',
+        groupLabel: 'Audit fields',
+        groupCollapsed: true,   // hidden by default
       },
     ],
     []

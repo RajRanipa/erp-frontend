@@ -18,7 +18,10 @@ export function formatDateDMY(input, time = false) {
     const hh = String(local.getHours()).padStart(2, '0');
     const min = String(local.getMinutes()).padStart(2, '0');
     const ss = String(local.getSeconds()).padStart(2, '0');
-    return <span className="flex flex-col"> <span>{`${dd}/${mm}/${yyyy}`}</span> <span className="text-white-400">{`${hh}:${min}:${ss}`}</span></span>;
+    return <span className="flex flex-col"> 
+            <span className="text-[0.9em]">{`${dd}/${mm}/${yyyy}`}</span> 
+            <span className="text-white-400 text-[0.85em]">{`${hh}:${min}:${ss}`}</span>
+        </span>;
   }
 
   return `${dd}/${mm}/${yyyy}`;

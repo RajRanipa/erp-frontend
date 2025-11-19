@@ -46,6 +46,7 @@ export default function Table(
   // Column groups & visibility (for grouped/collapsible columns)
   const [collapsedGroups, setCollapsedGroups] = useState({});
   const [showGroupMenu, setShowGroupMenu] = useState(false);
+  const menuRef = useRef(null);
   const groups = useMemo(() => {
     const map = new Map();
     (columns || []).forEach(col => {
@@ -79,6 +80,36 @@ export default function Table(
       return next;
     });
   }, [columns, groups]);
+
+  useEffect(() => {
+    if (!showGroupMenu) return;
+
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowGroupMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showGroupMenu, menuRef]);
+
+  useEffect(() => {
+    if (!showGroupMenu) return;
+
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') {
+        setShowGroupMenu(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEsc);
+    return () => {
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [showGroupMenu]);
 
   const visibleColumns = useMemo(() => {
     return (columns || []).filter(col => {
@@ -126,8 +157,8 @@ export default function Table(
   // if (!sorted || sorted.length === 0) return <div className="p-4 text-sm text-muted">{emptyMessage}</div>;
 
   return (
-    <div className={cn(`table-wrapper rounded-lg border border-white-100 overflow-x-auto overflow-y-hidden h-full ${className}`)}>
-      <table className="min-w-full divide-y divide-white-100 h-full ">
+    <div className={cn(`table-wrapper rounded-lg border border-white-100 overflow-x-auto overflow-y-hidden ${className}`)}>
+      <table className="min-w-full divide-y divide-white-100 max-h-full">
         <thead className="bg-black-400 sticky top-0 backdrop-blur-xl z-9 rounded-lg overflow-hidden">
           <tr>
             {selectable === 'multiple' && (
@@ -182,23 +213,18 @@ export default function Table(
             {groups.length > 0 && (
               <th className="px-2 py-2 text-right align-middle w-8">
                 <div className="flex items-center gap-2 w-full justify-end">
-                  <div className="relative inline-block">
+                  <div className="relative inline-block" ref={menuRef}>
                     <button
                       type="button"
                       onClick={() => setShowGroupMenu(v => !v)}
                       className="text-xs h-5 w-5 rounded border bg-white-200 hover:bg-white-300 border-color-100 flex items-center justify-center flex-col gap-0.5"
                       aria-label="Toggle column groups "
                     >
-                      {/* {showGroupMenu ?  */}
-                      <div className={cn('origin-center w-full h-full relative flex items-center justify-center p-1 overflow-hidden transition-all duration-300', showGroupMenu ? 'rotate-45 ': 'flex-col gap-0.5')}>
-                      <span className={cn('border-b-1 w-full transition-all duration-300 rounded-lg', showGroupMenu ? 'border-b-1 w-[85%] absolute origin-center rotate-0 ': '')}></span>
-                      <span className={cn('border-b-1 w-full transition-all duration-300 rounded-lg', showGroupMenu ? 'opacity-0 ': '')}></span>
-                      <span className={cn('border-b-1 w-full transition-all duration-300 rounded-lg', showGroupMenu ? 'border-b-1 w-[85%] absolute origin-center -rotate-90 ': '')}></span>
-                      </div> 
-                      {/* : <div className='origin-center rotate-45 w-full h-full relative flex items-center justify-center p-1 overflow-hidden'>
-                        <span className='border-b-1 w-full absolute origin-center rotate-0'></span>
-                        <span className='border-b-1 w-full absolute origin-center -rotate-90'></span>
-                      </div>} */}
+                      <div className={cn('origin-center w-full h-full relative flex items-center justify-center p-1 overflow-hidden transition-all duration-300', showGroupMenu ? 'rotate-45 ' : 'flex-col gap-0.5')}>
+                        <span className={cn('border-b-1 w-full transition-all duration-300 rounded-lg', showGroupMenu ? 'border-b-1 w-[85%] absolute origin-center rotate-0 ' : '')}></span>
+                        <span className={cn('border-b-1 w-full transition-all duration-300 rounded-lg', showGroupMenu ? 'opacity-0 ' : '')}></span>
+                        <span className={cn('border-b-1 w-full transition-all duration-300 rounded-lg', showGroupMenu ? 'border-b-1 w-[85%] absolute origin-center -rotate-90 ' : '')}></span>
+                      </div>
                     </button>
                     {showGroupMenu && (
                       <ul className="absolute right-0 mt-1 w-40 border border-white-200 bg-secondary rounded-sm z-20 overflow-hidden ">
@@ -252,7 +278,7 @@ export default function Table(
                   </td>
                 ))}
                 {groups.length > 0 && (
-                  <td className="px-2 py-2 text-sm" />
+                  <td className="px-2 py-2 text-sm h-fit" />
                 )}
               </tr>
             );
@@ -292,7 +318,7 @@ export default function Table(
           </tfoot>
         )}
       </table>
-      <div className="flex items-center justify-between p-2 text-sm text-secondary-text bg-white-100 border-t border-white-100 sticky bottom-0 backdrop-blur-xl rounded-bl-lg overflow-hidden">
+      <div className="flex items-center justify-between px-2 py-1 text-sm text-secondary-text bg-white-100 border-t border-white-100 sticky bottom-0 backdrop-blur-xl rounded-bl-lg overflow-hidden">
         {/* Rows per page selector */}
         <div className="flex items-center gap-2">
           <span>Rows per page:</span>

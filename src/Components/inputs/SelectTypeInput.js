@@ -490,7 +490,7 @@ const SelectTypeInput = ({
             aria-invalid={!!displayErr}
             aria-describedby={errorId}
             className={cn(
-              `block flex-2 px-3 py-2 border sm:text-sm rounded-lg shadow-sm placeholder-white-400 focus:outline-none focus:border-0.5 focus:ring-3
+              `block flex-2 px-3 py-2 border sm:text-sm rounded-lg shadow-xs placeholder-white-400 focus:outline-none focus:border-0.5 focus:ring-3
                 ${icon ? 'pl-10' : ''}`,
               displayErr
                 ? 'border-error focus:ring-error/30 focus:border-error'
