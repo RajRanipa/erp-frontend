@@ -133,7 +133,7 @@ export default function Packing() {
                 { key: 'brandType', header: 'Brand Type', render: r => r.brandType || '\u2014' },
                 {
                   key: 'productColor', header: 'Color', render: r => r?.productColor ? (
-                    <div className={`${r.productColor.includes('red') ? 'text-red-400' : 'text-blue-400'}`}>{r.productColor}</div>
+                    <div className={`${r.productColor.includes('red') ? 'dark:text-red-400 text-red-600 ' : 'dark:text-blue-400 text-blue-600'}`}>{r.productColor}</div>
                   ) : '\u2014'
                 },
                 { key: 'UOM', header: 'Unit', render: r => r.UOM || '\u2014' },
