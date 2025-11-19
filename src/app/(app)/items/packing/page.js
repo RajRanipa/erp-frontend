@@ -139,7 +139,7 @@ export default function Packing() {
                 { key: 'UOM', header: 'Unit', render: r => r.UOM || '\u2014' },
                 { key: 'minimumStock', header: 'Minimum Stock', render: r => r.minimumStock ?? '\u2014' },
                 { key: 'dimension', header: 'Dimension', render: r => mapDimension(r?.dimension) || '\u2014' },
-                { key: 'productType', header: 'Use for', render: r => r?.productType?.name ?? '\u2014' },
+                { key: 'productType', header: 'Use for', render: r => <span className='capitalize text-white-600'>{r?.productType?.name}</span> ?? '\u2014' },
                 { key: 'description', header: 'Description', render: r => r.description || '\u2014' },
                 { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
                 {
@@ -147,8 +147,8 @@ export default function Packing() {
                   header: 'Updated',
                   render: (r) => (
                     <div className="flex items-start justify-center flex-col">
-                      <div><span className='text-xs text-white-600 capitalize'>{r?.createdBy?.fullName ?? '—'}</span></div>
-                      {r?.createdBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.createdAt)}</span></div>}
+                      <div><span className='text-xs text-white-600 capitalize'>{r?.updatedBy?.fullName ?? '—'}</span></div>
+                      {r?.updatedBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.updatedAt, true) ?? '—'}</span></div>}
                     </div>
                   ),
                   align: 'right',
@@ -158,8 +158,8 @@ export default function Packing() {
                   header: 'Created',
                   render: (r) => (
                     <div className="flex items-start justify-center flex-col">
-                      <div><span className='text-xs text-white-600 capitalize'>{r?.updatedBy?.fullName ?? '—'}</span></div>
-                      {r?.updatedBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.createdAt) ?? '—'}</span></div>}
+                      <div><span className='text-xs text-white-600 capitalize'>{r?.createdBy?.fullName ?? '—'}</span></div>
+                      {r?.createdBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.createdAt, true)}</span></div>}
                     </div>
                   ),
                   align: 'right',

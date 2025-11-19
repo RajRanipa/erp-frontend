@@ -131,8 +131,8 @@ export default function Raw() {
                     header: 'Updated',
                     render: (r) => (
                       <div className="flex items-start justify-center flex-col">
-                        <div><span className='text-xs text-white-600 capitalize'>{r?.createdBy?.fullName ?? '—'}</span></div>
-                        {r?.createdBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.createdAt)}</span></div>}
+                        <div><span className='text-xs text-white-600 capitalize'>{r?.updatedBy?.fullName ?? '—'}</span></div>
+                        {r?.updatedBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.updatedAt, true)}</span></div>}
                       </div>
                     ),
                     align: 'right',
@@ -142,8 +142,8 @@ export default function Raw() {
                     header: 'Created',
                     render: (r) => (
                       <div className="flex items-start justify-center flex-col">
-                        <div><span className='text-xs text-white-600 capitalize'>{r?.updatedBy?.fullName ?? '—'}</span></div>
-                        {r?.updatedBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.createdAt) ?? '—'}</span></div>}
+                        <div><span className='text-xs text-white-600 capitalize'>{r?.createdBy?.fullName ?? '—'}</span></div>
+                        {r?.createdBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.createdAt, true) ?? '—'}</span></div>}
                       </div>
                     ),
                     align: 'right',
