@@ -189,7 +189,7 @@ export default function RolePermissionsPage() {
         <div className="mb-3 rounded-md bg-red-50 text-red-700 p-3 text-sm">{error}</div>
       ) : null}
 
-      {loading && (
+      {(loading && !rolesRead) && (
         <div className="space-y-4 flex flex-col gap-4 h-full">
           <Loading variant="skeleton" className="h-[100px]" />
           <Loading variant="skeleton" className="flex-1" />
