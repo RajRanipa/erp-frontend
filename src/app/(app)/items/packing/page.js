@@ -1,6 +1,6 @@
 // src/app/items/packing/page.js 
 'use client';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
 import DisplayMain from '@/Components/layout/DisplayMain';
 import { axiosInstance } from '@/lib/axiosInstance';
@@ -24,22 +24,25 @@ export default function Packing() {
   const [search, setSearch] = useState('');
   const [sel, setSel] = useState([]);
   const router = useRouter();
-  useEffect(() => {
-    const fetchItems = async () => {
-      // console.log("fetchItems called");
-      try {
-        const response = await axiosInstance.get('/api/items/packings')
-        // console.log("response", response);
-        setItems(response.data);
-        setLoading(false);
-      } catch (error) {
-        setError(error.message);
-        setLoading(false);
-        Toast.error("Failed to fetch campaign")
-      }
-    };
-    fetchItems();
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get('/api/items/packings');
+      setItems(response.data || []);
+      setError(null);
+    } catch (error) {
+      console.error('Failed to fetch packing items', error);
+      setError(error.message || 'Failed to fetch packing items');
+      Toast.error('Failed to fetch packing items');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
 
   const filteredItems = useMemo(() => {
     if (!search.trim()) return items;
@@ -95,9 +98,10 @@ export default function Packing() {
       Toast.error('Failed to delete item');
       // quick refetch to ensure state is consistent
       try {
-        const resp = await axiosInstance.get('/api/items/finished');
-        setItems(resp.data || []);
-      } catch (e) { /* ignore */ }
+        await fetchItems();
+      } catch (e) {
+        // ignore secondary failure
+      }
     }
   };
   console.log("items", items);
@@ -109,7 +113,15 @@ export default function Packing() {
           <div className="flex gap-2 items-center relative">
             {loading ? <Loading variant='skeleton' className='h-9' /> :
               (items && items.length > 0) &&<>
-              <button>need refresh button here</button>
+              <button
+                type="button"
+                onClick={fetchItems}
+                disabled={loading}
+                className="btn-secondary flex items-center gap-2 mb-5 px-3 py-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <span>↻</span>
+                <span>Refresh</span>
+              </button>
               <CustomInput
                 name="search_items"
                 placeholder="Search by name size"
@@ -148,7 +160,7 @@ export default function Packing() {
                   key: 'updated',
                   header: 'Updated',
                   render: (r) => (
-                    <div className="flex items-start justify-center flex-col">
+                    <div className="flex items-end justify-center flex-col">
                       <div><span className='text-xs text-white-600 capitalize'>{r?.updatedBy?.fullName ?? '—'}</span></div>
                       {r?.updatedBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.updatedAt, true) ?? '—'}</span></div>}
                     </div>
@@ -159,7 +171,7 @@ export default function Packing() {
                   key: 'created',
                   header: 'Created',
                   render: (r) => (
-                    <div className="flex items-start justify-center flex-col">
+                    <div className="flex items-end justify-center flex-col">
                       <div><span className='text-xs text-white-600 capitalize'>{r?.createdBy?.fullName ?? '—'}</span></div>
                       {r?.createdBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.createdAt, true)}</span></div>}
                     </div>
@@ -168,9 +180,9 @@ export default function Packing() {
                 },
                 {
                   key: 'actions',
-                  header: '',
+                  header: 'Actions',
                   render: r => (
-                    <div className='flex gap-2 items-center'>
+                    <div className='flex gap-2 items-center justify-end'>
                       <EditButton onClick={() => onEdit(r)} itemName={r.name} requiredPermissions='items:update' />
                       <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} requiredPermissions='items:delete' />
                     </div>

@@ -131,136 +131,142 @@ export default function Finished() {
   };
 
   return (
-      <div className="Items-page h-full flex flex-col">
-        <div className="flex items-center justify-between gap-2">
-          <h1 className="text-h2 font-semibold mb-5">Finished Goods</h1>
-          <div className="flex gap-2 items-center relative w-fit">
-            {loading ? <Loading variant='skeleton' className='h-9' /> : ((items && items.length > 0) && <>
-              <button
-                type="button"
-                onClick={fetchItems}
-                disabled={loading}
-                className="btn-secondary flex items-center gap-2 mb-5 px-3 py-2 text-sm"
-              >
-                <span>
-                  ↻
-                </span>
-                <span>Refresh</span>
-              </button>
-              <SelectInput
-                name="product_type"
-                value={productTypeFilter}
-                onChange={e => setProductTypeFilter(e.target.value)}
-                options={[{ value: '', label: 'All types' }, ...productTypes]}
-                className="w-fit px-3 py-2 text-sm"
-                parent_className="w-fit"
-              />
-              <CustomInput
-                name="search_items"
-                placeholder="Search name / packing / unit / type"
-                onChange={e => setQ(e.target.value)}
-                value={q}
-                parent_className="min-w-[280px] w-fit"
-                icon={searchIcon()}
-                className='py-2 text-sm'
-              />
-            </>)}
-          </div>
-        </div>
-        {/* <Loading variant='skeleton' className='h-full' /> */}
-        {loading ? <Loading variant='skeleton' className='h-full' /> : error ? <div className="p-4 text-red-500">{error}</div> : (
-          (items && items.length === 0) ?
-            <div className='flex flex-col items-center justify-center w-full p-4 gap-3'>
-              <span className="text-secondary-text">No items found.</span>
-              <NavLink href={`/items/create`} type="button">Add new Finished Good</NavLink>
-            </div> :
-            <Table columns={[
-              {
-                key: 'name',
-                header: 'Name',
-                sortable: true,
-                render: (r) => <div className="font-semibold">{r.name}</div>,
-              },
-              {
-                key: 'temperature',
-                header: 'Temperature',
-                sortable: true,
-                render: (r) => (mapTemperature(r?.temperature) ?? '—'),
-                align: 'center',
-              },
-              {
-                key: 'dimension',
-                header: 'Dimension',
-                render: (r) => (mapDimension(r?.dimension) ?? '—'),
-                align: 'center',
-              },
-              {
-                key: 'density',
-                header: 'Density',
-                render: (r) => (r?.density?.value ? `${r.density.value} ${r.density?.unit || ''}` : '—'),
-                align: 'center',
-              },
-              {
-                key: 'packing',
-                header: 'Packing',
-                render: (r) => (
-                  <NavLink href={`/items/packing`} >
-                  {mapPacking(r.packing)}
-                  </NavLink>
-                ),
-              },
-              {
-                key: 'unit',
-                header: 'Unit',
-                render: (r) => r.UOM || '\u2014',
-                align: 'center',
-              },
-              { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
-              {
-                key: 'updated',
-                header: 'Updated',
-                render: (r) => (
-                  <div className="flex items-start justify-center flex-col">
-                    <div><span className='text-xs text-white-600 capitalize'>{r?.updatedBy?.fullName ?? '—'}</span></div>
-                    {r?.updatedBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.updatedAt, true) ?? '—'}</span></div>}
-                  </div>
-                ),
-                align: 'right',
-              },
-              {
-                key: 'created',
-                header: 'Created',
-                render: (r) => (
-                  <div className="flex items-start justify-center flex-col">
-                    <div><span className='text-xs text-white-600 capitalize'>{r?.createdBy?.fullName ?? '—'}</span></div>
-                    {r?.createdBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.createdAt, true)}</span></div>}
-                  </div>
-                ),
-                align: 'right',
-              },
-              {
-                key: 'actions',
-                header: 'Actions',
-                render: (r) => (
-                  <div className="flex items-center justify-end gap-2">
-                    <EditButton onClick={() => onEdit(r)} itemName={r.name} requiredPermissions='items:update'  />
-                    <DeleteButton onClick={(e) => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} requiredPermissions='items:delete' />
-                  </div>
-                ),
-                align: 'left',
-              },
-            ]}
-              data={rows}
-              rowKey={(r) => r._id}
-              selectable="multiple"
-              selectedKeys={sel}
-              onSelectionChange={setSel}
-              virtualization={items.length > 100}
-              loading={loading}
-              className='shadow-md'
+    <div className="Items-page h-full flex flex-col">
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-h2 font-semibold mb-5">Finished Goods</h1>
+        <div className="flex gap-2 items-center relative w-fit">
+          {loading ? <Loading variant='skeleton' className='h-9' /> : ((items && items.length > 0) && <>
+            <button
+              type="button"
+              onClick={fetchItems}
+              disabled={loading}
+              className="btn-secondary flex items-center gap-2 mb-5 px-3 py-2"
+            >
+              <span>
+                ↻
+              </span>
+              <span>Refresh</span>
+            </button>
+            <SelectInput
+              name="product_type"
+              value={productTypeFilter}
+              onChange={e => setProductTypeFilter(e.target.value)}
+              options={[{ value: '', label: 'All types' }, ...productTypes]}
+              className="w-fit px-3 py-2 text-sm"
+              parent_className="w-fit"
             />
-        )}
+            <CustomInput
+              name="search_items"
+              placeholder="Search name / packing / unit / type"
+              onChange={e => setQ(e.target.value)}
+              value={q}
+              parent_className="min-w-[280px] w-fit"
+              icon={searchIcon()}
+              className='py-2 text-sm'
+            />
+          </>)}
+        </div>
       </div>
+      {/* <Loading variant='skeleton' className='h-full' /> */}
+      {loading ? <Loading variant='skeleton' className='h-full' /> : error ? <div className="p-4 text-red-500">{error}</div> : (
+        (items && items.length === 0) ?
+          <div className='flex flex-col items-center justify-center w-full p-4 gap-3'>
+            <span className="text-secondary-text">No items found.</span>
+            <NavLink href={`/items/create`} type="button">Add new Finished Good</NavLink>
+          </div> :
+          <Table columns={[
+            {
+              key: 'name',
+              header: 'Name',
+              sortable: true,
+              render: (r) => <div className="font-semibold">{r.name}</div>,
+            },
+            {
+              key: 'temperature',
+              header: 'Temperature',
+              sortable: true,
+              render: (r) => (mapTemperature(r?.temperature) ?? '—'),
+              align: 'center',
+            },
+            {
+              key: 'dimension',
+              header: 'Dimension',
+              render: (r) => (mapDimension(r?.dimension) ?? '—'),
+              align: 'center',
+            },
+            {
+              key: 'density',
+              header: 'Density',
+              render: (r) => (r?.density?.value ? `${r.density.value} ${r.density?.unit || ''}` : '—'),
+              align: 'center',
+            },
+            {
+              key: 'packing',
+              header: 'Packing',
+              render: (r) => (
+                <NavLink href={`/items/packing`} >
+                  {mapPacking(r.packing)}
+                </NavLink>
+              ),
+            },
+            {
+              key: 'unit',
+              header: 'Unit',
+              render: (r) => r.UOM || '\u2014',
+              align: 'center',
+            },
+            { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
+            {
+              key: 'updated',
+              header: 'Updated',
+              render: (r) => (
+                <div className="flex items-end justify-center flex-col">
+                  <div><span className='text-xs text-white-600 capitalize'>{r?.updatedBy?.fullName ?? '—'}</span></div>
+                  {r?.updatedBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.updatedAt, true) ?? '—'}</span></div>}
+                </div>
+              ),
+              align: 'right',
+              group: 'audit',
+              groupLabel: 'Audit fields',
+              groupCollapsed: true,   // hidden by default
+            },
+            {
+              key: 'created',
+              header: 'Created',
+              render: (r) => (
+                <div className="flex items-end justify-center flex-col">
+                  <div><span className='text-xs text-white-600 capitalize'>{r?.createdBy?.fullName ?? '—'}</span></div>
+                  {r?.createdBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.createdAt, true)}</span></div>}
+                </div>
+              ),
+              align: 'right',
+              group: 'audit',
+              groupLabel: 'Audit fields',
+              groupCollapsed: true,   // hidden by default
+            },
+            {
+              key: 'actions',
+              header: 'Actions',
+              render: (r) => (
+                <div className="flex items-center justify-end gap-2">
+                  <EditButton onClick={() => onEdit(r)} itemName={r.name} requiredPermissions='items:update' />
+                  <DeleteButton onClick={(e) => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} requiredPermissions='items:delete' />
+                </div>
+              ),
+              align: 'right',
+            },
+          ]}
+            data={rows}
+            rowKey={(r) => r._id}
+            selectable="multiple"
+            selectedKeys={sel}
+            onSelectionChange={setSel}
+            virtualization={items.length > 100}
+            loading={loading}
+            className='shadow-md overflow-y-auto'
+          />
+      )}
+    </div>
   );
 }
 

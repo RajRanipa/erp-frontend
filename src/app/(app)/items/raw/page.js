@@ -1,6 +1,6 @@
 // src/app/(app)/items/raw/page.js
 'use client';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
@@ -25,22 +25,25 @@ export default function Raw() {
   const [search, setSearch] = useState('');
   const [sel, setSel] = useState([]);
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const response = await axiosInstance.get('/api/items/raw');
-        setItems(response.data || []);
-        setLoading(false);
-      } catch (err) {
-        setError(err?.message || 'Failed to fetch items');
-        setLoading(false);
-        Toast.error('Failed to fetch raw items');
-      }
-    };
-    fetchItems();
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get('/api/items/raw');
+      setItems(response.data || []);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch raw items', err);
+      setError(err?.message || 'Failed to fetch items');
+      Toast.error('Failed to fetch raw items');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
 
   const filteredItems = useMemo(() => {
     if (!search.trim()) return items;
@@ -81,9 +84,10 @@ export default function Raw() {
       Toast.error('Failed to delete item');
       // simple refetch to restore
       try {
-        const resp = await axiosInstance.get('/api/items/raw');
-        setItems(resp.data || []);
-      } catch (e) { /* ignore */ }
+        await fetchItems();
+      } catch (e) {
+        // ignore secondary failures
+      }
     }
   };
 
@@ -96,7 +100,15 @@ export default function Raw() {
             <div className="flex gap-2 items-center">
               {loading ? <Loading variant='skeleton' className='h-9' /> :
                 (items && items.length > 0) &&<>
-                <button>need refresh button here</button>
+                <button
+                  type="button"
+                  onClick={fetchItems}
+                  disabled={loading}
+                  className="btn-secondary flex items-center gap-2 mb-5 px-3 py-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <span>↻</span>
+                  <span>Refresh</span>
+                </button>
                 <CustomInput
                   name="search_items"
                   placeholder="Search name / grade / unit"
@@ -132,7 +144,7 @@ export default function Raw() {
                     key: 'updated',
                     header: 'Updated',
                     render: (r) => (
-                      <div className="flex items-start justify-center flex-col">
+                      <div className="flex items-end justify-center flex-col">
                         <div><span className='text-xs text-white-600 capitalize'>{r?.updatedBy?.fullName ?? '—'}</span></div>
                         {r?.updatedBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.updatedAt, true)}</span></div>}
                       </div>
@@ -143,7 +155,7 @@ export default function Raw() {
                     key: 'created',
                     header: 'Created',
                     render: (r) => (
-                      <div className="flex items-start justify-center flex-col">
+                      <div className="flex items-end justify-center flex-col">
                         <div><span className='text-xs text-white-600 capitalize'>{r?.createdBy?.fullName ?? '—'}</span></div>
                         {r?.createdBy?.fullName && <div><span className='text-xs text-white-400'>{formatDateDMY(r?.createdAt, true) ?? '—'}</span></div>}
                       </div>
@@ -152,9 +164,9 @@ export default function Raw() {
                   },
                   {
                     key: 'actions',
-                    header: '',
+                    header: 'Actions',
                     render: r => (
-                      <div className='flex gap-2 items-center'>
+                      <div className='flex gap-2 items-center justify-end'>
                         <EditButton onClick={() => onEdit(r)} itemName={r.name} />
                         <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} requiredPermissions='items:delete' />
                       </div>

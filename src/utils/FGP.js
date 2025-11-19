@@ -6,7 +6,7 @@ const mapPacking = (packing) => {
 
   const parts = [name, brandType, productColor, unit].filter(Boolean);
   if (parts.length === 0) return '';
-  return (<div className='flex gap-1 flex-col'>
+  return (<div className='flex gap-0 text-sm flex-col'>
     <span>{name}</span>
     <span className='flex gap-1 text-xs'>
     <span>{brandType}</span>
@@ -17,13 +17,14 @@ const mapPacking = (packing) => {
 };
 
 const mapDimension = (dm) => {
-  const unit = dm.unit ? ` ${dm.unit}` : '';
-  const l = dm.length ?? '';
-  const w = dm.width ?? '';
-  const th = dm.thickness ?? '';
+  console.log('dm', dm);
+  const unit = dm?.unit ? ` ${dm.unit}` : '';
+  const l = dm?.length ?? '';
+  const w = dm?.width ?? '';
+  const th = dm?.thickness ?? '';
 
   const parts = [l, w, th].filter(Boolean);
-  if (parts.length === 0) return '';
+  if (parts.length === 0) return '—';
   return `${parts.join(' × ')}${unit}`.trim();
 };
 
