@@ -22,12 +22,10 @@ const Topbar = ({ setOpen = () => { }, open }) => {
 
   const cName = companyName || '';
 
-  const hasIdentity = Boolean(cName && userlogo);
-
   return (
     <header className="min-h-12 min-w-screen bg-primary z-10 flex items-center px-2 lg:px-5 justify-between top-0">
-    {hasIdentity ? (
-      <>
+    {/* {hasIdentity ? (
+      <> */}
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -73,10 +71,9 @@ const Topbar = ({ setOpen = () => { }, open }) => {
           </button>
           <LogOutBtn />
         </div>
-      </>
-    ) : (
+      {/* </> ) : (
       <Loading variant="skeleton" className="h-10 w-full" />
-    )}
+    )} */}
     </header>
   );
 };

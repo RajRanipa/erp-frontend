@@ -1,6 +1,6 @@
 // src/app/items/finished/page.js
 'use client';
-import React, { useEffect, useState, useMemo, useDeferredValue, memo } from 'react';
+import React, { useEffect, useState, useMemo, useDeferredValue, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import SelectInput from '@/Components/inputs/SelectInput';
 import CustomInput from '@/Components/inputs/CustomInput';
@@ -44,40 +44,38 @@ export default function Finished() {
 
   const [sel, setSel] = useState([]);
 
-  useEffect(() => {
-    let mounted = true;
-    const fetchAll = async () => {
-      setLoading(true);
-      try {
-        const itemsRes = await axiosInstance.get('/api/items/finished');
-        if (!mounted) return;
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const itemsRes = await axiosInstance.get('/api/items/finished');
+      const itemsData = itemsRes.data || [];
+      console.log('itemsData', itemsData);
+      setItems(itemsData);
 
-        const itemsData = itemsRes.data || [];
-        console.log('itemsData', itemsData);
-        // return;
-        setItems(itemsData);
-
-        // Extract unique product types from the items themselves
-        const uniqueTypes = Array.from(
-          new Map(
-            itemsData
-              .filter(it => it.productType?.name)
-              .map(it => [it.productType._id, { value: it.productType._id, label: it.productType.name }])
-          ).values()
-        );
-        setProductTypes(uniqueTypes);
-        setError(null);
-      } catch (err) {
-        console.error('fetch error', err);
-        setError(err?.message || 'Failed to load');
-        Toast.error('Failed to fetch items', { duration: 4000 });
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-    fetchAll();
-    return () => { mounted = false; };
+      const uniqueTypes = Array.from(
+        new Map(
+          itemsData
+            .filter(it => it.productType?.name)
+            .map(it => [
+              it.productType._id,
+              { value: it.productType._id, label: it.productType.name },
+            ])
+        ).values()
+      );
+      setProductTypes(uniqueTypes);
+      setError(null);
+    } catch (err) {
+      console.error('fetch error', err);
+      setError(err?.message || 'Failed to load');
+      Toast.error('Failed to fetch items', { duration: 4000 });
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
 
   // client-side filtering and searching (memoized)
   const rows = useMemo(() => {
@@ -133,18 +131,28 @@ export default function Finished() {
   };
 
   return (
-    <div>
       <div className="Items-page h-full flex flex-col">
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-h2 font-semibold mb-5">Finished Goods</h1>
           <div className="flex gap-2 items-center relative w-fit">
             {loading ? <Loading variant='skeleton' className='h-9' /> : ((items && items.length > 0) && <>
+              <button
+                type="button"
+                onClick={fetchItems}
+                disabled={loading}
+                className="btn-secondary flex items-center gap-2 mb-5 px-3 py-2 text-sm"
+              >
+                <span>
+                  ↻
+                </span>
+                <span>Refresh</span>
+              </button>
               <SelectInput
                 name="product_type"
                 value={productTypeFilter}
                 onChange={e => setProductTypeFilter(e.target.value)}
                 options={[{ value: '', label: 'All types' }, ...productTypes]}
-                className="w-fit"
+                className="w-fit px-3 py-2 text-sm"
                 parent_className="w-fit"
               />
               <CustomInput
@@ -154,6 +162,7 @@ export default function Finished() {
                 value={q}
                 parent_className="min-w-[280px] w-fit"
                 icon={searchIcon()}
+                className='py-2 text-sm'
               />
             </>)}
           </div>
@@ -248,10 +257,10 @@ export default function Finished() {
               onSelectionChange={setSel}
               virtualization={items.length > 100}
               loading={loading}
+              className='shadow-md'
             />
         )}
       </div>
-    </div>
   );
 }
 

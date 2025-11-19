@@ -108,7 +108,8 @@ export default function Packing() {
           <h1 className="text-h2 font-semibold mb-5">Packing Material</h1>
           <div className="flex gap-2 items-center relative">
             {loading ? <Loading variant='skeleton' className='h-9' /> :
-              (items && items.length > 0) &&
+              (items && items.length > 0) &&<>
+              <button>need refresh button here</button>
               <CustomInput
                 name="search_items"
                 placeholder="Search by name size"
@@ -116,7 +117,8 @@ export default function Packing() {
                 onChange={(e) => setSearch(e.target.value)}
                 icon={searchIcon()}
                 parent_className="min-w-[280px] w-fit"
-              />}
+              />
+              </>}
           </div>
         </div>
         {loading && <Loading variant='skeleton' className='h-full' />}
@@ -183,6 +185,7 @@ export default function Packing() {
               onSelectionChange={setSel}
               loading={loading}
               pageSize={10}
+              className='shadow-md'
             />
         )}
       </div>

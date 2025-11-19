@@ -16,6 +16,8 @@ const defaultUserState = {
   permissions: [],
 };
 
+const PERSISTED_KEYS = Object.keys(defaultUserState);
+
 // 1. Define a function to get the initial state from storage
 const getInitialState = () => {
     if (typeof window !== 'undefined') {
@@ -52,18 +54,11 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     // Only save once the component has successfully mounted and hydrated
     if (isMounted) { 
-      window.sessionStorage.setItem(
-        SESSION_KEY,
-        JSON.stringify({
-          userId: userState.userId,
-          companyId: userState.companyId,
-          role: userState.role,
-          companyName: userState.companyName,
-          userName: userState.userName,
-          enabledModules: userState.enabledModules,
-          permissions: userState.permissions,
-        })
-      );
+      const dataToStore = PERSISTED_KEYS.reduce((acc, key) => {
+        acc[key] = userState[key];
+        return acc;
+      }, {});
+      window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(dataToStore));
     }
   }, [userState, isMounted]); // Dependency on isMounted ensures we don't save during the initial client-side update
 
@@ -82,15 +77,21 @@ export const UserProvider = ({ children }) => {
   const setUserContext = useCallback((updates) => {
     setUserState(s => ({ ...s, ...updates }));
   }, []);
-  const clearUserContext = useCallback(() => setUserState(defaultUserState), []);
+  const clearUserContext = useCallback(() => {
+    setUserState(defaultUserState);
+    if (typeof window !== 'undefined') {
+      try {
+        window.sessionStorage.removeItem(SESSION_KEY);
+      } catch (e) {
+        console.error('Failed to clear user context storage:', e);
+      }
+    }
+  }, []);
 
   const markPermissionsForRefresh = useCallback(() => {
     setPermissionsNeedsRefresh(true);
   }, []);
 
-  const refreshPermissionsNow = useCallback(() => {
-    setPermissionsNeedsRefresh(true);
-  }, []);
   // Auto-refresh permissions when flagged
   useEffect(() => {
     if (!isMounted) return;
@@ -132,7 +133,6 @@ export const UserProvider = ({ children }) => {
 
   const value = {
     ...userState,
-    user : userState,
     permissionsNeedsRefresh,
     setUserId,
     setCompanyId,
@@ -142,7 +142,6 @@ export const UserProvider = ({ children }) => {
     setEnabledModules,
     setPermissions,
     markPermissionsForRefresh,
-    refreshPermissionsNow,
     setUserContext,
     clearUserContext,
   };
@@ -161,21 +160,3 @@ export const useUser = () => {
   }
   return ctx;
 };
-
-
-  // useEffect(() => {
-  //     (async () => {
-  //       try {
-  //         setLoading(true);
-  //         const roleRes = await axiosInstance.get(`/api/permissions/by-role`);
-  //         const keys = roleRes.data?.data?.permissions || [];
-  //         // console.log('roleRes', roleRes, keys);
-  //         setPermissions(new Set(keys));
-  //       } catch (e) {
-  //         // setError(e.message || 'Failed to load role permissions');
-  //         Toast.error(`Role load error: ${e.message}`, 'error');
-  //       } finally {
-  //         setLoading(false);
-  //       }
-  //     })();
-  //   }, []);

@@ -104,6 +104,7 @@ const coreProductFields = [
             { value: "pcs", label: "Pcs" },
             { value: "kg", label: "Kg" },
             { value: "ton", label: "Ton" },
+            { value: "bag", label: "Bag" },
             { value: "ml", label: "Milliliter" },
             { value: "cm", label: "Centimeter" },
             { value: "m", label: "Meter" },
@@ -134,7 +135,13 @@ const coreProductFields = [
         }
     },
     {
-        type: 'text', name: 'productColor', label: 'Product Color', placeholder: 'Product Color', required: false, conditional: (formData = {}) => {
+        type: 'selecttype', name: 'productColor', label: 'Product Color', placeholder: 'Choose Product Color', required: false, 
+        options: [
+            {value: "red", label: "Red"},
+            {value: "blue", label: "Blue"},
+            {value: "green", label: "Green"},
+        ],
+        conditional: (formData = {}) => {
             const cat = String((formData.category_label ?? '')).trim().toLowerCase();
             return cat.includes('packing');
         }

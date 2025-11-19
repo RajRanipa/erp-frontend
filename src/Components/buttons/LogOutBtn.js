@@ -5,10 +5,11 @@ import { Toast } from '@/Components/toast';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { cn } from '@/utils/cn';
 import { logoutIcon } from '@/utils/SVG';
+import { useUser } from '@/context/UserContext';
 
 export default function LogOutBtn({ variant = 'icon', className = '' }) {
     const router = useRouter();
-
+    const { clearUserContext } = useUser();
 
     const handleLogout = async () => {
         const ok = await Toast.promise('Are you sure you want to logout?',{
@@ -26,6 +27,7 @@ export default function LogOutBtn({ variant = 'icon', className = '' }) {
                 localStorage.removeItem('refreshToken');
                 localStorage.removeItem('user');
                 sessionStorage.clear();
+                clearUserContext();
                 Toast.info('You have been logged out.');
                 router.push('/login');
             } else {

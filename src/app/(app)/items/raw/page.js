@@ -95,7 +95,8 @@ export default function Raw() {
             <h1 className="text-h2 font-semibold mb-5">Raw Materials</h1>
             <div className="flex gap-2 items-center">
               {loading ? <Loading variant='skeleton' className='h-9' /> :
-                (items && items.length > 0) &&
+                (items && items.length > 0) &&<>
+                <button>need refresh button here</button>
                 <CustomInput
                   name="search_items"
                   placeholder="Search name / grade / unit"
@@ -103,7 +104,8 @@ export default function Raw() {
                   onChange={(e) => setSearch(e.target.value)}
                   icon={searchIcon()}
                   parent_className="min-w-[280px] w-fit"
-                />}
+                />
+                </>}
             </div>
           </div>
 
@@ -167,6 +169,7 @@ export default function Raw() {
                 onSelectionChange={setSel}
                 loading={loading}
                 pageSize={10}
+                className='shadow-md'
               />
           )}
         </div>
