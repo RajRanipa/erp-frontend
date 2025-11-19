@@ -75,23 +75,29 @@ const coreProductFields = [
             return cat.includes('finished') || cat.includes('packing');
         }
     },
-    { type: 'selecttype', name: 'name', label: 'Product Name', placeholder: 'Product Name', required: true, allowCustomValue: true,
-        options: [
+    {
+        type: 'selecttype', name: 'name', label: 'Product Name', placeholder: 'Product Name', required: true, allowCustomValue: true,
+        finished: [
             { value: "orewool blanket", label: "orewool Blanket" },
             { value: "orewool board", label: "orewool Board" },
             { value: "orewool bulk", label: "orewool Bulk" },
             { value: "orewool module", label: "orewool Module" },
-            { value: "blanket strip", label: "Blanket Strip" },
+            { value: "blanket strip", label: "Blanket Strip" }],
+        packing: [
             { value: "plastic bag", label: "Plastic Bag" },
             { value: "wovan bag", label: "Wovan Bag" },
             { value: "corrugated box", label: "Corrugated Box" },
+            { value: "cello tape", label: "Cello Tape" },
+            { value: "stepping roll", label: "Stepping Roll" }],
+        raw: [
             { value: "calcined alumina", label: "Calcined Alumina" },
             { value: "silica", label: "Silica" },
             { value: "Colloidal silica", label: "Colloidal Silica" },
             { value: "starch", label: "Starch" },
         ]
     },
-    {type: 'selecttype', name: 'UOM', label: 'Product Unit', placeholder: 'Product Unit', required: true,
+    {
+        type: 'selecttype', name: 'UOM', label: 'Product Unit', placeholder: 'Product Unit', required: true,
         options: [
             { value: "roll", label: "Roll" },
             { value: "nos", label: "Nos" },
@@ -118,17 +124,6 @@ const coreProductFields = [
         ]
     },
     { type: 'number', name: 'minimumStock', label: 'Minimum Stock Level', placeholder: 'Minimum Stock Level', required: true },
-    {
-        type: 'text',
-        name: 'grade',
-        label: 'Grade',
-        placeholder: 'Grade',
-        required: false,
-        conditional: (formData = {}) => {
-            const cat = String((formData.category_label ?? '')).trim().toLowerCase();
-            return cat.includes('raw') || cat.includes('finished') || cat.includes('packing');
-        }
-    },
     {
         type: 'select', name: 'brandType', label: 'Brand Type', placeholder: 'Brand Type', options: [
             { value: "branded", label: "branded" },
@@ -157,6 +152,17 @@ const coreProductFields = [
     //     }
     // },
     // { type: 'number', name: 'currentStock', label: 'Current Stock', placeholder: 'Current Stock', required: false },
+    {
+        type: 'text',
+        name: 'grade',
+        label: 'Grade',
+        placeholder: 'Grade',
+        required: false,
+        conditional: (formData = {}) => {
+            const cat = String((formData.category_label ?? '')).trim().toLowerCase();
+            return cat.includes('raw') || cat.includes('finished') || cat.includes('packing');
+        }
+    },
     { type: 'textarea', name: 'description', label: 'Description', placeholder: 'Description', required: false },
 ];
 

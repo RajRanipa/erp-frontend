@@ -8,7 +8,8 @@ import { coreProductFields } from '@/config/productConfig';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 
 const CoreProductFields = ({ formData, onChange, errors }) => {
-  // console.log('coreProductFields', formData, formData.category_label);
+  console.log('coreProductFields', "formData", formData.category_label);
+  let options =''
   return (
     // <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 col-span-3">
       <>
@@ -35,6 +36,7 @@ const CoreProductFields = ({ formData, onChange, errors }) => {
           }
 
           if (field.type === 'selecttype') {
+            field?.options ? (options = field.options) : formData.category_label.includes('raw') ? (options = field.raw) : formData.category_label.includes('packing') ? (options = field.packing) : (options = field.finished);
             return (
               <div key={field.name} className={className}>
                 <SelectTypeInput
@@ -44,7 +46,7 @@ const CoreProductFields = ({ formData, onChange, errors }) => {
                   required={field.required}
                   label={field.label}
                   placeholder={field.placeholder}
-                  options={field.options}
+                  options={options}
                   apiget={field?.apiget}
                   apipost={field?.apipost}
                   allowCustomValue={field?.allowCustomValue || false}

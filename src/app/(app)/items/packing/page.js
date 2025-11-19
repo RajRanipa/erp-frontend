@@ -100,7 +100,7 @@ export default function Packing() {
       } catch (e) { /* ignore */ }
     }
   };
-
+  console.log("items", items);
   return (
     <div>
       <div className="Items-page h-full flex flex-col">
@@ -139,6 +139,7 @@ export default function Packing() {
                 { key: 'UOM', header: 'Unit', render: r => r.UOM || '\u2014' },
                 { key: 'minimumStock', header: 'Minimum Stock', render: r => r.minimumStock ?? '\u2014' },
                 { key: 'dimension', header: 'Dimension', render: r => mapDimension(r?.dimension) || '\u2014' },
+                { key: 'productType', header: 'Use for', render: r => r?.productType?.name ?? '\u2014' },
                 { key: 'description', header: 'Description', render: r => r.description || '\u2014' },
                 { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
                 {
