@@ -96,6 +96,12 @@ export default function StockTable({
         render: (r) => (r.itemId?.dimension ? mapDimension(r.itemId?.dimension) : '—'),
       },
       {
+        key: 'grade',
+        header: 'Grade',
+        sortable: true,
+        render: (r) => (r.itemId?.grade ? (r.itemId?.grade) : '—'),
+      },
+      {
         key: 'packing',
         header: 'Packing',
         sortable: true,
