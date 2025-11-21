@@ -6,6 +6,8 @@ import { Toast } from '@/Components/toast';
 import Table from '@/Components/layout/Table';
 import CustomInput from '@/Components/inputs/CustomInput';
 import RoleSelect from '@/Components/role/RoleSelect';
+import Dialog from '@/Components/Dialog';
+import SubmitButton from '@/Components/buttons/SubmitButton';
 
 
 export default function ManageUsersPage() {
@@ -14,6 +16,9 @@ export default function ManageUsersPage() {
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState('');
   const [error, setError] = useState('');
+  const [currentRole, setCurrentRole] = useState(null);
+  const [currentRoleID, setCurrentRoleID] = useState(null);
+  const [open, setOpen] = useState(false);
   const [sortBy, setSortBy] = useState({ key: 'name', direction: 'asc' });
 
   const fetchUsers = useCallback(async () => {
@@ -24,11 +29,11 @@ export default function ManageUsersPage() {
       const list = Array.isArray(res?.data?.data)
         ? res.data.data
         : Array.isArray(res?.data?.users)
-        ? res.data.users
-        : Array.isArray(res?.data)
-        ? res.data
-        : [];
-        console.log('list', list);  
+          ? res.data.users
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
+      console.log('list', list);
       setRows(list);
     } catch (e) {
       const msg = e?.response?.data?.message || 'Failed to load users';
@@ -97,9 +102,9 @@ export default function ManageUsersPage() {
     }
   };
   console.log('rows', rows);
-    // const handleRemove = async (id) => {
-     
-    // };
+  // const handleRemove = async (id) => {
+
+  // };
   return (
     <div className="w-full space-y-3">
       <div className="flex items-center justify-between gap-3 mb-5">
@@ -137,7 +142,7 @@ export default function ManageUsersPage() {
               sortable: true,
               render: (r) => (
                 <div className="flex flex-col">
-                  <div className="font-medium">{r.fullName ||r.name || '—'}</div>
+                  <div className="font-medium">{r.fullName || r.name || '—'}</div>
                   <div className="text-xs text-white-500">{r.email}</div>
                 </div>
               ),
@@ -147,13 +152,16 @@ export default function ManageUsersPage() {
               header: 'Role',
               sortable: true,
               render: (r) => (
-                <RoleSelect
-                  parent_className='w-fit mb-0'
-                  className="border rounded-lg px-2 py-1 text-sm w-fit"
-                  value={r.role || 'viewer'}
-                  onChange={(e) => handleRoleChange(r._id, e.target.value)}
-                  name="role"
-                />
+                // <RoleSelect
+                //   parent_className='w-fit mb-0'
+                //   className="border rounded-lg px-2 py-1 text-sm w-fit"
+                //   value={r.role || 'viewer'}
+                //   onChange={(e) => handleRoleChange(r._id, e.target.value)}
+                //   name="role"
+                // />
+                <div className="flex items-center justify-center gap-2 w-fit"><span className="px-2 py-0.5 rounded text-xs bg-white-100">{r.role}</span>
+                  <button aria-label='change role' title='change role' className="h-4 w-4 border text-xs flex items-center justify-center rounded-2xl border-white-400 hover:bg-white-200" onClick={() => { setOpen(true); setCurrentRole(r.role); setCurrentRoleID(r._id) }}>i</button>
+                </div>
               ),
             },
             {
@@ -198,6 +206,26 @@ export default function ManageUsersPage() {
           pageSize={10}
         />
       )}
+      <Dialog open={open} onClose={() => setOpen(false)} title="Chabge Role" size="sm" side="center"
+        actions={
+          <>
+            <button type="button" className="btn" onClick={() => setOpen(false)}>Cancel</button>
+            <SubmitButton type="button"
+              onClick={() => {handleRoleChange(currentRoleID, currentRole) }}>
+              Save
+            </SubmitButton>
+          </>
+        } >
+        <div className='min-h-fit h-70'>
+          <RoleSelect
+            parent_className='w-full mb-0'
+            className="border rounded-lg px-2 py-1 text-sm w-fit"
+            value={currentRole}
+            onChange={(e) => setCurrentRole(e.target.value)}
+            name="role"
+          />
+        </div>
+      </Dialog>
     </div>
   );
 }

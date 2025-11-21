@@ -144,6 +144,7 @@ export default function RoleSelect({
                 callBack={setShowDialog}
                 dropdownHeight='min-h-fit'
                 parent_className={parent_className}
+                autoFocus
             />}
 
             <Dialog

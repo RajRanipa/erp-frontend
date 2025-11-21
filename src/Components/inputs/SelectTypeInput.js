@@ -531,7 +531,7 @@ const SelectTypeInput = ({
         </div>
 
         {showOptions && (filteredOptions.length > 0 || shouldShowCreateButton) && (
-          <div className="absolute z-30 rounded-lg w-full" ref={dropdownRef}>
+          <div className="absolute z-90 rounded-lg w-full" ref={dropdownRef}>
             <div
               className={cn(
                 'mb-5 mt-1 bg-black-200 border border-white-200 overflow-hidden shadow-lg rounded-lg backdrop-blur-2xl',
