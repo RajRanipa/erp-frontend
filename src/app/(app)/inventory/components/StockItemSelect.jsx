@@ -132,7 +132,8 @@ function StockItemSelect({
     // id is a string from the native/select input
     // console.log('id', id);
     if (!id) return onChange?.(null, null);
-    const it = items.find(x => String(x._id) === String(id));
+    const it = items.find(x => String(x.itemId._id) === String(id));
+    console.log('it', it, id, items);
     return onChange?.(id, (it?.itemId || it) || null);
   };
   // console.log('options', options);

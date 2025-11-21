@@ -26,22 +26,25 @@ export default function SettingLayout({ children }) {
     ) setMounted(true);
   }, [can]);
 
-    console.log("can", can('users:permissions:create'))
+    // console.log("can", can('users:permissions:create'))
     
   return (
     <>
       <DisplayBar title="Settings" href="/settings">
         <div className="flex gap-4">
-        
+          <NavLink
+            href="/settings/myaccount"
+            className="cursor-pointer"
+          >
+            My Account
+          </NavLink>
           {mounted && <NavLink
             href="/settings/role&permisstions"
             className="cursor-pointer"
-            // onClick={() => setFilterType('finished')}
           >
             role & permisstions
           </NavLink>
           }
-
         </div>
         <div className='flex gap-2 relative'>
           

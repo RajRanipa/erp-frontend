@@ -44,6 +44,7 @@ const CheckBox = ({
     indeterminate = false,
     autoFocus = false,
     value = '',
+    checkText = '',
 }) => {
     const [touched, setTouched] = useState(false);
     const [internalErr, setInternalErr] = useState('');
@@ -116,7 +117,8 @@ const CheckBox = ({
                     onFocus={readOnly ? (e) => e.target.blur() : undefined}
                     autoFocus={autoFocus}
                 />
-                <span className="text-sm text-most-text select-none">{value || label}</span>
+                <span className="text-[1em] text-most-text select-none">{value || label || checkText}</span>
+
                 {/* <label className="inline-flex items-center cursor-pointer">
                     <input type="checkbox" className="sr-only peer" />
                     <div className="w-11 h-6 bg-white-100 rounded-full peer peer-checked:bg-blue-500 relative
@@ -134,6 +136,9 @@ const CheckBox = ({
             )}
             {readOnly && info && (
                 <p className="mt-1 text-sm text-white-500 absolute">{info}</p>
+            )}
+            {!readOnly && info && (
+                <p className="mt-1 text-xs text-white-500 flex-1">{info}</p>
             )}
         </div>
     );

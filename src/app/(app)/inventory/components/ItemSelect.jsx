@@ -61,7 +61,7 @@ export default function ItemSelect({
         });
 
         const qs = params.toString();
-        
+        console.log('qs', qs);
         const url = `/api/items${qs ? `?${qs}` : ''}`;
         const res = await axiosInstance.get(url);
         if (ignore) return;

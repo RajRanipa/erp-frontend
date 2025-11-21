@@ -143,9 +143,9 @@ export default function Packing() {
           <Table
             columns={[
               { key: 'name', header: 'Name', sortable: true, render: r => r.name },
-              { key: 'brandType', header: 'Brand Type', render: r => r.brandType || '\u2014' },
+              { key: 'brandType', header: 'Brand Type',sortable: true, render: r => r.brandType || '\u2014' },
               {
-                key: 'productColor', header: 'Color', render: r => r?.productColor ? (
+                key: 'productColor', header: 'Color',sortable: true, render: r => r?.productColor ? (
                   <div className={`${r.productColor.includes('red') ? 'dark:text-red-400 text-red-600 ' : 'dark:text-blue-400 text-blue-600'}`}>{r.productColor}</div>
                 ) : '\u2014'
               },

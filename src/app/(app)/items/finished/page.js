@@ -193,18 +193,21 @@ export default function Finished() {
             {
               key: 'dimension',
               header: 'Dimension',
+              sortable: true,
               render: (r) => (mapDimension(r?.dimension) ?? '—'),
               align: 'center',
             },
             {
               key: 'density',
               header: 'Density',
+              sortable: true,
               render: (r) => (r?.density?.value ? `${r.density.value} ${r.density?.unit || ''}` : '—'),
               align: 'center',
             },
             {
               key: 'packing',
               header: 'Packing',
+              sortable: true,
               render: (r) => (
                 <NavLink href={`/items/packing`} >
                   {mapPacking(r.packing)}

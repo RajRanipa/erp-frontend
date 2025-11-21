@@ -15,6 +15,8 @@ const ENDPOINT_BY_MODE = {
   RECEIPT: '/api/inventory/receipt',
   ISSUE: '/api/inventory/issue',
   ADJUST: '/api/inventory/adjust',
+  RESERVE:  '/api/inventory/reserve',
+  RELEASE:  '/api/inventory/release',
 };
 
 const MODE_TITLES = {
@@ -22,6 +24,8 @@ const MODE_TITLES = {
   ISSUE: 'Issue',
   ADJUST: 'Adjust',
   REPACK: 'Packing Change',
+  RESERVE: 'Reserve',
+  RELEASE: 'Release',
 };
 
 function MovementForm({

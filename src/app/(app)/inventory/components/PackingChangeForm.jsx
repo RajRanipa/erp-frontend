@@ -58,13 +58,14 @@ export default function PackingChangeForm({
         // Only compute derived filters when FROM item changes
         const isFromChange = Object.prototype.hasOwnProperty.call(patch, 'fromItemId');
 
+        console.log('itemObj', itemObj);
         if (isFromChange && itemObj) {
             const derived = {};
             if (itemObj.temperature?._id) derived.temperature = itemObj.temperature._id;
             if (itemObj.density?._id) derived.density = itemObj.density._id;
             if (itemObj.dimension?._id) derived.dimension = itemObj.dimension._id;
             if (itemObj?.productType) derived.productType = itemObj.productType;
-
+            console.log('derived', derived);
             setToItemParams(prev => ({
                 ...baseParams,
                 ...prev,
