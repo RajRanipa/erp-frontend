@@ -225,7 +225,7 @@ export default function SetupPage() {
   }
 
   const handleLogout = () => {
-    const res = axiosInstance.post('/logout');
+    const res = axiosInstance.post('/auth/logout');
     // console.log('res', res);
   } 
 

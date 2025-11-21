@@ -19,12 +19,12 @@ export function useCheckAuth() {
   
   const checkAuth = async (setUserContext) => {
     try {
-      const res = await axiosInstance.get('/check-auth');
+      const res = await axiosInstance.get('/auth/checkAuth');
       console.log('getUser /check-auth response:', res.data);
       if (res.data?.status) {
         // Update global context with user info
         setUserContext({
-          userId: res.data.user.id,
+          userId: res.data.user.userId,
           companyId: res.data.user.companyId,
           role: res.data.user.role,
           companyName: res.data.user.companyName || '',

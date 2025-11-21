@@ -17,12 +17,12 @@ const EmailVerify = ({ mode = 'signup', email, onSuccess }) => {
     : 'Enter the OTP sent to your email to verify your account.';
 
   const verifyEndpoint = isLoginMode
-    ? '/login/verify-otp'
-    : '/signup/verify-otp';
+    ? '/auth/login/verify-otp'
+    : '/auth/signup/verify-otp';
 
   const resendEndpoint = isLoginMode
-    ? '/login/resend-otp'
-    : '/signup/resend-otp';
+    ? '/auth/login/resend-otp'
+    : '/auth/signup/resend-otp';
 
   const {
     otp,

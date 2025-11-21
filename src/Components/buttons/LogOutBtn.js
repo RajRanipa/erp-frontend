@@ -20,7 +20,7 @@ export default function LogOutBtn({ variant = 'icon', className = '' }) {
         if (!ok) return;
 
         try {
-            const res = await axiosInstance.post('/logout');
+            const res = await axiosInstance.post('/auth/logout');
             console.log('res', res);
             if (res?.data?.status === true) {
                 localStorage.removeItem('accessToken');

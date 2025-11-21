@@ -67,7 +67,7 @@ const Signup = () => {
        * Adjust endpoint/response shape as per your backend.
        */
       const res = await axiosInstance.post(
-        '/signup/start',
+        '/auth/signup/start',
         { email: form.email },
         { withCredentials: true }
       );
@@ -121,7 +121,7 @@ const Signup = () => {
     setLoading(true);
     try {
       // Backend /signup should assume email is already verified by OTP step
-      const res = await axiosInstance.post('/signup', form, { withCredentials: true });
+      const res = await axiosInstance.post('/auth/signup', form, { withCredentials: true });
       const data = res.data;
 
       if (!data.status) {

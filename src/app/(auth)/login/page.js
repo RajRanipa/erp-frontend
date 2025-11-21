@@ -68,7 +68,7 @@ const LoginContent = () => {
 
     setLoading(true);
     try {
-      const res = await axiosInstance.post('/login', form, { withCredentials: true });
+      const res = await axiosInstance.post('/auth/login', form, { withCredentials: true });
       console.log('Login success response:', res.data);
 
       if (res.data.accessTokenExpireAt) {
