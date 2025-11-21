@@ -7,6 +7,7 @@ import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import Dialog from '@/Components/Dialog';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
+import SubmitButton from '@/Components/buttons/SubmitButton';
 
 /**
  * TemperatureDialog - reusable dialog component to create or edit a Temperature
@@ -162,9 +163,9 @@ export default function TemperatureDialog({
               {deleting ? 'Deleting...' : 'Delete'}
             </button>
           )}
-          <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving || deleting}>
+          <SubmitButton type="button" onClick={handleSave} disabled={saving || deleting} loading={saving || deleting}>
             {saving ? (mode === 'create' ? 'Saving...' : 'Updating...') : (mode === 'create' ? 'Save' : 'Update')}
-          </button>
+          </SubmitButton>
         </>
       )}
     >

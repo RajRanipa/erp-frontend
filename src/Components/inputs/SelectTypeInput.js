@@ -11,6 +11,7 @@ import { cn } from '../../utils/cn';
 import { axiosInstance } from '@/lib/axiosInstance';
 import Loading from '../Loading';
 import { downArrow } from '@/utils/SVG';
+import { useHighlight } from '@/hooks/useHighlight';
 
 // -------------- helpers --------------
 const normalizeOption = (item) => {
@@ -123,6 +124,8 @@ const SelectTypeInput = ({
   const dropdownRef = useRef(null);
   const clearBtnRef = useRef(null);
   const listItemRefs = useRef([]);
+  const listRef = useHighlight(inputValue.toLowerCase(), 'inputHighlight');
+
   // Helper: find by option.value OR by plain-text option.label
   const findOptionByValueOrLabel = useCallback((opts, v) => {
     if (!v) return { found: null, matched: null };
@@ -240,6 +243,7 @@ const SelectTypeInput = ({
     if (!inputValue) return options;
     const needle = inputValue.toLowerCase();
     return options.filter((opt) =>
+      needle.split(' ').every((w) => opt.label.toLowerCase().includes(w)) ||
       htmlToPlainForSearch(opt.label).toLowerCase().includes(needle)
     );
   }, [options, inputValue, fetching]);
@@ -456,7 +460,8 @@ const SelectTypeInput = ({
 
   return (
     <div ref={rootRef} className={cn(`mb-5 w-full relative ${parent_className}`)}>
-      {loading ? <Loading variant='skeleton' className='h-9' /> : <>
+      {loading || fetching ? <Loading variant='skeleton' className='h-9' /> : 
+      <>
         {label ? (
           <label
             htmlFor={name}
@@ -533,7 +538,7 @@ const SelectTypeInput = ({
                 dropdownHeight
               )}
             >
-              <ul className={cn('overflow-y-auto w-full p-1.5', dropdownHeight)}>
+              <ul className={cn('overflow-y-auto w-full p-1.5', dropdownHeight)} ref={listRef}>
                 {shouldShowCreateButton && (
                   <li
                     ref={(el) => { listItemRefs.current[0] = el; }}

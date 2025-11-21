@@ -4,8 +4,8 @@
  * Removes any existing highlights (spans with the class 'highlight').
  * @param {HTMLElement} root - The root element to clean up.
  */
-export const removeHighlights = (root) => {
-  root.querySelectorAll('span.highlight').forEach(span => {
+export const removeHighlights = (root, className = 'highlight') => {
+  root.querySelectorAll(`span.${className}`).forEach(span => {
     // Replace the span with its inner text
     const parent = span.parentNode;
     if (parent) {
@@ -19,11 +19,12 @@ export const removeHighlights = (root) => {
  * Finds and wraps text nodes inside the root element.
  * Handles both regular text and input/textarea values.
  */
-export const applyHighlights = (root, searchTerm) => {
+export const applyHighlights = (root, searchTerm, className = 'highlight') => {
   if (!root || !searchTerm) return;
-  searchTerm = searchTerm.toLowerCase();
-  // console.log("searchTerm", searchTerm)
+  searchTerm = searchTerm.toLowerCase().split(' ').filter(Boolean).join('|');
   const regex = new RegExp(`(${searchTerm})`, 'gi');
+  // console.log("searchTerm", searchTerm)
+  // console.log("regex new", regex)
   
   // Use a TreeWalker to efficiently traverse all text nodes
   const walker = document.createTreeWalker(
@@ -39,7 +40,7 @@ export const applyHighlights = (root, searchTerm) => {
   // Collect nodes first to avoid modifying the DOM while traversing
   while ((node = walker.nextNode())) {
     // 💡 Skip nodes inside scripts, styles, or our own highlight spans
-    if (node.parentElement.closest('.highlight')) continue;
+    if (node.parentElement.closest(`.${className}`)) continue;
 
     // 💡 Skip nodes inside input/textarea for now (handle separately)
     if (node.parentElement.tagName === 'INPUT' || node.parentElement.tagName === 'TEXTAREA') continue;
@@ -57,7 +58,7 @@ export const applyHighlights = (root, searchTerm) => {
       text.split(regex).forEach((part, index) => {
         if (part.match(regex)) {
           const span = document.createElement('span');
-          span.className = 'highlight';
+          span.className = `${className}`;
           span.textContent = part;
           fragment.appendChild(span);
         } else {

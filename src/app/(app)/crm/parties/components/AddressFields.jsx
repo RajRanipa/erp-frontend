@@ -4,6 +4,7 @@ import React, { memo, useCallback, useEffect, useState, useRef } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
 import Dialog from '@/Components/Dialog';
 import FormHolder from '@/Components/inputs/FormHolder';
+import SubmitButton from '@/Components/buttons/SubmitButton';
 
 const valOf = (e) =>
     e && e.target !== undefined
@@ -174,6 +175,7 @@ export default function AddressFields({ value = [], onChange }) {
       set(next);
       setShipDialog({ open: false, sourceIdx: null, draft: null });
     }, [shipDialog, set, value]);
+
     const cancelShipDialog = useCallback(() => {
       // Do nothing to data; simply close
       setShipDialog({ open: false, sourceIdx: null, draft: null });
@@ -209,7 +211,7 @@ export default function AddressFields({ value = [], onChange }) {
               actions={
                 <>
                   <button type="button" className="btn" onClick={cancelShipDialog}>Cancel</button>
-                  <button type="button" className="btn btn-primary" onClick={saveShipDialog}>Save</button>
+                  <SubmitButton type="button" onClick={saveShipDialog} label='Save Address'/>
                 </>
               }
             >

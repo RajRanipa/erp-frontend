@@ -65,7 +65,7 @@ const processQueue = (error) => {
 export const refreshAccessToken = async () => {
   dbg('refreshAccessToken called');
   try {
-    const res = await api.post('/refresh-token', null, { withCredentials: true });
+    const res = await api.post('/auth/refresh-token', null, { withCredentials: true });
     dbg('refresh token response', res?.data);
 
     // Server should return accessTokenExpireAt (absolute epoch ms) or expiry info

@@ -8,6 +8,7 @@ import Dialog from '@/Components/Dialog';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
 import Dimension from './Dimension';
+import SubmitButton from '@/Components/buttons/SubmitButton';
 
 /**
  * DimensionDialog - reusable dialog component to create or edit a Dimension
@@ -161,9 +162,9 @@ export default function DimensionDialog({
               {deleting ? 'Deleting...' : 'Delete'}
             </button>
           )}
-          <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving || deleting}>
-            {saving ? (mode === 'create' ? 'Saving...' : 'Updating...') : (mode === 'create' ? 'Save' : 'Update')}
-          </button>
+          <SubmitButton type="button" onClick={handleSave} disabled={saving || deleting} loading={saving || deleting}>
+            {saving ? (mode === 'create' ? 'Saving...' : 'Updating...') : (mode === 'create' ? 'Save Dimension' : 'Update Dimension')}
+          </SubmitButton>
         </>
       )}
     >

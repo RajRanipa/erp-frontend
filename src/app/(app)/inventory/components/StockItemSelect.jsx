@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, memo } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance';
 import SelectInput from '@/Components/inputs/SelectInput';
 import { Toast } from '@/Components/toast';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
+import Loading from '@/Components/Loading';
 
 /**
  * ItemSelect
@@ -19,8 +20,8 @@ import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
  * - disabled?: boolean
  * - status?: string ('active' | 'draft' | 'archived')
  */
-export default function StockItemSelect({
-  name='item',
+function StockItemSelect({
+  name = 'item',
   value,
   onChange,
   label = '',
@@ -45,6 +46,7 @@ export default function StockItemSelect({
 
   useEffect(() => {
     let ignore = false;
+
     const fetchItems = async () => {
       setLoading(true);
       try {
@@ -60,7 +62,6 @@ export default function StockItemSelect({
         });
 
         const qs = params.toString();
-        // console.log('qs', qs);
         const url = `/api/inventory/stock${qs ? `?${qs}` : ''}`;
         const res = await axiosInstance.get(url);
         if (ignore) return;
@@ -72,7 +73,7 @@ export default function StockItemSelect({
             : Array.isArray(res?.data)
               ? res.data
               : [];
-              console.log("list", list);
+
         setItems(list);
       } catch (err) {
         if (!ignore) Toast.error('Failed to load items');
@@ -80,15 +81,28 @@ export default function StockItemSelect({
         if (!ignore) setLoading(false);
       }
     };
+
     fetchItems();
-    return () => { ignore = true; };
-  }, []);
+    return () => {
+      ignore = true;
+    };
+  }, [mergedParams, status]);
+
+  // const options = useMemo(() => {
+  //   return (items || []).map((it) => ({
+  //     value: it?.itemId._id || it?.itemId.id,
+  //     label: formateLabel(it),
+  //   }));
+  // }, [items]);
 
   const options = useMemo(() => {
-    return (items || []).map((it) => ({
+    setLoading(true);
+    const shorted = (items || []).map((it) => ({
       value: it?.itemId._id || it?.itemId.id,
       label: formateLabel(it),
     }));
+    setLoading(false);
+    return shorted;
   }, [items]);
 
   // `
@@ -124,6 +138,7 @@ export default function StockItemSelect({
   // console.log('options', options);
   return (
     <div className="flex flex-col gap-1 min-w-[240px]">
+      {loading && <Loading variant="skeleton" className="h-9" />}
       {!loading && <SelectTypeInput
         id={name}
         name={name}
@@ -142,3 +157,5 @@ export default function StockItemSelect({
     </div>
   );
 }
+
+export default memo(StockItemSelect);

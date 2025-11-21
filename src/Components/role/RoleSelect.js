@@ -7,6 +7,7 @@ import Dialog from '@/Components/Dialog';
 import CustomInput from '@/Components/inputs/CustomInput';
 import CheckBox from '@/Components/inputs/CheckBox';
 import { cn } from '@/utils/cn';
+import SubmitButton from '../buttons/SubmitButton';
 
 /**
  * RoleSelect
@@ -157,9 +158,9 @@ export default function RoleSelect({
                         <button type="button" className="btn" onClick={() => setShowDialog(false)}>
                             Cancel
                         </button>
-                        <button type="button" className="btn btn-primary" onClick={handleConfirmCreate}>
+                        <SubmitButton type="button" className="btn btn-primary" onClick={handleConfirmCreate}>
                             Save
-                        </button>
+                        </SubmitButton>
                     </>
                 }
             >

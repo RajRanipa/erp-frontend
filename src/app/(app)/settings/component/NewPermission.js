@@ -9,6 +9,7 @@ import { cn } from '@/utils/cn';
 import { addIcon } from '@/utils/SVG';
 import { Toast } from '@/Components/toast';
 import { useUser } from '@/context/UserContext';
+import SubmitButton from '@/Components/buttons/SubmitButton';
 
 /**
  * NewPermission
@@ -118,9 +119,9 @@ const NewPermission = ({ open, setOpen, onCreated, selectedRole }) => {
                 actions={
                     <>
                         <button type="button" className="btn-secondary" onClick={handleClose} disabled={submitting}>Cancel</button>
-                        <button type="submit" className="btn-primary disabled:opacity-60" disabled={submitting} onClick={handleSubmit}>
-                            {submitting ? 'Creating…' : 'Create'}
-                        </button>
+                        <SubmitButton type="submit" disabled={submitting} onClick={handleSubmit} loading={submitting}>
+                            {submitting ? 'Creating…' : 'Create permission'}
+                        </SubmitButton>
                     </>
                 }
             >

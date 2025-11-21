@@ -1,5 +1,6 @@
 // src/app/utils/checkAuth.js
 'use client';
+import { Toast } from "@/Components/toast";
 import { axiosInstance } from "@/lib/axiosInstance";
 import { useRouter } from 'next/navigation';
 
@@ -40,6 +41,7 @@ export function useCheckAuth() {
         }
       }
     } catch (err) {
+      Toast.error(err?.response?.data?.message || 'Failed to check authentication. Please try again.');
       console.error('getUser error:', err);
     }
   };

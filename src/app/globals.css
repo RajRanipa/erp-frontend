@@ -231,6 +231,17 @@ button:hover:not([disabled]),
   text-transform: inherit;
 }
 
+.inputHighlight{
+  background: #000000;
+  color: #fff;
+}
+@media (prefers-color-scheme: dark) {
+.inputHighlight{
+  color: #000000;
+  background: #fff;
+}
+}
+
 .fade-screen{
   position: relative;
   z-index: 8;

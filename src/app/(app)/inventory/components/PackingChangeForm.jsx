@@ -1,6 +1,6 @@
 'use client';
-
-import { useEffect, useMemo, useState } from 'react';
+// frontend-erp/src/app/(app)/inventory/components/PackingChangeForm.jsx
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
 import ItemSelect from './ItemSelect';
@@ -24,8 +24,8 @@ export default function PackingChangeForm({
         note: '',
     });
     const [loading, setLoading] = useState(false);
-    const initialParam = { categoryKey: 'FG' };
-    const [itemParams, setItemParams] = useState([initialParam]);
+    const baseParams = useMemo(() => ({ categoryKey: 'FG' }), []);
+    const [toItemParams, setToItemParams] = useState(baseParams);
     const [itemForm, setItemForm] = useState(false);
     const [fromMeta, setFromMeta] = useState(null);
     const [toMeta, setToMeta] = useState(null);
@@ -54,12 +54,10 @@ export default function PackingChangeForm({
         !sameItem
     );
 
-    const handleChange = (patch, itemObj) => {
-        // // console.log('patch, itemObj', patch, itemObj);
-
+    const handleChange = useCallback((patch, itemObj) => {
         // Only compute derived filters when FROM item changes
         const isFromChange = Object.prototype.hasOwnProperty.call(patch, 'fromItemId');
-        // console.log('itemObj', itemObj);
+
         if (isFromChange && itemObj) {
             const derived = {};
             if (itemObj.temperature?._id) derived.temperature = itemObj.temperature._id;
@@ -67,22 +65,19 @@ export default function PackingChangeForm({
             if (itemObj.dimension?._id) derived.dimension = itemObj.dimension._id;
             if (itemObj?.productType) derived.productType = itemObj.productType;
 
-            setItemParams(prev => {
-                const base = Array.isArray(prev)
-                    ? (prev[0] || initialParam)
-                    : (prev || initialParam);
-                const next0 = { ...initialParam, ...base, ...derived };
-                return [next0];
-            });
-            // Enable the "To Item" select once a valid from item is chosen
-            // console.log('itemForm', itemForm);
-            setItemForm(true);
+            setToItemParams(prev => ({
+                ...baseParams,
+                ...prev,
+                ...derived,
+            }));
         }
-        // console.log('itemForm', itemForm, form.fromItemId);
-        if (form.fromItemId) setItemForm(true);
-        setForm((f) => ({ ...f, ...patch }));
-        // console.log('itemParams --> ', itemParams);
-    };
+
+        if (isFromChange) {
+            setItemForm(Boolean(patch.fromItemId));
+        }
+
+        setForm(prev => ({ ...prev, ...patch }));
+    }, [baseParams]);
 
     // Prefill/lock UOM from the "from" item
     useEffect(() => {
@@ -139,6 +134,31 @@ export default function PackingChangeForm({
         }
     };
 
+    const handleFromItemChange = useCallback(
+        (v, itemObj) => {
+            setFromMeta(itemObj || null);
+            handleChange({ fromItemId: v }, itemObj);
+        },
+        [handleChange]
+    );
+
+    const handleToItemChange = useCallback(
+        (v, itemObj) => {
+            setToMeta(itemObj || null);
+            handleChange({ toItemId: v }, itemObj);
+        },
+        [handleChange]
+    );
+
+    const handleFromFocus = useCallback(() => {
+        setItemForm(false);
+    }, []);
+
+    const warehouseOptions = useMemo(
+        () => warehouses.map(w => ({ value: String(w._id), label: w.name })),
+        [warehouses]
+    );
+
     return (
         <form onSubmit={submit} className="rounded-lg p-3 space-y-3">
             <div className="flex items-center justify-between pb-4">
@@ -152,17 +172,17 @@ export default function PackingChangeForm({
                 </button>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-3 py-2">
+            <div className="grid md:grid-cols-2 gap-3 py-2 items-center">
                 <div>
                     <StockItemSelect
                         name="fromItemId"
                         label="From Item (current packing)"
                         value={form.fromItemId}
-                        onChange={(v, i) => handleChange({ fromItemId: v }, i)}
+                        onChange={handleFromItemChange}
                         required
                         disabled={loading}
-                        apiparams={itemParams}
-                        onFocus={() => setItemForm(false)}
+                        apiparams={baseParams}
+                        onFocus={handleFromFocus}
                     />
                 </div>
                 <div>
@@ -170,22 +190,12 @@ export default function PackingChangeForm({
                         name="toItemId"
                         label="To Item (target packing)"
                         value={form.toItemId}
-                        onChange={(v, i) => handleChange({ toItemId: v }, i)}
+                        onChange={handleToItemChange}
                         required
                         disabled={!itemForm}
                         readOnly={!itemForm}
-                        apiparams={itemParams}
+                        apiparams={toItemParams}
                     />}
-                    {/* {!itemForm && <CustomInput
-                        label="To Item (target packing)"
-                        placeholder='Selact item'
-                        value={form.toItemId||''}
-                        onChange={(v, i) => handleChange({ toItemId: v }, i)}
-                        required
-                        readOnly={!itemForm}
-                        apiparams={itemParams}
-                        info="Please Select A From Item Field First"
-                    />} */}
                 </div>
             </div>
 
@@ -202,7 +212,7 @@ export default function PackingChangeForm({
                     required
                     label="Warehouse"
                     disabled={loading}
-                    options={warehouses.map(w => ({ value: String(w._id), label: w.name }))}
+                    options={warehouseOptions}
                 />
                 <CustomInput
                     label="UOM"
@@ -261,12 +271,3 @@ export default function PackingChangeForm({
         </form>
     );
 }
-
-// opt 68d627dac2adb5933b3b519f
-// PackingChangeForm.jsx:50 patch, itemObj {fromItemId: '68d627dac2adb5933b3b519f'} {_id: '68d627dac2adb5933b3b519f', name: 'orewool blanket', sku: 'ITEM-ORE-003', category: '68cfe586536e05e76679859e', categoryKey: 'FG', …}
-// PackingChangeForm.jsx:31 form.fromItemId 68d627dac2adb5933b3b519f // this id is correct 
-// PackingChangeForm.jsx:31 form.fromItemId 68d627dac2adb5933b3b519f // this id is correct 
-// ItemSelect.jsx:128 opt 68d4eae6f9160fc738223807
-// PackingChangeForm.jsx:50 patch, itemObj {fromItemId: '68d4eae6f9160fc738223807'} {_id: '68d4eae6f9160fc738223807', name: 'orewool blanket', sku: 'ITEM-ORE-002', category: '68cfe586536e05e76679859e', categoryKey: 'FG', …}
-// PackingChangeForm.jsx:31 form.fromItemId 68d4eae6f9160fc738223807 // but again running the same on change event and id is change which is not correct , why this is happening
-// PackingChangeForm.jsx:31 form.fromItemId 68d4eae6f9160fc738223807

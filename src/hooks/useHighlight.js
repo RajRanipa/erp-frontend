@@ -6,18 +6,18 @@ import { removeHighlights, applyHighlights } from '@/utils/highlightDOM'; // You
  * Applies custom highlighting to a specific container element.
  * @param {string} searchTerm - The text to search for.
  */
-export const useHighlight = (searchTerm) => {
+export const useHighlight = (searchTerm, ClassName) => {
   const containerRef = useRef(null);
 
   useEffect(() => {
     // 1. Clean up existing highlights
     if (containerRef.current) {
-      removeHighlights(containerRef.current);
+      removeHighlights(containerRef.current, ClassName);
     }
     
     // 2. Apply new highlights if a search term exists
     if (searchTerm && containerRef.current) {
-      applyHighlights(containerRef.current, searchTerm);
+      applyHighlights(containerRef.current, searchTerm, ClassName);
     }
     
     // 3. Cleanup function to reset highlights when the component unmounts 

@@ -1,5 +1,5 @@
+// frontend-erp/src/app/(app)/inventory/components/MovementForm.jsx
 'use client';
-
 import React, { useEffect, useMemo, useState, useCallback, useRef, memo } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
@@ -31,7 +31,8 @@ function MovementForm({
   defaultWarehouseId = '',
 }) {
   const title = useMemo(() => MODE_TITLES[mode] || mode, [mode]);
-
+const baseParams = useMemo(() => ({ status: 'active' }), []);
+    const [toItemParams, setToItemParams] = useState(baseParams);
   // track if user has interacted with qty to avoid showing validation too early
   const qtyTouched = useRef(false);
   const lastFetchedItemId = useRef(null);
@@ -186,13 +187,20 @@ function MovementForm({
     [form, isValid, mode, onSuccess, title, resetForm]
   );
 
+  const handleItemChange = useCallback(
+  (v, itemObj) => {
+    handleChange({ itemId: v }, itemObj);
+  },
+  [handleChange]
+);
+
   return (
     <div className="relative">
       <form key={formVersion} onSubmit={submit} noValidate className={`rounded-lg p-3 space-y-3`}>
         <div className="flex flex-col justify-between">
           <h3 className="font-bold text-xl text-most-text mb-2">{title}</h3>
 
-          <div className="grid md:grid-cols-2 gap-3 py-2">
+          <div className="grid md:grid-cols-2 gap-3 py-2 items-center">
             {mode === 'RECEIPT' ? (
               <ItemSelect
                 value={form.itemId}
@@ -203,9 +211,10 @@ function MovementForm({
             ) : (
               <StockItemSelect
                 value={form.itemId}
-                onChange={(v) => handleChange({ itemId: v })}
+                onChange={handleItemChange}
                 required
                 label="Item"
+                apiparams={toItemParams}
               />
             )}
 

@@ -45,7 +45,6 @@ const Dialog = memo(function Dialog({
   const [mounted, setMounted] = useState(false);
   const [shown, setShown] = useState(false);
   const panelRef = useRef(null);
-  const childrenRef = useRef(null);
   const savedActiveElementRef = useRef(null);
   const dialogIdRef = useRef(Symbol('dialog-id'));
   const openCounter = useRef(0);
@@ -68,38 +67,6 @@ const Dialog = memo(function Dialog({
   useEffect(() => {
     if (open) savedActiveElementRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   }, [open]);
-
-  // Autofocus first focusable element inside dialog
-  const firstFocusDoneRef = useRef(false);
-  useEffect(() => {
-    // console.log("focusable")
-    if (!open) {
-      firstFocusDoneRef.current = false;
-      return;
-    }
-    // open === true
-    if (firstFocusDoneRef.current) return;
-
-    // Wait for the portal & children to paint
-    const raf = requestAnimationFrame(() => {
-      // Optional second raf to be extra-safe with animations
-      requestAnimationFrame(() => {
-        const container = childrenRef.current;
-        const focusable = container
-          ? Array.from(container.querySelectorAll(FOCUSABLE_QUERY)).filter(isVisible)
-          : [];
-        // console.log("focusable", focusable)
-        if (focusable.length > 0) {
-          focusable[0].focus({ preventScroll: true });
-        } else if (panelRef.current) {
-          panelRef.current.focus({ preventScroll: true });
-        }
-        firstFocusDoneRef.current = true;
-      });
-    });
-
-    return () => cancelAnimationFrame(raf);
-  }, [open, shown]);
 
   // Restore focus on close (topmost only)
   useEffect(() => {
@@ -202,8 +169,7 @@ const Dialog = memo(function Dialog({
               {onClose && <button type="button" className="btn btn-ghost flex items-center justify-center" onClick={onClose} aria-label="Close dialog">✕</button>}
             </div>
           )}
-          {/* <div ref={childrenRef} className="p-4 space-y-3 overflow-auto h-[-webkit-fill-available]">{children}</div> */}
-          <div ref={childrenRef} className="p-4 space-y-3 overflow-auto">{children}</div>
+          <div className="p-4 space-y-3 overflow-auto">{children}</div>
           {actions && <div className="flex justify-end gap-2 p-3 border-t border-color-100">{actions}</div>}
         </div>
       </div>

@@ -5,6 +5,7 @@ import { axiosInstance } from '@/lib/axiosInstance';
 import SelectInput from '@/Components/inputs/SelectInput';
 import { Toast } from '@/Components/toast';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
+import Loading from '@/Components/Loading';
 
 /**
  * ItemSelect
@@ -84,10 +85,13 @@ export default function ItemSelect({
   }, []);
 
   const options = useMemo(() => {
-    return (items || []).map((it) => ({
+    setLoading(true);
+    const shorted = (items || []).map((it) => ({
       value: it._id || it.id,
       label: formateLabel(it),
     }));
+    setLoading(false);
+    return shorted;
   }, [items]);
 
   // `
@@ -121,6 +125,7 @@ export default function ItemSelect({
   // console.log('options', options);
   return (
     <div className="flex flex-col gap-1 min-w-[240px]">
+      {loading && <Loading variant="skeleton" className="h-9" />}
       {!loading && <SelectTypeInput
         id={name}
         name={name}

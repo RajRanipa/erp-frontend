@@ -38,7 +38,6 @@ export default function AddInventory() {
         </button>
     );
     return (
-        <div>
             <div className='w-full h-full flex flex-col'>
                 <div className='w-full flex gap-2 z-1 relative top-[1px] h-fit'>
                     {can('inventory:receipt') && <TabButton id="RECEIPT">Receipt <span className='text-xs text-white-500'>Add Stock</span></TabButton>}
@@ -48,7 +47,7 @@ export default function AddInventory() {
                     {can('inventory:repack') && <TabButton id="REPACK">Re-packing</TabButton>}
                 </div>
 
-                <div className={cn(`h-full min-h-fit p-1 gap-6 border border-t rounded-b-lg border-color-200 ${activeTab === 'RECEIPT' ? 'rounded-e-lg' : 'rounded-lg'} z-0 relative mb-2`)}>
+                <div className={cn(`flex-1 min-h-fit p-1 gap-6 border border-t rounded-b-lg border-color-200 ${activeTab === 'RECEIPT' ? 'rounded-e-lg' : 'rounded-lg'} z-0 relative mb-2`)}>
                     {/* Parent decides the state for forms that need a warehouse */}
                     {loading && <Loading variant="skeleton" className="h-full" />}
 
@@ -76,7 +75,6 @@ export default function AddInventory() {
                 </div>
                 {/* )} */}
             </div>
-        </div>
     );
 }
 
