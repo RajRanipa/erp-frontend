@@ -187,7 +187,7 @@ export default function PackingChangeForm({
                     />
                 </div>
                 <div>
-                    {itemForm && <StockItemSelect
+                    {itemForm && <ItemSelect
                         name="toItemId"
                         label="To Item (target packing)"
                         value={form.toItemId}
