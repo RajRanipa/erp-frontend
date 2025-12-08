@@ -21,7 +21,7 @@ export default function InventoryMovement() {
 
   const [filters, setFilters] = useState(defaultFilters);
   const [rows, setRows] = useState([]);
-  const [limit, setLimit] = useState(200);
+  const [limit, setLimit] = useState(2000);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [refresh, setRefresh] = useState(null);
