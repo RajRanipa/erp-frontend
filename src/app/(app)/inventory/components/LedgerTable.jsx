@@ -34,44 +34,68 @@ export default function LedgerTable({
   onLimitChange,
   onRefresh,
   refrence = null,
+  hasMore = false,
+  onLoadMore,
+  serverSearch = false,
 }) {
-  const q = filters.query || '';
-  const pt = filters.productType || '';
-  const txn = filters.txnType || '';
-  console.log('rows LedgerTable', rows[0]);
-  // filtered rows based on q, productType, txnType
   const filteredRows = useMemo(() => {
-    const needle = (q || '').toLowerCase().trim();
-    const ptId = pt ? String(pt) : '';
-    const activeTxn = txn && txn.toLowerCase() !== 'all types' ? txn.toLowerCase().trim() : '';
+    if (!Array.isArray(rows)) return [];
 
-    if (!needle && !ptId && !activeTxn) return rows;
+    let result = rows;
 
-    const str = (v) => (v == null ? '' : String(v)).toLowerCase();
+    // 1) Always apply productType filter if provided
+    const pt = filters?.productType;
+    if (pt) {
+      result = result.filter((r) => {
+        const item = r.itemId || {};
+        return item.productType === pt || r.productType === pt;
+      });
+    }
 
-    return rows.filter((r) => {
-      const item = r.itemId || {};
-      const txnTypeStr = str(r?.txnType);
-      const rowPt = String(r?.productType || item?.productType || '');
+    // 2) Always apply txnType filter (except "all types")
+    const txn = filters?.txnType;
+    if (txn && txn !== 'all types') {
+      result = result.filter((r) => r.txnType === txn);
+    }
 
-      const tempStr = item?.temperature ? `${item.temperature?.value ?? ''} ${item.temperature?.unit ?? ''}` : '';
-      const denStr = item?.density ? `${item.density?.value ?? ''} ${item.density?.unit ?? ''}` : '';
-      const dimStr = item?.dimension ? mapDimension(item.dimension) : '';
-      const pack = item?.packing || {};
-      const packStr = [pack?.name, pack?.brandType, pack?.productColor, pack?.UOM || pack?.unit]
-        .filter(Boolean)
-        .join(' ');
-      const nameStr = item?.name || '';
+    // 3) Query: only do client-side text search when NOT in serverSearch mode
+    if (!serverSearch) {
+      const needle = (filters?.query || '').toLowerCase().trim();
+      if (!needle) return result;
 
-      const haystack = [tempStr, denStr, dimStr, packStr, nameStr].map(str).join(' | ');
+      const str = (v) => (v == null ? '' : String(v)).toLowerCase();
 
-      const matchQ = !needle || haystack.includes(needle);
-      const matchPt = !ptId || rowPt === ptId;
-      const matchTxn = !activeTxn || txnTypeStr === activeTxn;
+      result = result.filter((r) => {
+        const item = r.itemId || {};
 
-      return matchQ && matchPt && matchTxn;
-    });
-  }, [rows, q, pt, txn]);
+        const tempStr = item?.temperature
+          ? `${item.temperature?.value ?? ''} ${item.temperature?.unit ?? ''}`
+          : '';
+        const denStr = item?.density
+          ? `${item.density?.value ?? ''} ${item.density?.unit ?? ''}`
+          : '';
+        const dimStr = item?.dimension ? mapDimension(item.dimension) : '';
+        const pack = item?.packing || {};
+        const packStr = [
+          pack?.name,
+          pack?.brandType,
+          pack?.productColor,
+          pack?.UOM || pack?.unit,
+        ]
+          .filter(Boolean)
+          .join(' ');
+        const nameStr = item?.name || '';
+
+        const haystack = [tempStr, denStr, dimStr, packStr, nameStr]
+          .map(str)
+          .join(' | ');
+
+        return haystack.includes(needle);
+      });
+    }
+
+    return result;
+  }, [rows, filters, serverSearch]);
 
   const columns = useMemo(
     () => [
@@ -196,15 +220,29 @@ export default function LedgerTable({
       ) : error ? (
         <div className="p-4 text-error">{error}</div>
       ) : (
-        <Table
-          columns={columns}
-          data={filteredRows}
-          rowKey={(r) => r._id}
-          virtualization={filteredRows.length > 200}
-          loading={loading}
-          className='overflow-y-auto'
-        />
+        <>
+          <Table
+            columns={columns}
+            data={filteredRows}
+            rowKey={(r) => r._id}
+            virtualization={filteredRows.length > 200}
+            loading={loading}
+            className='overflow-y-auto'
+          />
+          {hasMore && (
+            <div className="flex justify-center p-2">
+              <button
+                type="button"
+                className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+                onClick={onLoadMore}
+                disabled={loading}
+              >
+                {loading ? 'Loading more…' : 'Load older entries'}
+              </button>
+            </div>
+          )}
+        </>
       )}
       </>
-    );
-  }
+  );
+}

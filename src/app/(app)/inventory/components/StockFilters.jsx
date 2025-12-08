@@ -38,11 +38,10 @@ export default function StockFilters({
   onChange,
   className = '',
   showTxnType = true,
-  onRefresh = () => { },
+  onRefresh = () => {},
   loading = false,
-  StockFiltersRef = () => { },
+  StockFiltersRef = () => {},
 }) {
-  // derive from parent every render
   const filters = {
     itemId: value.itemId || '',
     warehouseId: value.warehouseId || '',
@@ -50,6 +49,7 @@ export default function StockFilters({
     productType: value.productType || '',
     query: value.query || '',
     txnType: showTxnType ? (value.txnType || 'all types') : (value.txnType || ''),
+    serverSearch: value.serverSearch || false,
   };
   // parent merge
   const emit = (patch) => {
@@ -68,11 +68,11 @@ export default function StockFilters({
     emit({ txnType: v });
   };
 
-  const r = useHighlight(filters.query)
+  const r = useHighlight(filters.query);
 
   useEffect(() => {
     StockFiltersRef(r);
-  }, [filters.query]);
+  }, [r, StockFiltersRef]);
 
   const handleQueryChange = (e) => {
     emit({ query: e.target.value });
@@ -89,11 +89,6 @@ export default function StockFilters({
     };
     onChange?.(patch, "it's from stock filters");
   };
-
-  // const StockFilters = useHighlight(filters.query);
-  // console.log("refresh", refresh);
-
-
 
   return (
     <div className={`flex flex-wrap items-center justify-between gap-3 ${className}`}>
@@ -130,10 +125,20 @@ export default function StockFilters({
           className="min-w-[260px]"
           placeholder="Search: temp / density / size / packing"
           value={filters.query}
-          // onChange={(e) => { handleQueryChange }}
-          onChange={handleQueryChange }
+          onChange={handleQueryChange}
           icon={searchIcon()}
         />
+
+        <label className="flex items-center gap-1 text-xs text-white-500 mb-5">
+          <input
+            type="checkbox"
+            className="rounded border-white-300"
+            checked={!!filters.serverSearch}
+            onChange={(e) => emit({ serverSearch: e.target.checked })}
+          />
+          <span>Deep server search</span>
+        </label>
+
         <button
           type="button"
           onClick={clear}
