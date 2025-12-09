@@ -30,6 +30,7 @@ export default function InventoryMovement() {
   const [cursor, setCursor] = useState(null); // for pagination (older than this date)
   const [hasMore, setHasMore] = useState(false);
   const [refresh, setRefresh] = useState(null); // optional external ref for LedgerTable
+  const [hasData, setHasData] = useState(false); // optional external ref for LedgerTable
 
   // toggle between shallow (client search) vs deep server search
   // const [serverSearch, setServerSearch] = useState(false);
@@ -62,7 +63,7 @@ export default function InventoryMovement() {
         }
 
         if (!reset && useCursor) params.cursor = useCursor;
-
+        console.log('fetchLedger', params);
         const res = await axiosInstance.get('/api/inventory/ledger', { params });
         const list = Array.isArray(res?.data?.data) ? res.data.data : [];
         const next = res?.data?.nextCursor || null;
@@ -104,7 +105,11 @@ useEffect(() => {
     setFilters(prev => ({ ...prev, ...patch }));
   };
 
-  const hasData = rows && rows.length > 0;
+  // const hasData = rows && rows.length > 0;
+  useEffect(() => {
+    if(!!(filters && filters.serverSearch)) return;
+    setHasData(rows && rows.length > 0);
+  }, [rows]);
 
   return (
     <div className="space-y-4 h-full flex flex-col">

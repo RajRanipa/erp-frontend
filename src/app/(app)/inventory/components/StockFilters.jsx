@@ -49,7 +49,7 @@ export default function StockFilters({
     productType: value.productType || '',
     query: value.query || '',
     txnType: showTxnType ? (value.txnType || 'all types') : (value.txnType || ''),
-    serverSearch: value.serverSearch || false,
+    serverSearch: value.serverSearch ?? true,
   };
   // parent merge
   const emit = (patch) => {
@@ -129,15 +129,7 @@ export default function StockFilters({
           icon={searchIcon()}
         />
 
-        <label className="flex items-center gap-1 text-xs text-white-500 mb-5">
-          <input
-            type="checkbox"
-            className="rounded border-white-300"
-            checked={!!filters.serverSearch}
-            onChange={(e) => emit({ serverSearch: e.target.checked })}
-          />
-          <span>Deep server search</span>
-        </label>
+        
 
         <button
           type="button"
