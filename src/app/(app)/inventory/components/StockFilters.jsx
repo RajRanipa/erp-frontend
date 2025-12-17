@@ -49,7 +49,6 @@ export default function StockFilters({
     productType: value.productType || '',
     query: value.query || '',
     txnType: showTxnType ? (value.txnType || 'all types') : (value.txnType || ''),
-    serverSearch: value.serverSearch ?? true,
   };
   // parent merge
   const emit = (patch) => {
@@ -128,8 +127,6 @@ export default function StockFilters({
           onChange={handleQueryChange}
           icon={searchIcon()}
         />
-
-        
 
         <button
           type="button"

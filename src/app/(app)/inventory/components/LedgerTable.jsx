@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import Table from '@/Components/layout/Table';
 import { mapDimension, mapPacking, mapTemperature } from '@/utils/FGP';
 import { formatDateDMY } from '@/utils/date';
+import { useHighlight } from '@/hooks/useHighlight';
 
 const TYPE_BADGE = {
   RECEIPT: 'bg-green-100 text-green-700',
@@ -36,8 +37,9 @@ export default function LedgerTable({
   refrence = null,
   hasMore = false,
   onLoadMore,
-  serverSearch = false,
 }) {
+  const serverSearch = !!filters?.serverSearch;
+  const leadgerTabelRef = useHighlight((filters?.query || '').toLowerCase().trim(), 'textHighlight');
   const filteredRows = useMemo(() => {
     if (!Array.isArray(rows)) return [];
 
@@ -58,13 +60,16 @@ export default function LedgerTable({
       result = result.filter((r) => r.txnType === txn);
     }
 
-    // 3) Query: only do client-side text search when NOT in serverSearch mode
+    // 3) Query:
+    // - shallow mode (serverSearch=false): client-side search inside currently loaded rows
+    // - deep mode (serverSearch=true): trust server results; do not re-filter here
+    const needle = (filters?.query || '').toLowerCase().trim();
     if (!serverSearch) {
-      const needle = (filters?.query || '').toLowerCase().trim();
+      console.log('needle', needle);
       if (!needle) return result;
 
       const str = (v) => (v == null ? '' : String(v)).toLowerCase();
-
+      
       result = result.filter((r) => {
         const item = r.itemId || {};
 
@@ -84,18 +89,23 @@ export default function LedgerTable({
         ]
           .filter(Boolean)
           .join(' ');
-        const nameStr = item?.name || '';
+        const nameStr = item?.name || ''; // if we want to filter by name as well latter we can use this
+        const batchStr = r?.batchNo || '';
+        const uomStr = r?.uom || '';
 
-        const haystack = [tempStr, denStr, dimStr, packStr, nameStr]
+
+        const haystack = [tempStr, denStr, dimStr, packStr, batchStr, uomStr ]
           .map(str)
           .join(' | ');
-
+        // console.log('haystack', haystack);
+      
+        return needle.split(' ').every((w) => haystack.includes(w))
         return haystack.includes(needle);
       });
     }
 
     return result;
-  }, [rows, filters, serverSearch]);
+  }, [rows, filters]);
 
   const columns = useMemo(
     () => [
@@ -228,6 +238,7 @@ export default function LedgerTable({
             virtualization={filteredRows.length > 200}
             loading={loading}
             className='overflow-y-auto'
+            tableRef={leadgerTabelRef}
           />
           {hasMore && (
             <div className="flex justify-center p-2">

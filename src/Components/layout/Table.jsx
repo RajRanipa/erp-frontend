@@ -16,7 +16,8 @@ export default function Table(
     emptyMessage = 'No rows',
     className = '',
     getFooter,
-    pageSize: propPageSize // <-- added prop
+    pageSize: propPageSize, // <-- added prop
+    tableRef = null,
   }) {
   /** @type {{key: string, direction: 'asc'|'desc'} | null} */
   const [localSort, setLocalSort] = useState(null);
@@ -158,7 +159,7 @@ export default function Table(
 
   return (
     <div className={cn(`table-wrapper rounded-lg border border-white-100 overflow-x-auto overflow-y-hidden ${className}`)}>
-      <table className="min-w-full divide-y divide-white-100 max-h-full">
+      <table className="min-w-full divide-y divide-white-100 max-h-full" ref={tableRef}>
         <thead className="bg-black-400 sticky top-0 backdrop-blur-xl z-9 rounded-lg overflow-hidden">
           <tr>
             {selectable === 'multiple' && (

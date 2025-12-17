@@ -235,6 +235,10 @@ button:hover:not([disabled]),
   background: #000000;
   color: #fff;
 }
+
+.textHighlight{
+  background: rgba(135, 207, 235, 0.3);
+}
 @media (prefers-color-scheme: dark) {
 .inputHighlight{
   color: #000000;

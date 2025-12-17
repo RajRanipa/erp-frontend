@@ -4,6 +4,7 @@
 import { useMemo } from 'react';
 import Table from '@/Components/layout/Table';
 import { mapDimension, mapPacking } from '@/utils/FGP';
+import { useHighlight } from '@/hooks/useHighlight';
 
 /**
  * StockTable (presentational + client-side filter only)
@@ -23,7 +24,8 @@ export default function StockTable({
 }) {
   const pt = filters.productType || '';
   const q = filters.query || '';
-  console.log("rows", rows)
+  const stockTabelRef = useHighlight((filters?.query || '').toLowerCase().trim(), 'textHighlight');
+  
   const filteredRows = useMemo(() => {
     if (!q && !pt) return rows;
     const needle = String(q).toLowerCase().trim();
@@ -31,6 +33,7 @@ export default function StockTable({
 
     return rows.filter((r) => {
       const item = r.itemId || {};
+      console.log("item", item)
       const productTypeStr = r?.productType ? `${r.productType}` : '';
       const tempStr = item?.temperature
         ? `${item.temperature?.value ?? ''} ${item.temperature?.unit ?? ''}`
@@ -48,15 +51,16 @@ export default function StockTable({
       ]
         .filter(Boolean)
         .join(' ');
-      const nameStr = item?.name || '';
+      const nameStr = item?.name || ''; // if we want to filter by name as well latter we can use this
+      const gradeStr = item?.grade || '';
 
-      const haystack = [tempStr, denStr, dimStr, packStr, nameStr]
+      const haystack = [tempStr, denStr, dimStr, packStr, gradeStr]
         .map(str)
         .join(' | ');
 
-      if (needle && pt) return haystack.includes(needle) && productTypeStr.includes(pt);
+      if (needle && pt) return needle.split(' ').every((w) => haystack.includes(w)) && productTypeStr.includes(pt);
       if (pt) return productTypeStr.includes(pt);
-      if (needle) return haystack.includes(needle);
+      if (needle) return needle.split(' ').every((w) => haystack.includes(w));
       return true;
     });
   }, [rows, q, pt]);
@@ -192,7 +196,7 @@ export default function StockTable({
           rowKey={(r) => `${r.itemId?._id || r.itemId}-${r.warehouseId?._id || r.warehouseId}-${r.batchNo || 'none'}-${r.uom || ''}`}
           virtualization={filteredRows.length > 200}
           loading={loading}
-          ref={refrence}
+          tableRef={stockTabelRef}
           className='overflow-y-auto'
         />
       )}
