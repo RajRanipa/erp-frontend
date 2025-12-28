@@ -77,7 +77,7 @@ export default function InventoryMovement() {
       useFilters: filters,
       useCursor: null,
     });
-  }, [limit, filters.serverSearch, filters.productType, filters.txnType, fetchLedger]);
+  }, [limit, filters.serverSearch, fetchLedger]);
 
   const handleFiltersChange = (patch) => {
     setFilters(prev => ({ ...prev, ...patch }));
@@ -118,6 +118,8 @@ export default function InventoryMovement() {
               onChange={handleFiltersChange}
               loading={loading}
               onRefresh={() => fetchLedger({ reset: true, useFilters: filters, useCursor: null })}
+              hasMore={hasMore}
+              onLoadMore={() => fetchLedger({ reset: false, useFilters: filters, useCursor: cursor })}
             />
 
             <LedgerTable
