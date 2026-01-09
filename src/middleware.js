@@ -177,11 +177,11 @@ export async function middleware(request) {
       const perms = Array.isArray(payload.permissions) ? payload.permissions : [];
       const allowed = hasPermission(need, perms);
 
-      console.log('PATH:', pathname);
-      console.log('NEED:', need);
-      console.log('PERMS:', perms);
-      console.log('ALLOWED:', allowed);
-      console.log('payload.role',payload.role);
+      // console.log('PATH:', pathname);
+      // console.log('NEED:', need);
+      // console.log('PERMS:', perms);
+      // console.log('ALLOWED:', allowed);
+      // console.log('payload.role',payload.role);
       // console.log('allowed 33', allowed);
 
       if (!allowed) {

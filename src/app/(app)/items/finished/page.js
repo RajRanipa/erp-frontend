@@ -15,6 +15,7 @@ import Loading from '@/Components/Loading';
 import { mapDimension, mapPacking, mapTemperature } from '@/utils/FGP';
 import { searchIcon } from '@/utils/SVG';
 import { formatDateDMY } from '@/utils/date';
+import { useHighlight } from '@/hooks/useHighlight';
 
 
 // helper used inside Row too
@@ -43,6 +44,8 @@ export default function Finished() {
   const [productTypeFilter, setProductTypeFilter] = useState('');
 
   const [sel, setSel] = useState([]);
+
+  const finishedTabelRef = useHighlight(q, 'textHighlight');
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -89,13 +92,13 @@ export default function Finished() {
       if (qLower) {
         const hay = [
           it.name,
-          it.packing?.name,
+          it.packing?.name+' '+it.packing?.brandType+' '+it.packing?.productColor,
           it.density?.value,
           it.temperature?.value,
           formatDimension(it.dimension),
           it.productType?.name
-        ].filter(Boolean).join(' ').toLowerCase();
-        return hay.includes(qLower);
+        ].filter(Boolean).join(' | ').toLowerCase();
+        return qLower.split(' ').every((w) => hay.includes(w));
       }
       return true;
     });
@@ -276,6 +279,7 @@ export default function Finished() {
             virtualization={items.length > 100}
             loading={loading}
             className='shadow-md overflow-y-auto'
+            tableRef={finishedTabelRef}
           />
       )}
     </div>

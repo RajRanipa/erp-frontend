@@ -15,6 +15,7 @@ import Loading from '@/Components/Loading';
 import { mapDimension } from '@/utils/FGP';
 import { searchIcon } from '@/utils/SVG';
 import { formatDateDMY } from '@/utils/date';
+import { useHighlight } from '@/hooks/useHighlight';
 
 export default function Packing() {
 
@@ -43,15 +44,16 @@ export default function Packing() {
   useEffect(() => {
     fetchItems();
   }, [fetchItems]);
+  
+  const packingsTableRef = useHighlight(search, 'textHighlight');
 
   const filteredItems = useMemo(() => {
     if (!search.trim()) return items;
-    const lowerSearch = search.toLowerCase();
     return items.filter(item => {
       const name = item.name?.toLowerCase() || '';
-      const packing = item.packing?.toLowerCase() || '';
-      const density = item.density?.toString().toLowerCase() || '';
-      const temperature = item.temperature?.toString().toLowerCase() || '';
+      const uomstr = item.UOM?.toLowerCase() || '';
+      const brandType = item.brandType?.toLowerCase() || '';
+      const productColor = item.productColor?.toLowerCase() || '';
       const dimensionStr = (() => {
         if (!item.dimension) return '';
         const { length, width, thickness, unit } = item.dimension;
@@ -62,14 +64,9 @@ export default function Packing() {
         return (parts.join(' × ') + ' ' + (unit || '')).toLowerCase();
       })();
       const productTypeName = item.productType?.name?.toLowerCase() || '';
-      return (
-        name.includes(lowerSearch) ||
-        packing.includes(lowerSearch) ||
-        density.includes(lowerSearch) ||
-        temperature.includes(lowerSearch) ||
-        dimensionStr.includes(lowerSearch) ||
-        productTypeName.includes(lowerSearch)
-      );
+      
+      const haystack = [name, dimensionStr, productTypeName, uomstr, brandType, productColor].join(' | ');
+      return search.toLowerCase().split(' ').every(word => haystack.includes(word));
     });
   }, [items, search]);
 
@@ -104,7 +101,6 @@ export default function Packing() {
       }
     }
   };
-  console.log("items", items);
   return (
     <div className="Items-page h-full flex flex-col">
       <div className="flex items-center justify-between gap-2">
@@ -216,6 +212,7 @@ export default function Packing() {
             loading={loading}
             pageSize={10}
             className='shadow-md'
+            tableRef={packingsTableRef}
           />
       )}
     </div>
