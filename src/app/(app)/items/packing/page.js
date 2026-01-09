@@ -169,7 +169,7 @@ export default function Packing() {
                 render: (r) => (
                   <div className="flex items-end justify-center flex-col">
                     <div><span className='text-[0.9em] text-white-600 capitalize'>{r?.updatedBy?.fullName ?? '—'}</span></div>
-                    {r?.updatedBy?.fullName && <div><span className='text-[0.85em] text-white-500'>{formatDateDMY(r?.updatedAt, true) ?? '—'}</span></div>}
+                    {<div><span className='text-[0.85em] text-white-500'>{formatDateDMY(r?.updatedAt, true) ?? '—'}</span></div>}
                   </div>
                 ),
                 align: 'right',
