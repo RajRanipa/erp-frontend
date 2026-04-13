@@ -1,6 +1,5 @@
 import { cn } from '@/utils/cn';
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-
 export default function Table(
   {
     columns,
@@ -290,7 +289,13 @@ export default function Table(
                 className="p-4 text-sm text-muted text-center"
                 colSpan={visibleColumns.length + (selectable !== 'none' ? 1 : 0) + (groups.length > 0 ? 1 : 0)}
               >
-                {emptyMessage}
+                {typeof emptyMessage === 'string' && /<[^>]+>/.test(emptyMessage)
+                  ? (
+                      <span dangerouslySetInnerHTML={{ __html: emptyMessage }} />
+                    )
+                  : (
+                      <span>{emptyMessage}</span>
+                    )}
               </td>
             </tr>}
         </tbody>

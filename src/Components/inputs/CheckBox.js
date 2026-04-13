@@ -47,6 +47,7 @@ const CheckBox = ({
     checkText = '',
 }) => {
     const [touched, setTouched] = useState(false);
+    const [focused, setFocused] = useState(false);
     const [internalErr, setInternalErr] = useState('');
     const inputRef = useRef(null);
 
@@ -74,6 +75,7 @@ const CheckBox = ({
     const handleBlur = (e) => {
         setTouched(true);
         onBlur?.(e);
+        setFocused(false);
     };
 
     const handleChange = (e) => {
@@ -95,6 +97,8 @@ const CheckBox = ({
                     'flex items-center gap-2 rounded-lg border px-3 py-2',
                     displayErr ? 'border-error' : 'border-white-100',
                     readOnly ? 'bg-black-200 pointer-events-none' : '',
+                    checked ? 'bg-action/10 border-action' : '',
+                    focused ? 'border-blue-500 ring-3 ring-blue-500/20' : ''
                 )}
             >
                 <input
@@ -110,11 +114,11 @@ const CheckBox = ({
                     disabled={disabled}
                     className={cn(
                         `block w-4 h-4 rounded-lg border-white-200 text-blue-600 focus:outline-none
-             focus:ring-3 focus:ring-blue-500/30 focus:border-blue-500`,
+             focus:ring-0 focus:border-blue-500`,
                         className
                     )}
                     tabIndex={readOnly ? -1 : undefined}
-                    onFocus={readOnly ? (e) => e.target.blur() : undefined}
+                    onFocus={(e) => { readOnly ? (e) => e.target.blur() : undefined; setFocused(true); }}
                     autoFocus={autoFocus}
                 />
                 <span className="text-[1em] text-most-text select-none">{value || label || checkText}</span>
