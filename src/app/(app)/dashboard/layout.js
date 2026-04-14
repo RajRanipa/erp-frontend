@@ -1,0 +1,46 @@
+// src/app/(app)/inventory/page.js
+'use client';
+
+import { useEffect, useState } from 'react';
+import DisplayBar from '@/Components/layout/DisplayBar';
+import DisplayMain from '@/Components/layout/DisplayMain';
+import useAuthz from '@/hooks/useAuthz';
+import NavLink from '@/Components/NavLink';
+import Loading from '@/Components/Loading';
+import { addIcon } from '@/utils/SVG';
+
+export default function InventoryLayout({ children }) {
+  const [loading, setLoading] = useState(true); // 'stock' | 'movements' | 'new'
+  const { can, mounted } = useAuthz();
+
+  useEffect(() => {
+    if (can('inventory:receipt') || can('inventory:issue') || can('inventory:adjust') || can('inventory:transfer')) setLoading(false);
+  }, [can]);
+
+  return (
+    <>
+      <DisplayBar title="Dashboard" href="/dashboard">
+        <div className="flex gap-2 items-center justify-between w-full">
+          <div className='flex gap-4'>
+            <NavLink href="/dashboard/production">Production</NavLink>
+            <NavLink href="/dashboard/sales">Sales</NavLink>
+          </div>
+          <div className='flex gap-2 relative'>
+            {/* {loading || can('inventory:receipt') || can('inventory:issue') || can('inventory:adjust') || can('inventory:transfer') && <Loading variant='skeleton' className='h-7 min-w-[140px]' />}
+            {((can('inventory:receipto') || can('inventory:issue') || can('inventory:adjust') || can('inventory:transfer'))) && (
+              <NavLink href="/inventory/create" type='button' className='flex items-center gap-2'>{addIcon()} New Movement</NavLink>
+            )} */}
+          </div>
+        </div>
+      </DisplayBar>
+
+      <DisplayMain>
+          {/* <div> */}
+        {children ?? 
+            'Dashboard Page is in production'
+        }
+          {/* </div> */}
+      </DisplayMain>
+    </>
+  );
+}
