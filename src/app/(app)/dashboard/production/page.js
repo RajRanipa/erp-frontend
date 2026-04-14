@@ -58,24 +58,40 @@ export default function Production() {
 
   return (
     <div className='h-full w-full'>
-      {loading ? <Loading variant='skeleton' className='h-full w-full' /> 
-      : 
-      <div className='h-full w-full'>productions data is here
-      {
-        productions.map((production) => (
-          <div key={production.id}>
-            {/* <p>{production.id}</p> */}
-            <p>{production?.productType?.name}</p>
-            <p>{production?.temperature?.value+" "+production?.temperature?.unit}</p>
-            <p>{production?.density?.value+" "+production?.density?.unit}</p>
-            <p>{production?.dimension?.length+" "+production?.dimension?.width+" "+production?.dimension?.thickness+" "+production?.density?.unit}</p>
-            <p>{production?.packingItem?.name+" "+production?.density?.unit}</p>
-            <p>{"total rolls in nos - "+" "+production?.totalRolls?.unit}</p>
-            <p>{"total Weight - "+" "+production?.totalWeight?.unit}</p>
-          </div>
-        ))  
-      }
-      </div>
+      {loading ? <Loading variant='skeleton' className='h-full w-full' />
+        :
+        <div className='h-full w-full'>productions data is here
+          {
+            productions.map((production) => (
+              <div key={production?.matchedItem?._id}>
+
+                <p>{production?.productType?.name}</p>
+
+                <p>
+                  {production?.temperature?.value} {production?.temperature?.unit}
+                </p>
+
+                <p>
+                  {production?.density?.value} {production?.density?.unit}
+                </p>
+
+                <p>
+                  {production?.dimension?.length} x
+                  {production?.dimension?.width} x
+                  {production?.dimension?.thickness}
+                  {production?.dimension?.unit}
+                </p>
+
+                <p>{production?.packingItem?.name}</p>
+
+                <p>Total rolls: {production?.totalRolls}</p>
+
+                <p>Total Weight: {production?.totalWeight} kg</p>
+
+              </div>
+            ))
+          }
+        </div>
       }
     </div>
   )
