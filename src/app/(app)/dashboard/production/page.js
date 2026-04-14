@@ -3,10 +3,12 @@ import { Toast } from '@/Components/toast';
 import React, { useEffect, useMemo, useState } from 'react'
 import { useDateRange } from '../layout';
 import { axiosInstance } from '@/lib/axiosInstance';
+import Loading from '@/Components/Loading';
 
 export default function Production() {
   const { dateRange } = useDateRange();
   const [loading, setLoading] = useState(false);
+  const [productions, setProductions] = useState([]);
   const apiparams = {};
   const mergedParams = useMemo(() => {
     if (Array.isArray(apiparams)) {
@@ -41,14 +43,8 @@ export default function Production() {
         const res = await axiosInstance.get(url);
         if (ignore) return;
         console.log('res', res);
-        // const list = Array.isArray(res?.data?.data)
-        //   ? res.data.data
-        //   : Array.isArray(res?.data?.items)
-        //     ? res.data.items
-        //     : Array.isArray(res?.data)
-        //       ? res.data
-        //       : [];
-        // setItems(list);
+        const list = Array.isArray(res?.data) ? res.data : [];
+        setProductions(list);
       } catch (err) {
         // if (!ignore) Toast.error('Failed to load productions');
         console.error("error in fetching production", err);
@@ -61,6 +57,26 @@ export default function Production() {
   }, [dateRange]);
 
   return (
-    <div>show all production here</div>
+    <div className='h-full w-full'>
+      {loading ? <Loading variant='skeleton' className='h-full w-full' /> 
+      : 
+      <div className='h-full w-full'>productions data is here
+      {
+        productions.map((production) => (
+          <div key={production.id}>
+            {/* <p>{production.id}</p> */}
+            <p>{production?.productType?.name}</p>
+            <p>{production?.temperature?.value+" "+production?.temperature?.unit}</p>
+            <p>{production?.density?.value+" "+production?.density?.unit}</p>
+            <p>{production?.dimension?.length+" "+production?.dimension?.width+" "+production?.dimension?.thickness+" "+production?.density?.unit}</p>
+            <p>{production?.packingItem?.name+" "+production?.density?.unit}</p>
+            <p>{"total rolls in nos - "+" "+production?.totalRolls?.unit}</p>
+            <p>{"total Weight - "+" "+production?.totalWeight?.unit}</p>
+          </div>
+        ))  
+      }
+      </div>
+      }
+    </div>
   )
 }

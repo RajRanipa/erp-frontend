@@ -20,10 +20,10 @@ export default function InventoryLayout({ children }) {
   const { can, mounted } = useAuthz();
   
   const [dateRange, setDateRange] = useState({
-    start: '',
-    end: ''
+    start: new Date(),
+    end: new Date()
   });
-
+  console.log('dateRange', dateRange);
   useEffect(() => {
     if (can('inventory:receipt') || can('inventory:issue') || can('inventory:adjust') || can('inventory:transfer')) setLoading(false);
   }, [can]);
