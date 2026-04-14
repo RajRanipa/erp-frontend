@@ -1,13 +1,64 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import BaseDatePicker from './BaseDatePicker';
+import PresetDropdown from './PresetDropdown';
+import RangePicker from './RangePicker';
 import { cn } from '../../utils/cn';
-import { downArrow, eyeHideIcon, eyeShowIcon, upArrow } from '@/utils/SVG';
+
+// --- HELPER: Handles all the date math outside the component ---
+const getPresetDateRange = (preset) => {
+  const today = new Date();
+  let start = new Date(today);
+  let end = new Date(today);
+  let label = '';
+
+  const formatDate = (date) => {
+    const offset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - offset).toISOString().split('T')[0];
+  };
+
+  switch (preset) {
+    // Note: 'today' logic is now handled directly in the component state,
+    // so we don't need it in this switch statement anymore.
+    case 'last_week':
+      start.setDate(today.getDate() - 7);
+      label = 'Last Week';
+      break;
+    case 'last_month':
+      start.setMonth(today.getMonth() - 1);
+      label = 'Last Month';
+      break;
+    case 'last_6_months':
+      start.setMonth(today.getMonth() - 6);
+      label = 'Last 6 Months';
+      break;
+    case 'last_year':
+      start.setFullYear(today.getFullYear() - 1);
+      label = 'Last Year';
+      break;
+    default:
+      return null;
+  }
+
+  return {
+    start: formatDate(start),
+    end: formatDate(end),
+    label: label,
+  };
+};
+
+const BASE_PRESETS = [
+  { label: 'Today / Specific Date', value: 'today' }, // Updated label for clarity
+  { label: 'Last Week', value: 'last_week' },
+  { label: 'Last Month', value: 'last_month' },
+  { label: 'Last 6 Months', value: 'last_6_months' },
+  { label: 'Last Year', value: 'last_year' },
+];
 
 const DateInput = ({
   label,
   name,
   placeholder = '',
-  value,
   onChange,
   onBlur,
   required = false,
@@ -18,319 +69,171 @@ const DateInput = ({
   className = '',
   id = '',
   inputRef = null,
-  err,
+  error,
   info,
   autoFocus = false,
   onInpute,
-  mode = 'single', // 'single' | 'range'
-  preset = null,   // 'today' | 'last_week' | 'last_month' | 'last_6_months' | 'last_year'
-  rangeValue = { start: '', end: '' },
-  onRangeChange,
-  onLabelChange,
+  singleValue,
+  mode = 'single',
+  rangeValues = { start: '', end: '' },
+
 }) => {
-  const [touched, setTouched] = useState(false);
-  const [internalErr, setInternalErr] = useState('');
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [isCustomRange, setIsCustomRange] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState(null);
-  const dropdownRef = React.useRef(null);
-  const listRef = React.useRef(null);
-  const dropdownHeight = 'max-h-52';
-  // setError(err);
-  useEffect(() => {
-    if (touched && required && !value) {
-      setInternalErr(`${label || placeholder || name} is required`);
-    }
-    else {
-      setInternalErr('');
-    }
-  }, [value, touched, required, label, name, placeholder]);
+  // UI State
+  const [displayValue, setDisplayValue] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showCustomRange, setShowCustomRange] = useState(false);
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setShowDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  // NEW STATE: Track the selected preset and the specific date if "today" is chosen
+  const [selectedPreset, setSelectedPreset] = useState('');
+  const [specificDate, setSpecificDate] = useState('');
 
-  useEffect(() => {
-    if (!preset) return;
-    setSelectedPreset(preset);
-    setIsCustomRange(false);
+  const dropdownOptions =
+    mode === 'range'
+      ? [...BASE_PRESETS, { label: 'Custom Range', value: 'custom_range' }]
+      : BASE_PRESETS;
 
-    const presetLabelMap = {
-      today: 'Today',
-      last_week: 'Last Week',
-      last_month: 'Last Month',
-      last_6_months: 'Last 6 Months',
-      last_year: 'Last Year',
-    };
+  // --- HANDLERS ---
 
-    onLabelChange?.(presetLabelMap[preset] || '');
+  const handlePresetSelect = (selectedValue) => {
+    setSelectedPreset(selectedValue);
 
-    const today = new Date();
-    let start = new Date();
-    let end = new Date();
-
-    switch (preset) {
-      case 'today':
-        start = end = today;
-        break;
-      case 'last_week':
-        start.setDate(today.getDate() - 7);
-        break;
-      case 'last_month':
-        start.setMonth(today.getMonth() - 1);
-        break;
-      case 'last_6_months':
-        start.setMonth(today.getMonth() - 6);
-        break;
-      case 'last_year':
-        start.setFullYear(today.getFullYear() - 1);
-        break;
-      default:
-        return;
+    if (selectedValue === 'custom_range') {
+      setShowCustomRange(true);
+      setDisplayValue('');
+      return;
     }
 
-    const formatDate = (d) => d.toISOString().split('T')[0];
+    setShowCustomRange(false);
 
-    if (mode === 'single' && onChange) {
-      onChange({ target: { name, value: formatDate(end) } });
+    // If they select 'today', switch to the specific date picker
+    if (selectedValue === 'today') {
+      const todayStr = new Date().toISOString().split('T')[0];
+      setSpecificDate(todayStr);
+      setDisplayValue(''); // Clear text value since we are showing the date input
+      if (onChange) onChange({ start: todayStr, end: todayStr });
+      return;
     }
 
-    if (mode === 'range' && onRangeChange) {
-      onRangeChange({
-        start: formatDate(start),
-        end: formatDate(end),
-      });
-    }
-  }, [preset]);
-
-  const displayErr = (typeof err === 'string' && err.length) ? err : internalErr;
-  const errorId = displayErr ? `${id || name}-error` : undefined;
-
-  const handleBlur = (e) => {
-    setTouched(true);
-    if (onBlur) onBlur(e);
+    // Normal string presets
+    const { start, end, label } = getPresetDateRange(selectedValue);
+    setDisplayValue(label);
+    if (onChange) onChange({ start, end });
   };
 
-  const handleChange = (e) => {
-    if (onChange) onChange(e);
+  // Handler for when they use the calendar in "Today" mode
+  const handleSpecificDateChange = (newDate) => {
+    setSpecificDate(newDate);
+    // Send both start and end as the same date for uniform backend filtering
+    if (onChange) onChange({ start: newDate, end: newDate });
+  };
+
+  const handleCustomRangeChange = (newRange) => {
+    if (onChange) onChange(newRange);
+  };
+
+  const handleClearCustomRange = () => {
+    setShowCustomRange(false);
+    setSelectedPreset('');
+    setDisplayValue('');
+    if (onChange) onChange({ start: '', end: '' });
   };
 
   return (
     <div className={cn(`mb-5 w-full relative ${parent_className}`)}>
       {label && (
-        <label
-          htmlFor={name}
-          className="block text-sm font-medium text-primary-text mb-1"
-        >
+        <label htmlFor={name} className="block text-sm font-medium text-primary-text mb-1">
           {label}
-          {required && <span className="text-error ml-1">*</span>}
         </label>
       )}
-      <div className="relative flex items-center gap-2">
-        <button className="absolute inset-y-0 left-0 pl-3 flex items-center text-white-300 z-90" onClick={(e) => {
-          e.stopPropagation();
-          setShowDropdown((prev) => !prev);
-        }}>
-          {showDropdown ? upArrow() : downArrow()}
-        </button>
 
-        {(mode === 'single' || (mode === 'range' && !isCustomRange)) && (
-          <>
-            {icon && (
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white-300">
-                {icon}
-              </div>
-            )}
+      {/* --- MODE 1: Single Date Picker --- */}
+      {mode === 'single' && (
+        <BaseDatePicker
+          name={name}
+          value={singleValue}
+          onChange={(val) => onChange && onChange(val)}
+          error={error}
+          placeholder={placeholder}
+          required={required}
+          readOnly={readOnly}
+          icon={icon}
+          autocomplete={autocomplete}
+          className={className}
+          id={id}
+          inputRef={inputRef}
+          info={info}
+          autoFocus={autoFocus}
+          onInpute={onInpute}
+        />
+      )}
 
-            <input
-              type={
-                mode === 'range' && !isCustomRange
-                  ? 'text'
-                  : selectedPreset === 'today'
-                  ? 'date'
-                  : 'text'
-              }
-              name={name}
-              id={id ? id : name}
-              ref={inputRef}
-              placeholder={placeholder}
-              value={value}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              required={required}
-              readOnly={
-                readOnly ||
-                (mode === 'range' && !isCustomRange) ||
-                selectedPreset !== 'today'
-              }
-              autoComplete={autocomplete}
-              aria-invalid={!!displayErr}
-              aria-describedby={errorId}
-              className={cn(` block w-full px-3 py-2 border sm:text-sm
-              ${displayErr ? 'border-error' : 'border-white-200'} 
-              rounded-lg shadow-xs placeholder-white-400 focus:outline-none
-              focus:border-0.5 focus:ring-3
-              ${(displayErr && readOnly)
-                  ? 'focus:ring-error focus:ring-3 focus:border-error focus:border-0.5 '
-                  : 'focus:ring-blue-500/30  focus:border-blue-500 focus:border-0.5'} 
-              ${readOnly ? 'bg-black-200 pointer-events-none' : ''} 
-                   ${icon ? 'pl-20' : 'pl-10'}
-              ${className} text-most-text 
-              `)}
-              tabIndex={readOnly ? -1 : undefined}
-              onFocus={(e) => {
-                if (readOnly) {
-                  e.target.blur();
-                } else {
-                  setShowDropdown(true);
-                }
-              }}
-              autoFocus={autoFocus}
-              onInput={(e) => onInpute?.(e)}
-            />
-
-          </>
-        )}
-
-        {mode === 'range' && isCustomRange && (
-          <>
-            <input
-              type="date"
-              value={rangeValue.start}
-              onChange={(e) =>
-                onRangeChange?.({ ...rangeValue, start: e.target.value })
-              }
-              className={cn(` block w-full px-3 py-2 border sm:text-sm
-              border-white-200 rounded-lg shadow-xs focus:outline-none
-              focus:ring-blue-500/30 focus:border-blue-500 ${className}
-              ${icon ? 'pl-20' : 'pl-10'}`)}
-            />
-            <span className="text-white-400">to</span>
-            <input
-              type="date"
-              value={rangeValue.end}
-              onChange={(e) =>
-                onRangeChange?.({ ...rangeValue, end: e.target.value })
-              }
-              className={cn(` block w-full px-3 py-2 border sm:text-sm
-              border-white-200 rounded-lg shadow-xs focus:outline-none
-              focus:ring-blue-500/30 focus:border-blue-500 ${className}`)}
-            />
-          </>
-        )}
-      </div>
-      {showDropdown && (
-        <div className="absolute z-90 rounded-lg w-full" ref={dropdownRef}>
-          <div
-            className={cn(
-              'mb-5 mt-1 bg-black-200 border border-white-200 overflow-hidden shadow-lg rounded-lg backdrop-blur-2xl',
-              dropdownHeight
-            )}
-          >
-            <ul className={cn('overflow-y-auto w-full p-1.5', dropdownHeight)} ref={listRef}>
-              {[
-                { label: 'Today', value: 'today' },
-                { label: 'Last Week', value: 'last_week' },
-                { label: 'Last Month', value: 'last_month' },
-                { label: 'Last 6 Months', value: 'last_6_months' },
-                { label: 'Last Year', value: 'last_year' },
-                ...(mode === 'range'
-                  ? [{ label: 'Custom Range', value: 'custom_range' }]
-                  : []),
-              ].map((item) => (
-                <li
-                  key={item.value}
-                  className="px-3 py-2 hover:bg-black-300 rounded cursor-pointer"
-                  onClick={() => {
-                    setShowDropdown(false);
-                    setSelectedPreset(item.value);
-
-                    if (item.value === 'custom_range') {
-                      setIsCustomRange(true);
-                      onLabelChange?.('');
-                      return;
-                    }
-
-                    // reset custom range if user selects preset again
-                    setIsCustomRange(false);
-                    onLabelChange?.(item.label);
-
-                    const event = { target: { name, value: item.value } };
-                    // trigger preset manually
-                    if (mode === 'single' && onChange) {
-                      const today = new Date();
-                      let start = new Date();
-                      let end = new Date();
-
-                      switch (item.value) {
-                        case 'today':
-                          start = end = today;
-                          break;
-                        case 'last_week':
-                          start.setDate(today.getDate() - 7);
-                          break;
-                        case 'last_month':
-                          start.setMonth(today.getMonth() - 1);
-                          break;
-                        case 'last_6_months':
-                          start.setMonth(today.getMonth() - 6);
-                          break;
-                        case 'last_year':
-                          start.setFullYear(today.getFullYear() - 1);
-                          break;
-                      }
-
-                      const formatDate = (d) => d.toISOString().split('T')[0];
-                      onChange({ target: { name, value: formatDate(end) } });
-                    }
-
-                    if (mode === 'range' && onRangeChange) {
-                      const today = new Date();
-                      let start = new Date();
-                      let end = new Date();
-
-                      switch (item.value) {
-                        case 'today':
-                          start = end = today;
-                          break;
-                        case 'last_week':
-                          start.setDate(today.getDate() - 7);
-                          break;
-                        case 'last_month':
-                          start.setMonth(today.getMonth() - 1);
-                          break;
-                        case 'last_6_months':
-                          start.setMonth(today.getMonth() - 6);
-                          break;
-                        case 'last_year':
-                          start.setFullYear(today.getFullYear() - 1);
-                          break;
-                      }
-
-                      const formatDate = (d) => d.toISOString().split('T')[0];
-                      onRangeChange({
-                        start: formatDate(start),
-                        end: formatDate(end),
-                      });
-                    }
-                  }}
+      {/* --- MODE 2 & 3: Presets & Custom Range --- */}
+      {mode !== 'single' && (
+        <div className="relative">
+          {showCustomRange ? (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white-400 font-medium uppercase tracking-wider">
+                  Custom Range
+                </span>
+                <button
+                  type="button"
+                  onClick={handleClearCustomRange}
+                  className="text-xs text-blue-500 hover:text-blue-400 transition-colors"
                 >
-                  {item.label}
-                </li>
-              ))}
-            </ul>
-          </div>
+                  Back to Presets
+                </button>
+              </div>
+              <RangePicker
+                rangeValue={rangeValues}
+                onRangeChange={handleCustomRangeChange}
+                error={error}
+                placeholder={placeholder}
+                required={required}
+                readOnly={readOnly}
+                icon={icon}
+                parent_className={parent_className}
+                autocomplete={autocomplete}
+                className={className}
+                id={id}
+                inputRef={inputRef}
+                info={info}
+                autoFocus={autoFocus}
+                onInpute={onInpute}
+              />
+            </div>
+          ) : (
+            <PresetDropdown
+              placeholder={placeholder}
+              displayValue={displayValue}
+              onSelect={handlePresetSelect}
+              isOpen={isDropdownOpen}
+              setIsOpen={setIsDropdownOpen}
+              options={dropdownOptions}
+              error={error}
+              // Pass the new specific date logic down
+              selectedPreset={selectedPreset}
+              specificDate={specificDate}
+              onSpecificDateChange={handleSpecificDateChange}
+              required={required}
+              readOnly={readOnly}
+              icon={icon}
+              parent_className={parent_className}
+              autocomplete={autocomplete}
+              className={className}
+              id={id}
+              inputRef={inputRef}
+              info={info}
+              autoFocus={autoFocus}
+              onInpute={onInpute}
+            />
+          )}
         </div>
       )}
-      {/* {console.log(readOnly)} */}
-      {displayErr && <p id={errorId} className="mt-1 text-sm text-error absolute">{displayErr}</p>}
-      {readOnly && info && <p id={errorId} className="mt-1 text-sm text-white-500 absolute">{info}</p>}
+
+      {error && (
+        <p className="mt-1 text-sm text-error absolute">{error}</p>
+      )}
     </div>
   );
 };

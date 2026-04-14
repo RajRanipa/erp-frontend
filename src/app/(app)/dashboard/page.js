@@ -16,6 +16,7 @@ const InventoryPage = () => {
     start: '',
     end: ''
   });
+  const [date, setDate] = useState('');
   const [selectedLabel, setSelectedLabel] = useState('');
 
   console.log("selectedLabel", selectedLabel);
@@ -39,16 +40,10 @@ const InventoryPage = () => {
           <div>
             <DateInput
               name="date"
-              parent_className="m-0"
-              preset="today"
+              label="Custom Analytics Range"
               mode="range"
-              rangeValue={dateRange}
-              onRangeChange={(val) => {
-                setDateRange(val);
-                // setSelectedLabel(''); // reset label for custom/manual changes
-              }}
-              onLabelChange={(val) => {setSelectedLabel(val); console.log("val", val);}}
-              value={selectedLabel}
+              rangeValues={dateRange}
+              onChange={(val) => setDateRange(val)}
             />
           </div>
           <div className='flex items-center gap-2 justify-center'>
