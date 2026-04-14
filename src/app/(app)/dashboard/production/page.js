@@ -19,6 +19,10 @@ export default function Production() {
   }, [apiparams]);
 
   useEffect(() => {
+    console.log('productions', productions);
+  }, [productions]);
+
+  useEffect(() => {
     let ignore = false;
     const fetchItems = async () => {
       setLoading(true);
@@ -43,7 +47,7 @@ export default function Production() {
         const res = await axiosInstance.get(url);
         if (ignore) return;
         console.log('res', res);
-        const list = Array.isArray(res?.data) ? res.data : [];
+        const list = Array.isArray(res?.data?.data) ? res.data.data : [];
         setProductions(list);
       } catch (err) {
         // if (!ignore) Toast.error('Failed to load productions');
