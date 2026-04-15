@@ -36,23 +36,7 @@ const InventoryPage = () => {
           Test Toast
         </button> */}
 
-        <div className='w-full flex justify-between items-center'>
-          <div>
-            <DateInput
-              name="date"
-              label="Custom Analytics Range"
-              mode="range"
-              rangeValues={dateRange}
-              onChange={(val) => setDateRange(val)}
-            />
-          </div>
-          <div className='flex items-center gap-2 justify-center'>
-            {/* <DateInput
-              parent_className='m-0'
-              mode="range"
-            /> */}
-          </div>
-        </div>
+       <p>Dashboard page is under devlopment</p>
       </div>}
       {!can('dashboard:read') && <div className='w-full h-full flex p-8 justify-center text-base capitalize text-white-400'> dashboard is in devlopment phase </div>}
     </>
