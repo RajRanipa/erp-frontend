@@ -9,7 +9,13 @@ import ProductionTable from './components/ProductionTable';
 export default function Production() {
   const { dateRange } = useDateRange();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const [productions, setProductions] = useState([]);
+  const [refresh, setRefresh] = useState(null);
+  const [filters, setFilters] = useState({
+      productType: '',
+    });
+
   const apiparams = {};
   const mergedParams = useMemo(() => {
     if (Array.isArray(apiparams)) {
@@ -53,6 +59,7 @@ export default function Production() {
       } catch (err) {
         // if (!ignore) Toast.error('Failed to load productions');
         console.error("error in fetching production", err);
+        setError(err);
       } finally {
         if (!ignore) setLoading(false);
       }
@@ -101,7 +108,7 @@ export default function Production() {
             loading={loading}
             error={error}
             filters={filters} // used for client-side query + productType filtering
-            refrence={refresh}
+            // refrence={refresh}
           />
         </div>
       }

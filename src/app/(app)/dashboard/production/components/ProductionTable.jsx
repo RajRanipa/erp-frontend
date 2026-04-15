@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import Table from '@/Components/layout/Table';
-import { mapDimension, mapPacking } from '@/utils/FGP';
+import { mapDimension, mapPacking, mapTemperature } from '@/utils/FGP';
 import { useHighlight } from '@/hooks/useHighlight';
 
 /**
