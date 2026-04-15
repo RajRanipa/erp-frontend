@@ -8,7 +8,8 @@ import ProductionTable from './components/ProductionTable';
 
 export default function Production() {
   const { dateRange } = useDateRange();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [msg, setMsg] = useState('');
   const [error, setError] = useState(false);
   const [productions, setProductions] = useState([]);
   const [refresh, setRefresh] = useState(null);
@@ -35,7 +36,6 @@ export default function Production() {
       setLoading(true);
       try {
         const params = new URLSearchParams();
-        // console.log('dateRange', dateRange);
         const startDate = dateRange?.start || '';
         const endDate = dateRange?.end || '';
         // status from prop unless caller already passed it in mergedParams
@@ -64,51 +64,20 @@ export default function Production() {
         if (!ignore) setLoading(false);
       }
     };
-    if(dateRange?.start && dateRange?.end) fetchItems();
+    (dateRange?.start && dateRange?.end) ? fetchItems() : (setLoading(false), setMsg("select date range for seeing production"));
     return () => { ignore = true; };
   }, [dateRange]);
 
   return (
     <div className='h-full w-full'>
       {loading ? <Loading variant='skeleton' className='h-full w-full' />
-        :
+        : msg ? <div className='h-full w-full flex items-center justify-center'>{msg}</div> :
         <div className='h-full w-full'>productions data is here
-          {
-            productions.map((production) => (
-              <div key={production?.matchedItem?._id}>
-
-                <p>{production?.productType?.name}</p>
-
-                <p>
-                  {production?.temperature?.value} {production?.temperature?.unit}
-                </p>
-
-                <p>
-                  {production?.density?.value} {production?.density?.unit}
-                </p>
-
-                <p>
-                  {production?.dimension?.length} x
-                  {production?.dimension?.width} x
-                  {production?.dimension?.thickness}
-                  {production?.dimension?.unit}
-                </p>
-
-                <p>{production?.packingItem?.name}</p>
-
-                <p>Total rolls: {production?.totalRolls}</p>
-
-                <p>Total Weight: {production?.totalWeight} kg</p>
-
-              </div>
-            ))
-          }
           <ProductionTable
             rows={productions}
             loading={loading}
             error={error}
             filters={filters} // used for client-side query + productType filtering
-            // refrence={refresh}
           />
         </div>
       }
