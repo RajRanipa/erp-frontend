@@ -50,7 +50,7 @@ const Sidebar = ({ open, setOpen }) => {
       { name: 'Inventory', href: '/inventory', icon: '📦' },
       { name: 'items', href: '/items', icon: '📂' },
       { name: 'Manufacturing', href: '/manufacturing', icon: '🏭' },
-      { name: 'CRM', href: '/crm', icon: '👥' },
+      // { name: 'CRM', href: '/crm', icon: '👥' },
       { name: 'Parties', href: '/parties', icon: '👥' },
       { name: 'Warehouses', href: '/warehouses', icon: '🏬' },
       { name: 'Users', href: '/users', icon: '👤' },
