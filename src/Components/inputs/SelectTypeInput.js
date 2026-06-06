@@ -239,6 +239,7 @@ const SelectTypeInput = ({
 
   // ------------ 4) derived filtered options ------------
   const filteredOptions = useMemo(() => {
+    // console.log("inputValue", inputValue)
     if (fetching) return [];
     if (!inputValue) return options;
     const needle = inputValue.toLowerCase();
@@ -338,7 +339,7 @@ const SelectTypeInput = ({
     (apipost || typeof callBack === 'function') &&
     inputValue.trim() &&
     !options.some(
-      (o) => htmlToPlain(o.label).toLowerCase().includes(inputValue.trim().toLowerCase())
+      (o) => htmlToPlain(o.label).toLowerCase() === inputValue.trim().toLowerCase()
     );
 
   const handleCreateAndSave = useCallback(async () => {
@@ -391,11 +392,13 @@ const SelectTypeInput = ({
     } else if (e.key === 'Enter') {
       if (highlightedIndex !== null) {
         e.preventDefault();
-        if (shouldShowCreateButton && highlightedIndex === 0) {
+
+        // Check if the highlighted index matches the Create button at the BOTTOM
+        if (shouldShowCreateButton && highlightedIndex === filteredOptions.length) {
           handleCreateAndSave();
         } else {
-          const baseIndex = shouldShowCreateButton ? highlightedIndex - 1 : highlightedIndex;
-          const opt = filteredOptions[baseIndex];
+          // Regular options now map 1:1 with the highlightedIndex
+          const opt = filteredOptions[highlightedIndex];
           if (opt) handleSelect(opt);
         }
       }
@@ -460,128 +463,137 @@ const SelectTypeInput = ({
 
   return (
     <div ref={rootRef} className={cn(`mb-5 w-full relative ${parent_className}`)}>
-      {loading || fetching ? <Loading variant='skeleton' className='h-9' /> : 
-      <>
-        {label ? (
-          <label
-            htmlFor={name}
-            className="block text-sm font-medium text-primary-text mb-1"
-          >
-            {label} {required && <span className="text-error ml-1">*</span>}
-          </label>
-        ) : null}
-
-        <div className="relative flex items-center gap-2">
-          {icon && (
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white-300">
-              {icon}
-            </div>
-          )}
-          <input
-            id={id || name}
-            name={name}
-            type={type}
-            required={required}
-            value={inputValue}
-            placeholder={loading ? 'Saving...' : placeholder}
-            onChange={handleChange}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            readOnly={readOnly}
-            ref={inputRef}
-            autoComplete="off"
-            disabled={loading}
-            aria-invalid={!!displayErr}
-            aria-describedby={errorId}
-            className={cn(
-              `block flex-2 px-3 py-2 border sm:text-sm rounded-lg shadow-xs placeholder-white-400 focus:outline-none focus:border-0.5 focus:ring-3
-                ${icon ? 'pl-10' : ''}`,
-              displayErr
-                ? 'border-error focus:ring-error/30 focus:border-error'
-                : 'border-white-200 focus:ring-blue-500/30 focus:border-blue-500',
-              readOnly ? 'bg-black-200 pointer-events-none' : '',
-              loading ? 'bg-gray-100 text-gray-400' : '',
-              className
-            )}
-            autoFocus={autoFocus}
-            tabIndex={readOnly ? -1 : 0}
-          />
-
-          {!loading && (
-            inputValue && !shouldShowCreateButton && !readOnly ? (
-              <button
-                type="button"
-                aria-label="Clear selection"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-md text-white-300 scale-90 hover:text-white-700 w-[20px] h-[20px] flex justify-center items-center"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={clearSelection}
-                ref={clearBtnRef}
-                tabIndex={0}
-              >
-                ✕
-              </button>
-            ) : (
-              !shouldShowCreateButton &&
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-2xl text-white-300 scale-75 pointer-events-none flex justify-center items-center">
-                {downArrow()}
-              </span>
-            )
-          )}
-        </div>
-
-        {showOptions && (filteredOptions.length > 0 || shouldShowCreateButton) && (
-          <div className="absolute z-90 rounded-lg w-full" ref={dropdownRef}>
-            <div
-              className={cn(
-                'mb-5 mt-1 bg-black-200 border border-white-200 overflow-hidden shadow-lg rounded-lg backdrop-blur-2xl',
-                dropdownHeight
-              )}
+      {loading || fetching ? <Loading variant='skeleton' className='h-9' /> :
+        <>
+          {label ? (
+            <label
+              htmlFor={name}
+              className="block text-sm font-medium text-primary-text mb-1"
             >
-              <ul className={cn('overflow-y-auto w-full p-1.5', dropdownHeight)} ref={listRef}>
-                {shouldShowCreateButton && (
-                  <li
-                    ref={(el) => { listItemRefs.current[0] = el; }}
-                    className={cn(
-                      'px-3 py-3 cursor-pointer text-sm rounded-lg font-medium',
-                      highlightedIndex === 0 ? 'bg-white-100' : ''
-                    )}
-                    onMouseDown={(e) => { e.preventDefault(); handleCreateAndSave(); }}>
-                    + Create &quot;{inputValue.trim()}&quot; {label || ''}
-                  </li>
-                )}
-                {filteredOptions.map((opt, idx) => (
-                  <li
-                    key={idx}
-                    ref={(el) => {
-                      const offset = shouldShowCreateButton ? 1 : 0;
-                      listItemRefs.current[idx + offset] = el;
-                    }}
-                    className={cn(
-                      'px-3 py-2 cursor-pointer text-sm rounded-lg',
-                      (shouldShowCreateButton ? idx + 1 : idx) === highlightedIndex ? 'bg-white-100' : ''
-                    )}
-                    onMouseDown={() => handleSelect(opt)}
-                    onMouseEnter={() => setHighlightedIndex(shouldShowCreateButton ? idx + 1 : idx)}
-                    dangerouslySetInnerHTML={{ __html: opt.label }}
-                  />
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
+              {label} {required && <span className="text-error ml-1">*</span>}
+            </label>
+          ) : null}
 
-        {displayErr && (
-          <p id={errorId} className="mt-1 text-sm text-error absolute">
-            {displayErr}
-          </p>
-        )}
-        {!displayErr && info && (
-          <p className="mt-1 text-xs text-primary-text absolute px-2 lowercase">
-            {info}
-          </p>
-        )}
-      </>}
+          <div className="relative flex items-center gap-2">
+            {icon && (
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white-300">
+                {icon}
+              </div>
+            )}
+            <input
+              id={id || name}
+              name={name}
+              type={type}
+              required={required}
+              value={inputValue}
+              placeholder={loading ? 'Saving...' : placeholder}
+              onChange={handleChange}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+              readOnly={readOnly}
+              ref={inputRef}
+              autoComplete="off"
+              disabled={loading}
+              aria-invalid={!!displayErr}
+              aria-describedby={errorId}
+              className={cn(
+                `block flex-2 px-3 py-2 border sm:text-sm rounded-lg shadow-xs placeholder-white-400 focus:outline-none focus:border-0.5 focus:ring-3
+                ${icon ? 'pl-10' : ''}`,
+                displayErr
+                  ? 'border-error focus:ring-error/30 focus:border-error'
+                  : 'border-white-200 focus:ring-blue-500/30 focus:border-blue-500',
+                readOnly ? 'bg-black-200 pointer-events-none' : '',
+                loading ? 'bg-gray-100 text-gray-400' : '',
+                className
+              )}
+              autoFocus={autoFocus}
+              tabIndex={readOnly ? -1 : 0}
+            />
+
+            {!loading && (
+              inputValue && !shouldShowCreateButton && !readOnly ? (
+                <button
+                  type="button"
+                  aria-label="Clear selection"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-md text-white-300 scale-90 hover:text-white-700 w-[20px] h-[20px] flex justify-center items-center"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={clearSelection}
+                  ref={clearBtnRef}
+                  tabIndex={0}
+                >
+                  ✕
+                </button>
+              ) : (
+                !shouldShowCreateButton &&
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-2xl text-white-300 scale-75 pointer-events-none flex justify-center items-center">
+                  {downArrow()}
+                </span>
+              )
+            )}
+          </div>
+
+          {showOptions && (filteredOptions.length > 0 || shouldShowCreateButton) && (
+            <div className="absolute z-90 rounded-lg w-full" ref={dropdownRef}>
+              <div
+                className={cn(
+                  'mb-5 mt-1 bg-black-200 border border-white-200 overflow-hidden shadow-lg rounded-lg backdrop-blur-2xl',
+                  dropdownHeight
+                )}
+              >
+                <ul className={cn('overflow-y-auto w-full p-1.5', dropdownHeight)} ref={listRef}>
+                  {/* 1. Render the Filtered Options FIRST */}
+                  {filteredOptions.map((option, index) => (
+                    <li
+                      key={option.value}
+                      // Options just use their normal index (0, 1, 2...)
+                      ref={(el) => { listItemRefs.current[index] = el; }}
+                      className={cn(
+                        'px-3 py-3 cursor-pointer text-sm rounded-lg font-medium',
+                        highlightedIndex === index ? 'bg-white-100' : ''
+                      )}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleSelect(option);
+                      }}
+                    >
+                      {/* Assuming you render the label here */}
+                      <span dangerouslySetInnerHTML={{ __html: option.label }} />
+                    </li>
+                  ))}
+
+                  {/* 2. Render the Create Button at the BOTTOM */}
+                  {shouldShowCreateButton && (
+                    <li
+                      // The create button takes the last slot (e.g., if there are 3 options, this is index 3)
+                      ref={(el) => { listItemRefs.current[filteredOptions.length] = el; }}
+                      className={cn(
+                        'px-3 py-3 cursor-pointer text-sm rounded-lg font-medium mt-1 no-highlight', // Added a slight border/margin to separate it visually
+                        highlightedIndex === filteredOptions.length ? 'bg-white-100' : ''
+                      )}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleCreateAndSave();
+                      }}>
+                      + Create &quot;{inputValue.trim()}&quot; {label ? `in ${label}` : ''}
+                    </li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {displayErr && (
+            <p id={errorId} className="mt-1 text-sm text-error absolute">
+              {displayErr}
+            </p>
+          )}
+          {!displayErr && info && (
+            <p className="mt-1 text-xs text-primary-text absolute px-2 lowercase">
+              {info}
+            </p>
+          )}
+        </>}
     </div>
   );
 };

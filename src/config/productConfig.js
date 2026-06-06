@@ -72,7 +72,7 @@ const coreProductFields = [
         apiget: '/api/product-type', apipost: '/api/product-type',
         conditional: (formData = {}) => {
             const cat = String((formData.category_label ?? '')).trim().toLowerCase();
-            return cat.includes('finished') || cat.includes('packing');
+            return cat.includes('finished') || cat.includes('packing') || cat.includes('non-');
         }
     },
     {
