@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import BaseDatePicker from './BaseDatePicker';
 import PresetDropdown from './PresetDropdown';
 import RangePicker from './RangePicker';
@@ -87,6 +87,10 @@ const DateInput = ({
   const [selectedPreset, setSelectedPreset] = useState('');
   const [specificDate, setSpecificDate] = useState('');
 
+  useEffect(() => {
+    console.log('rangeValues', rangeValues)
+    rangeValues && rangeValues.start === rangeValues.end ? setSpecificDate(rangeValues.start) : setSpecificDate('')
+  },[rangeValues.start])
   const dropdownOptions =
     mode === 'range'
       ? [...BASE_PRESETS, { label: 'Custom Range', value: 'custom_range' }]

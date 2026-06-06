@@ -16,14 +16,19 @@ export const DateRangeContext = createContext(null);
 export const useDateRange = () => useContext(DateRangeContext);
 
 export default function InventoryLayout({ children }) {
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
   const { can, mounted } = useAuthz();
-  
+
   const [dateRange, setDateRange] = useState({
-    start: new Date(),
-    end: new Date()
+    start: new Date().toISOString().split('T')[0],
+    end: new Date().toISOString().split('T')[0]
   });
-  console.log('dateRange', dateRange);
+  // useEffect(() => {
+  //   setDateRange({
+  //     start: new Date().toISOString().split('T')[0],
+  //     end: new Date().toISOString().split('T')[0]
+  //   })
+  // }, []);
   useEffect(() => {
     if (can('inventory:receipt') || can('inventory:issue') || can('inventory:adjust') || can('inventory:transfer')) setLoading(false);
   }, [can]);
@@ -50,7 +55,7 @@ export default function InventoryLayout({ children }) {
       </DisplayBar>
 
       <DisplayMain>
-          {children ?? 'Dashboard Page is in production'}
+        {children ?? 'Dashboard Page is in production'}
       </DisplayMain>
     </DateRangeContext.Provider>
   );

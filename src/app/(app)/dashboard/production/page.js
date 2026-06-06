@@ -52,6 +52,7 @@ export default function Production() {
         console.log('qs', qs);
         const url = `/api/production${qs ? `?${qs}` : ''}`;
         const res = await axiosInstance.get(url);
+        
         if (ignore) return;
         console.log('res', res);
         const list = Array.isArray(res?.data?.data) ? res.data.data : [];
@@ -72,7 +73,8 @@ export default function Production() {
     <div className='h-full w-full'>
       {loading ? <Loading variant='skeleton' className='h-full w-full' />
         : msg ? <div className='h-full w-full flex items-center justify-center'>{msg}</div> :
-        <div className='h-full w-full'>productions data is here
+        <div className='h-full w-full'>
+          <p>{dateRange?.start +" to "+ dateRange?.end}</p>
           <ProductionTable
             rows={productions}
             loading={loading}
