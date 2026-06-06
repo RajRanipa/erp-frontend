@@ -8,7 +8,7 @@ import { coreProductFields } from '@/config/productConfig';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 
 const CoreProductFields = ({ formData, onChange, errors }) => {
-  console.log('coreProductFields', "formData", formData.category_label);
+  // console.log('coreProductFields', "formData", formData.category_label);
   let options =''
   return (
     // <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 col-span-3">

@@ -82,7 +82,8 @@ const coreProductFields = [
             { value: "orewool board", label: "orewool Board" },
             { value: "orewool bulk", label: "orewool Bulk" },
             { value: "orewool module", label: "orewool Module" },
-            { value: "blanket strip", label: "Blanket Strip" }],
+            { value: "blanket strip", label: "Blanket Strip" },
+            { value: "et", label: "ET" }],
         packing: [
             { value: "plastic bag", label: "Plastic Bag" },
             { value: "wovan bag", label: "Wovan Bag" },
