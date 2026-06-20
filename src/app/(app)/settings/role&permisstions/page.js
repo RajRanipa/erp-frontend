@@ -24,7 +24,7 @@ export default function RolePermissionsPage() {
   const [q, setQ] = useState('');
   const [error, setError] = useState('');
   const [openNew, setOpenNew] = useState(false);
-  const { refreshPermissionsNow } = useUser();
+  const { markPermissionsForRefresh } = useUser();
   const [rolesRead, setRolesRead] = useState(false);
   const [read, setRead] = useState(false);
   const [create, setCreate] = useState(false);
@@ -148,7 +148,7 @@ export default function RolePermissionsPage() {
       setAssigned(new Set(newKeys));
 
       // 🔥 Tell UserContext to reload permissions
-      refreshPermissionsNow();
+      markPermissionsForRefresh();
     } catch (e) {
       Toast.error(`Save failed: ${e.message}`, 'error');
     } finally {
@@ -172,7 +172,7 @@ export default function RolePermissionsPage() {
         return next;
       });
       Toast.success('Permission deleted');
-      refreshPermissionsNow();
+      markPermissionsForRefresh();
     } catch (e) {
       const msg = e?.response?.data?.message || e?.message || 'Delete failed';
       Toast.error(msg, 'error');
@@ -296,8 +296,8 @@ export default function RolePermissionsPage() {
                     <span className="text-white-500">({selectedCount}/{groupKeys.length})</span>
                   </span>
                   <div className="flex-0 flex gap-2">
-                    <button className="btn-secondary py-1 px-2 text-nowrap w-full cursor-pointer" type="button" onClick={() => toggleGroup(true)}>Select All</button>
-                    <button className="btn-secondary py-1 px-2 text-nowrap w-full cursor-pointer" type="button" onClick={() => toggleGroup(false)}>Clear</button>
+                    <button className="btn-secondary py-1 px-2 text-nowrap w-full cursor-pointer no-highlight" type="button" onClick={() => toggleGroup(true)}>Select All</button>
+                    <button className="btn-secondary py-1 px-2 text-nowrap w-full cursor-pointer no-highlight" type="button" onClick={() => toggleGroup(false)}>Clear</button>
                   </div>
                 </div>
                 <div className='flex gap-2 flex-3 max-w-full flex-wrap'>

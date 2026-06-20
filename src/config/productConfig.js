@@ -69,7 +69,7 @@ const productParameters = [
 const coreProductFields = [
     {
         type: 'selecttype', name: 'productType', label: 'Product Type', placeholder: 'Product Type', required: true,
-        apiget: '/api/product-type', apipost: '/api/product-type',
+        apiget: '/api/product-type', apiparams: (formData = {}) => {return formData?.category ? formData.category : null;},
         conditional: (formData = {}) => {
             const cat = String((formData.category_label ?? '')).trim().toLowerCase();
             return cat.includes('finished') || cat.includes('packing') || cat.includes('non-');

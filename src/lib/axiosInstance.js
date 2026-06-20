@@ -92,7 +92,7 @@ export const refreshAccessToken = async () => {
 export const setAccessTokenExpireAt = (expiry) => {
   try {
     const expireAtMs = parseExpiryToMs(expiry);
-    dbg('setAccessTokenExpireAt called with:', expiry, expireAtMs);
+    // dbg('setAccessTokenExpireAt called with:', expiry, expireAtMs);
 
     if (!expireAtMs) {
       dbg('Invalid expiry, clearing schedule');
@@ -141,12 +141,12 @@ export const setAccessTokenExpireAt = (expiry) => {
 
 // Start timer from stored localStorage value (call on app init)
 export const startAccessTokenTimer = () => {
-  dbg('startAccessTokenTimer: called');
+  // dbg('startAccessTokenTimer: called');
   if (typeof window === 'undefined') return;
   try {
     const stored = localStorage.getItem('accessTokenExpireAt');
     if (!stored) {
-      dbg('startAccessTokenTimer: no stored expiry');
+      // dbg('startAccessTokenTimer: no stored expiry');
       return;
     }
     const expireAtMs = Number(stored);
@@ -154,7 +154,7 @@ export const startAccessTokenTimer = () => {
     accessTokenExpireAt = expireAtMs;
 
     const delayMs = getDelayMs(accessTokenExpireAt);
-    dbg('startAccessTokenTimer scheduling refresh in ms:', delayMs);
+    // dbg('startAccessTokenTimer scheduling refresh in ms:', delayMs);
 
     if (refreshTimeoutId) clearTimeout(refreshTimeoutId);
 

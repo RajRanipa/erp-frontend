@@ -19,7 +19,7 @@ export const removeHighlights = (root, className = 'highlight') => {
  * Finds and wraps text nodes inside the root element.
  * Handles both regular text and input/textarea values.
  */
-export const applyHighlights_old = (root, searchTerm, className = 'highlight') => {
+export const applyHighlights = (root, searchTerm, className = 'highlight') => {
   if (!root || !searchTerm) return;
   searchTerm = searchTerm.toLowerCase().split(' ').filter(Boolean).join('|');
   const regex = new RegExp(`(${searchTerm})`, 'gi');
@@ -30,7 +30,24 @@ export const applyHighlights_old = (root, searchTerm, className = 'highlight') =
   const walker = document.createTreeWalker(
     root,
     NodeFilter.SHOW_TEXT,
-    null,
+    {
+      acceptNode: function (node) {
+        // EXCEPTION LOGIC: Check if the text node's parent matches what we want to ignore
+        
+        // Example 1: Ignore a specific tag (e.g., <kbd> or <code>)
+        if (node.parentNode.nodeName.toLowerCase() === 'kbd') {
+          return NodeFilter.FILTER_REJECT; 
+        }
+
+        // Example 2: Ignore any element with a specific class (e.g., className="no-highlight")
+        if (node.parentNode.closest('.no-highlight')) {
+          return NodeFilter.FILTER_REJECT;
+        }
+
+        // If it passes the checks, accept the text node for highlighting
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    },
     false
   );
 
@@ -67,57 +84,6 @@ export const applyHighlights_old = (root, searchTerm, className = 'highlight') =
       });
       // Replace the original text node with the fragment containing spans
       parent.replaceChild(fragment, textNode);
-    }
-  });
-};
-
-// utils/highlightDOM.js
-
-export const applyHighlights = (container, searchTerm, highlightClass = 'inputHighlight') => {
-  if (!searchTerm || !container) return;
-
-  const regex = new RegExp(`(${searchTerm})`, 'gi');
-
-  // 1. Create a TreeWalker to find all text nodes
-  const walker = document.createTreeWalker(
-    container,
-    NodeFilter.SHOW_TEXT,
-    {
-      acceptNode: function (node) {
-        // EXCEPTION LOGIC: Check if the text node's parent matches what we want to ignore
-        
-        // Example 1: Ignore a specific tag (e.g., <kbd> or <code>)
-        if (node.parentNode.nodeName.toLowerCase() === 'kbd') {
-          return NodeFilter.FILTER_REJECT; 
-        }
-
-        // Example 2: Ignore any element with a specific class (e.g., className="no-highlight")
-        if (node.parentNode.closest('.no-highlight')) {
-          return NodeFilter.FILTER_REJECT;
-        }
-
-        // If it passes the checks, accept the text node for highlighting
-        return NodeFilter.FILTER_ACCEPT;
-      }
-    },
-    false
-  );
-
-  const textNodes = [];
-  let currentNode;
-  
-  // 2. Collect all valid text nodes
-  while ((currentNode = walker.nextNode())) {
-    textNodes.push(currentNode);
-  }
-
-  // 3. Apply the highlights to the collected text nodes
-  textNodes.forEach((node) => {
-    const text = node.nodeValue;
-    if (regex.test(text)) {
-      const span = document.createElement('span');
-      span.innerHTML = text.replace(regex, `<mark class="${highlightClass}">$1</mark>`);
-      node.parentNode.replaceChild(span, node);
     }
   });
 };

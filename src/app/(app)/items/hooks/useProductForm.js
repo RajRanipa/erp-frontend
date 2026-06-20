@@ -261,7 +261,7 @@ export default function useProductForm({ mode = 'create', initialData = {} } = {
         }
 
         const payload = transformFormData(formData, enabledParameters);
-        // console.log('submit payload:', payload);
+        console.log('submit payload:', payload);
 
         if (modeArg === 'create') {
           const res = await axiosInstance.post('/api/items', payload);

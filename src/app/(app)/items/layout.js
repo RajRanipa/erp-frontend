@@ -43,7 +43,11 @@ export default function Items({ children }) {
           </NavLink>
         </div>
         <div className='flex gap-2 relative'>
-          {loading || !can('items:create') && <Loading variant='skeleton' className='h-7 min-w-[140px]'/>}
+          {loading || !can('parameters:read') || !can('items:create') && <Loading variant='skeleton' className='h-7 min-w-[140px]'/>}
+          {can('parameters:read') && (
+            <NavLink href="/items/parameters" type={"button"}><span className='flex items-center gap-2'> parameters </span></NavLink>
+          ) 
+          }
           {can('items:create') && (
             <NavLink href="/items/create" type={"button"}><span className='flex items-center gap-2'> {addIcon()} Create Item </span></NavLink>
           ) 

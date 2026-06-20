@@ -8,7 +8,8 @@ import CoreProductFieldsComponent from './CoreProductFields';
 import ProductParametersComponent from './ProductParameters';
 import ParameterToggleBarComponent from './ParameterToggleBar';
 import useProductForm from '../hooks/useProductForm';
-
+import { productParameters } from '../../../../config/productConfig';
+import SubmitButton from '@/Components/buttons/SubmitButton';
 const ProductParameters = React.memo(ProductParametersComponent);
 const CoreProductFields = React.memo(CoreProductFieldsComponent);
 const ParameterToggleBar = React.memo(ParameterToggleBarComponent);
@@ -63,7 +64,6 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
         onsubmit();
         return;
       }
-
       if (mode === 'create') {
         router.push('/items');
       }
@@ -133,5 +133,4 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
     </div>
   );
 }
-import { productParameters } from '../../../../config/productConfig';
-import SubmitButton from '@/Components/buttons/SubmitButton';
+
