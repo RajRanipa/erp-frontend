@@ -39,6 +39,7 @@ export default function TemperatureDialog({
     value: initialData.value ?? '',
     unit: initialData.unit ?? '˚C',
     productType: initialData.productType ?? '',
+    category: initialData.category ?? '',
   }), [initialData]);
 
   const [dialogData, setDialogData] = useState(initialDraft);
@@ -48,10 +49,12 @@ export default function TemperatureDialog({
   // Keep dialogData in sync with initialData when open or when initialData changes
   useEffect(() => {
     if (open) {
+      console.log("initialData :- ", initialData);
       setDialogData({
         value: initialData.value ?? '',
         unit: initialData.unit ?? '˚C',
         productType: initialData.productType ?? '',
+        category: initialData.category ?? '',
       });
     }
   }, [open, initialData]);
@@ -185,6 +188,7 @@ export default function TemperatureDialog({
           readOnly={productTypeReadonly}
           required
           allowCustomValue={false}
+          apiparams={dialogData?.category}
         />
       </div>
     </Dialog>

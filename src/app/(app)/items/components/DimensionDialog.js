@@ -199,6 +199,7 @@ export default function DimensionDialog({
           readOnly={productTypeReadonly}
           required
           allowCustomValue={false}
+          apiparams={dialogData.category}
         />
       </div>
     </Dialog>

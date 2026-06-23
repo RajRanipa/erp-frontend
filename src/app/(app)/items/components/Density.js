@@ -13,7 +13,7 @@ export default function Density({ formData, onChange, className = '' }) {
   const params = { productType: formData?.productType };
 
   const handleOpen = useCallback((data) => {
-    setInitialData({ productType: formData?.productType, value: data?.value });
+    setInitialData({ productType: formData?.productType, value: data?.value, category: formData?.category });
     setOpen(true);
   }, [formData?.productType]);
 

@@ -39,6 +39,7 @@ export default function DensityDialog({
     value: initialData.value ?? '',
     unit: initialData.unit ?? 'kg/m³',
     productType: initialData.productType ?? '',
+    category: initialData.category ?? '',
   }), [initialData]);
 
   const [dialogData, setDialogData] = useState(initialDraft);
@@ -52,6 +53,7 @@ export default function DensityDialog({
         value: initialData.value ?? '',
         unit: initialData.unit ?? 'kg/m³',
         productType: initialData.productType ?? '',
+        category: initialData.category ?? '',
       });
     }
   }, [open, initialData]);
@@ -183,6 +185,7 @@ export default function DensityDialog({
           readOnly={productTypeReadonly}
           required
           allowCustomValue={false}
+          apiparams={dialogData.category}
         />
       </div>
     </Dialog>

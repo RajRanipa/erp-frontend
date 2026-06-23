@@ -69,7 +69,7 @@ export default function Finished() {
       key: 'category',
       header: 'Category',
       sortable: true,
-      render: (r) => r.label || '—',
+      render: (r) => r?.label || '—',
     },
 
     ...(can('parameters:categories:update') ||

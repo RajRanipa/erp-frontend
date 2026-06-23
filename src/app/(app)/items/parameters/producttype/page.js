@@ -82,13 +82,13 @@ export default function Finished() {
         key: 'producttype',
         header: 'Product Type',
         sortable: true,
-        render: (r) => r.name || '—',
+        render: (r) => r?.name || '—',
       },
       {
         key: 'catagory',
         header: 'Catagory',
         sortable: true,
-        render: (r) => r.catagoryID.name
+        render: (r) => r?.catagoryID?.name || '—',
       },
       {
         key: 'action',
@@ -97,7 +97,7 @@ export default function Finished() {
         render: (r) => (
           <div className='flex gap-4'>
             {<EditButton onClick={() => openDialog(r)} requiredPermissions='parameters:producttypes:update' />}
-            {<DeleteButton onClick={() => onDelete(r.name, r._id)} requiredPermissions='parameters:producttypes:delete' />}
+            {<DeleteButton onClick={() => onDelete(r?.name, r?._id)} requiredPermissions='parameters:producttypes:delete' />}
           </div>
         )
       }
