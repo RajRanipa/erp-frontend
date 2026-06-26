@@ -47,7 +47,7 @@ export default function Finished() {
   }, [form]);
 
   const isUpdateDirty = useMemo(() => {
-    console.log('isUpdateDirty', form, originalForm);
+    // console.log('isUpdateDirty', form, originalForm);
     return (
       (form.productType || '').trim() !== (originalForm.productType || '').trim() ||
       (form.catagory || '').trim() !== (originalForm.catagory || '').trim()
@@ -166,10 +166,11 @@ export default function Finished() {
       if (!ok) return;
       // optimistic UI: remove from list first
       const payload = {
-        productTypeId: form.productTypeId,
-        productType: form.productType,
+        _id: form.productTypeId,
+        name: form.productType,
+        catagoryID: form.catagory
       }
-      const res = await axiosInstance.put(`/api/productType`, payload);
+      const res = await axiosInstance.put(`/api/product-type`, payload);
       console.log("res :- ", res);
       Toast.success('Product Type Updated');
       setOriginalForm(form);

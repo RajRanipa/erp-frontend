@@ -166,7 +166,7 @@ const SelectTypeInput = ({
         if (searchValue) queryParams.search = searchValue;
 
         const base = (apiget || '').replace(/\/+$/, '');
-        console.log("apiparams", apiparams);
+        // console.log("apiparams", apiparams);
         const suffix = (apiparams || '').replace(/^\/+/, '');
         const url = suffix ? `${base}/${suffix}` : base;
 
