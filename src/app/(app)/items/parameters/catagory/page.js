@@ -228,14 +228,14 @@ export default function Finished() {
       />
 
       <div className='py-2'>
-        <AddButton
+        {can('parameters:categories:create') && <AddButton
           title={'Create Category'}
           onClick={() => {
             resetDialogState();
             setMode('create');
             setOpen(true);
           }}
-        />
+        />}
       </div>
 
       <Dialog

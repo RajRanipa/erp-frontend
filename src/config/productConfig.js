@@ -1,5 +1,6 @@
 import api from "../utils/api";
 // src/app/config/productConfig.js
+import { Density_uom_options, Temp_uom_options } from "./Uom";
 
 const productParameters = [
     {
@@ -69,7 +70,7 @@ const productParameters = [
 const coreProductFields = [
     {
         type: 'selecttype', name: 'productType', label: 'Product Type', placeholder: 'Product Type', required: true,
-        apiget: '/api/product-type', apiparams: (formData = {}) => {return formData?.category ? formData.category : null;},
+        apiget: '/api/product-type', apiparams: (formData = {}) => { return formData?.category ? formData.category : null; },
         conditional: (formData = {}) => {
             const cat = String((formData.category_label ?? '')).trim().toLowerCase();
             return cat.includes('finished') || cat.includes('packing') || cat.includes('non-');
@@ -123,6 +124,8 @@ const coreProductFields = [
             { value: "tsp", label: "Teaspoon" },
             { value: "oz", label: "Ounce" },
             { value: "lb", label: "Pound" },
+            ...Density_uom_options,    
+            ...Temp_uom_options
         ]
     },
     { type: 'number', name: 'minimumStock', label: 'Minimum Stock Level', placeholder: 'Minimum Stock Level', required: true },
@@ -136,11 +139,11 @@ const coreProductFields = [
         }
     },
     {
-        type: 'selecttype', name: 'productColor', label: 'Product Color', placeholder: 'Choose Product Color', required: false, 
+        type: 'selecttype', name: 'productColor', label: 'Product Color', placeholder: 'Choose Product Color', required: false,
         options: [
-            {value: "red", label: "Red"},
-            {value: "blue", label: "Blue"},
-            {value: "green", label: "Green"},
+            { value: "red", label: "Red" },
+            { value: "blue", label: "Blue" },
+            { value: "green", label: "Green" },
         ],
         conditional: (formData = {}) => {
             const cat = String((formData.category_label ?? '')).trim().toLowerCase();
@@ -174,4 +177,4 @@ const coreProductFields = [
     { type: 'textarea', name: 'description', label: 'Description', placeholder: 'Description', required: false },
 ];
 
-export { productParameters, coreProductFields };
+export { productParameters, coreProductFields, Temp_uom_options, Density_uom_options };

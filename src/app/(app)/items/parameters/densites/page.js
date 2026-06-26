@@ -14,81 +14,91 @@ import useAuthz from '@/hooks/useAuthz';
 import Dialog from '@/Components/Dialog';
 import SubmitButton from '@/Components/buttons/SubmitButton';
 import AddButton from '@/Components/buttons/AddButton';
-
+import { coreProductFields, Density_uom_options } from '@/config/productConfig';
 
 export default function Finished() {
 
   const { can } = useAuthz();
 
   // State
-  const [productType, setProductType] = useState([]);
+  const [density, setDensity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState('');
   const [form, setForm] = useState({
-    catagory: '',
     productType: '',
-    productTypeId: '',
+    density: '',
+    densityId: '',
+    unit: '',
   });
 
   const [originalForm, setOriginalForm] = useState({
-    catagory: '',
     productType: '',
-    productTypeId: '',
+    density: '',
+    densityId: '',
+    unit  : '',
   });
 
   const isCreateDirty = useMemo(() => {
     return Boolean(
-      String(form.catagory || '').trim() ||
-      String(form.productType || '').trim()
+      String(form.productType || '').trim() ||
+      String(form.unit || '').trim() ||
+      String(form.density || '').trim()
     );
   }, [form]);
 
   const isUpdateDirty = useMemo(() => {
-    console.log('isUpdateDirty', form, originalForm);
+    // console.log('isUpdateDirty', form, originalForm);
     return (
-      (form.productType || '').trim() !== (originalForm.productType || '').trim() ||
-      (form.catagory || '').trim() !== (originalForm.catagory || '').trim()
+      (form.density || '') !== (originalForm.density || '') ||
+      (form.productType || '') !== (originalForm.productType || '') ||
+      (form.unit || '').trim() !== (originalForm.unit || '').trim()
     );
   }, [form, originalForm]);
 
   // Data Fetching
-  const fetchProductTypes = useCallback(async () => {
+  const fetchDensity = useCallback(async () => {
     setLoading(true);
     try {
-      const productTypeRes = await axiosInstance.get('/api/product-type');
-      console.log("productTypeRes :- ", productTypeRes.data);
-      const productTypeData = productTypeRes.data || [];
-      setProductType(productTypeData);
+      const densityRes = await axiosInstance.get('/api/densities');
+      console.log("densityRes :- ", densityRes);
+      const densityData = densityRes.data || [];
+      setDensity(densityData);
     } catch (err) {
       console.error('fetch error', err);
       setError(err?.message || 'Failed to load');
-      Toast.error('Failed to fetch Product Types', { duration: 4000 });
+      Toast.error('Failed to fetch Densitys', { duration: 4000 });
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchProductTypes();
-  }, [fetchProductTypes]);
+    fetchDensity();
+  }, [fetchDensity]);
 
   // Table Configuration
   const columns = useMemo(
     () => [
       {
-        key: 'producttype',
-        header: 'Product Type',
+        key: 'density',
+        header: 'Density',
         sortable: true,
-        render: (r) => r?.name || '—',
+        render: (r) => r?.value || '—',
       },
       {
-        key: 'catagory',
-        header: 'Catagory',
+        key: 'uom',
+        header: 'Unit',
         sortable: true,
-        render: (r) => r?.catagoryID?.name || '—',
+        render: (r) => r?.unit || '—',
+      },
+      {
+        key: 'productType',
+        header: 'Product Type',
+        sortable: true,
+        render: (r) => r?.productType?.name || '—',
       },
       {
         key: 'action',
@@ -96,8 +106,8 @@ export default function Finished() {
         sortable: true,
         render: (r) => (
           <div className='flex gap-4'>
-            {<EditButton onClick={() => openDialog(r)} requiredPermissions='parameters:producttypes:update' />}
-            {<DeleteButton onClick={() => onDelete(r?.name, r?._id)} requiredPermissions='parameters:producttypes:delete' />}
+            {<EditButton onClick={() => openDialog(r)} requiredPermissions='parameters:densities:update' />}
+            {<DeleteButton onClick={() => onDelete(r?.value, r?._id)} requiredPermissions='parameters:densities:delete' />}
           </div>
         )
       }
@@ -108,9 +118,10 @@ export default function Finished() {
   // Dialog Helpers
   const resetDialogState = () => {
     const emptyForm = {
-      catagory: '',
+      density: '',
+      densityId: '',
+      unit: '',
       productType: '',
-      productTypeId: '',
     };
 
     setForm(emptyForm);
@@ -120,9 +131,10 @@ export default function Finished() {
 
   const openDialog = (data) => {
     const editForm = {
-      catagory: data?.catagoryID?._id ?? '',
-      productType: data?.name ?? '',
-      productTypeId: data?._id ?? '',
+      productType: data?.productType?._id ?? '',
+      density: data?.value ?? '',
+      densityId: data?._id ?? '',
+      unit: data?.unit ?? '',
     };
 
     setForm(editForm);
@@ -142,51 +154,52 @@ export default function Finished() {
       if (!ok) return;
       // optimistic UI: remove from list first
       await axiosInstance.delete(`/api/product-type/${id}`, { withCredentials: true });
-      setProductType(prev => prev.filter(p => p.value !== id));
-      Toast.success('Product Type deleted');
-      fetchProductTypes();
+      setDensity(prev => prev.filter(p => p.value !== id));
+      Toast.success('Density deleted');
+      fetchDensity();
     } catch (err) {
       console.error('delete failed', err);
       // restore removed item on error by refetching (simple approach)
       Toast.error('Failed to delete item');
       // quick refetch to ensure state is consistent
       try {
-        fetchProductTypes();
+        fetchDensity();
       } catch (e) { /* ignore */ }
     }
   };
   const handleSave = async () => {
-    console.log('update', form.productType, form.productTypeId);
+    console.log('update', form.density, form.densityId);
     setUpdating(true);
     try {
-      const ok = await Toast.promise(`Update "${form.productType}" productType? This will permanently Update the productType. Are you sure?`, {
+      const ok = await Toast.promise(`Update "${form.density}" density? This will permanently Update the density. Are you sure?`, {
         confirmText: 'Update',
         cancelText: 'Cancel',
       });
       if (!ok) return;
       // optimistic UI: remove from list first
       const payload = {
-        productTypeId: form.productTypeId,
+        unit: form.unit,
+        value: form.density,
         productType: form.productType,
       }
-      const res = await axiosInstance.put(`/api/productType`, payload);
+      const res = await axiosInstance.put(`/api/densities/${form.densityId}`, payload);
       console.log("res :- ", res);
-      Toast.success('Product Type Updated');
+      Toast.success('Density Updated');
       setOriginalForm(form);
       resetDialogState();
       setOpen(false);
-      fetchProductTypes();
+      fetchDensity();
     } catch (err) {
       console.error('delete failed', err);
       // restore removed item on error by refetching (simple approach)
       if (err?.response?.statusText) {
         if (err?.response?.statusText === 'Forbidden') {
-          Toast.error("You don't have permission to update productType");
+          Toast.error("You don't have permission to update density");
           return;
         }
         Toast.error(err?.response?.data?.message);
       }
-      Toast.error('Failed to Update productType');
+      Toast.error('Failed to Update density');
       // quick refetch to ensure state is consistent
       try {
         resetDialogState();
@@ -196,37 +209,38 @@ export default function Finished() {
       setUpdating(false);
     }
   };
-  const createProductType = async () => {
+  const createDensity = async () => {
     setSaving(true);
-    console.log('create :- ', form.catagory, form.productType);
+    console.log('create :- ', form.productType, form.density);
 
     try {
-      if (!form.catagory || !form.productType) {
+      if (!form.productType || !form.density) {
         Toast.error('Please fill all the fields');
         return
       }
       // optimistic UI: remove from list first
       const payload = {
-        catagoryID: form.catagory,
         productType: form.productType,
+        value: form.density,
+        unit: form.unit
       }
-      const res = await axiosInstance.post(`/api/product-type`, payload);
+      const res = await axiosInstance.post(`/api/densities`, payload);
       console.log("res :- ", res);
-      Toast.success('Product Type Is Created');
+      Toast.success('Density Is Created');
       resetDialogState();
       setOpen(false);
-      fetchProductTypes();
+      fetchDensity();
     } catch (err) {
       console.error('delete failed', err);
       // restore removed item on error by refetching (simple approach)
       if (err?.response?.statusText) {
         if (err?.response?.statusText === 'Forbidden') {
-          Toast.error("You don't have permission to update Product Type");
+          Toast.error("You don't have permission to update Density");
           return;
         }
         Toast.error(err?.response?.data?.message);
       }
-      Toast.error('Failed to Create productType');
+      Toast.error('Failed to Create density');
       // quick refetch to ensure state is consistent
       try {
         resetDialogState();
@@ -242,27 +256,27 @@ export default function Finished() {
       {loading && <Loading variant='skeleton' className='h-full' />}
       <Table
         columns={columns}
-        data={productType}
-        virtualization={productType.length > 200}
+        data={density}
+        virtualization={density.length > 200}
         loading={loading}
         // tableRef={stockTabelRef}
         className='overflow-y-auto'
       />
       <div className='py-2'>
-        {can('parameters:producttypes:create') && <AddButton
+        {can('parameters:densities:create') &&<AddButton
           onClick={() => {
             resetDialogState();
             setMode('create');
             setOpen(true);
           }}
-          title={'Create Product Type'}
+          title={'Create Density'}
         />}
       </div>
 
       <Dialog
         open={open}
         mode='create'
-        title={mode === 'create' ? 'Create Product Type' : 'Update Product Type'}
+        title={mode === 'create' ? 'Create Density' : 'Update Density'}
         onClose={() => {
           resetDialogState();
           setOpen(false);
@@ -283,7 +297,7 @@ export default function Finished() {
             </button>
             <SubmitButton
               type="button"
-              onClick={mode === 'create' ? createProductType : handleSave}
+              onClick={mode === 'create' ? createDensity : handleSave}
               loading={mode === 'create' ? saving : updating}
               disabled={mode === 'create' ? !isCreateDirty : !isUpdateDirty}
             >
@@ -295,27 +309,39 @@ export default function Finished() {
         }
       >
         <div className='h-[300px]'>
-          <SelectTypeInput
-            value={form.catagory}
-            label={'Category'}
-            name={'catagory'}
-            onChange={(e) => setForm(prev => ({ ...prev, catagory: e.target.value }))}
-            apiget={"/api/category"}
-            placeholder='Select Catagory'
-            required
-            autoFocus={mode === 'create' ? true : false}
-          />
           <CustomInput
-            value={form.productType}
-            label={'Product Type'}
-            name={'new_productType'}
-            placeholder='Create new product type'
+            value={form.density}
+            label={'Density'}
+            name={'new_density'}
+            type='number'
+            placeholder={mode === 'create' ? 'Create new Density' : 'Update Density'}
             onChange={(e) => {
               setForm(prev => ({
                 ...prev,
-                productType: e.target.value,
+                density: e.target.value,
               }));
             }}
+            autoFocus
+          />
+          <SelectTypeInput
+            value={form.unit}
+            label={"Density Unit"}
+            name={"unit"}
+            onChange={(e) => setForm(prev => ({ ...prev, unit: e.target.value }))}
+            placeholder={"select Density Unit"}
+            options={Density_uom_options}
+            required
+            // autoFocus={mode === 'create' ? true : false}
+          />
+          <SelectTypeInput
+            value={form.productType}
+            label={'Product Type'}
+            name={'productType'}
+            onChange={(e) => setForm(prev => ({ ...prev, productType: e.target.value }))}
+            apiget={"/api/product-type/options"}
+            placeholder='Select product type'
+            required
+            // autoFocus={mode === 'create' ? true : false}
           />
         </div>
       </Dialog>

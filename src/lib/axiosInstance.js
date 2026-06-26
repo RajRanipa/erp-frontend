@@ -1,7 +1,7 @@
 // src/lib/axiosInstance.js
 import axios from 'axios';
 
-console.log("process.env.NEXT_PUBLIC_BACKEND_PORT", process.env.NEXT_PUBLIC_BACKEND_PORT);
+// console.log("process.env.NEXT_PUBLIC_BACKEND_PORT", process.env.NEXT_PUBLIC_BACKEND_PORT);
 // Central axios instance
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_PORT,

@@ -38,11 +38,17 @@ export default function Parameters({ children }) {
           >
             product type
           </NavLink>}
-          {<NavLink
-            href="/items/parameters/packing"
-            // onClick={() => setFilterType('packing')}
+          {can('parameters:densities:read') && <NavLink
+            href="/items/parameters/densites"
+            // onClick={() => setFilterType('raw')}
           >
-            Packing Material
+            density
+          </NavLink>}
+          {can('parameters:temperatures:read') && <NavLink
+            href="/items/parameters/temperatures"
+            // onClick={() => setFilterType('raw')}
+          >
+            temperature
           </NavLink>}
         </div>)}
       </div>
