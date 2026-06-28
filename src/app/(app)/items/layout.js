@@ -41,6 +41,12 @@ export default function Items({ children }) {
           >
             Packing Material
           </NavLink>
+          <NavLink
+            href="/items/nc"
+            // onClick={() => setFilterType('packing')}
+          >
+            NC
+          </NavLink>
         </div>
         <div className='flex gap-2 relative'>
           {loading || !can('parameters:read') || !can('items:create') && <Loading variant='skeleton' className='h-7 min-w-[140px]'/>}

@@ -31,14 +31,14 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
   } = useProductForm({ mode, initialData });
   const [catagory, setCatagory] = useState(null);
   const [loading, setLoading] = useState(false);
-  
+  console.log('formData', formData);
   const handleLocalChange = useCallback((eOrName) => {
   // console.log('handleLocalChange', eOrName);
 
   if (eOrName && eOrName.target) {
     const { name, value } = eOrName.target;
     const labelValue = eOrName.label?.value ?? value;
-
+    console.log('labelValue', labelValue, name, value);
     // Update main formData via useProductForm handleChange
     handleChange(name, value);
 
@@ -88,7 +88,7 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
             required
             apiget='/api/category'
             apipost={'/api/category'}
-            // allowCustomValue={false}
+            allowCustomValue={false}
           />
           {/* } */}
           {/* {(mode !== 'create') && <SelectTypeInput

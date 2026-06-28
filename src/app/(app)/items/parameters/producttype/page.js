@@ -88,7 +88,7 @@ export default function Finished() {
         key: 'catagory',
         header: 'Catagory',
         sortable: true,
-        render: (r) => r?.catagoryID?.name || '—',
+        render: (r) => r?.categoryID?.name || '—',
       },
       {
         key: 'action',
@@ -120,7 +120,7 @@ export default function Finished() {
 
   const openDialog = (data) => {
     const editForm = {
-      catagory: data?.catagoryID?._id ?? '',
+      catagory: data?.categoryID?._id ?? '',
       productType: data?.name ?? '',
       productTypeId: data?._id ?? '',
     };
@@ -168,7 +168,7 @@ export default function Finished() {
       const payload = {
         _id: form.productTypeId,
         name: form.productType,
-        catagoryID: form.catagory
+        categoryID: form.catagory
       }
       const res = await axiosInstance.put(`/api/product-type`, payload);
       console.log("res :- ", res);
@@ -208,7 +208,7 @@ export default function Finished() {
       }
       // optimistic UI: remove from list first
       const payload = {
-        catagoryID: form.catagory,
+        categoryID: form.catagory,
         productType: form.productType,
       }
       const res = await axiosInstance.post(`/api/product-type`, payload);

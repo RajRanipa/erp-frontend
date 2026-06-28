@@ -70,11 +70,12 @@ const productParameters = [
 const coreProductFields = [
     {
         type: 'selecttype', name: 'productType', label: 'Product Type', placeholder: 'Product Type', required: true,
+        allowCustomValue: false,
         apiget: '/api/product-type', apiparams: (formData = {}) => { return formData?.category ? formData.category : null; },
         conditional: (formData = {}) => {
             const cat = String((formData.category_label ?? '')).trim().toLowerCase();
             return cat.includes('finished') || cat.includes('packing') || cat.includes('non-');
-        }
+        },
     },
     {
         type: 'selecttype', name: 'name', label: 'Product Name', placeholder: 'Product Name', required: true, allowCustomValue: true,

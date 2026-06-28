@@ -16,7 +16,7 @@ export default function EditProductPage() {
                 // console.log("item", res.data);
                 if(res.data){
                     let item = res.data;
-                    console.log("item", item);
+                    // console.log("item", item);
                     setItem(item);  // axios automatically parses JSON
                 }
             } catch (error) {

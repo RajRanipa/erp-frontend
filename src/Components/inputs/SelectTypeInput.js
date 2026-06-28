@@ -166,7 +166,7 @@ const SelectTypeInput = ({
         if (searchValue) queryParams.search = searchValue;
 
         const base = (apiget || '').replace(/\/+$/, '');
-        // console.log("apiparams", apiparams);
+        console.log("apiparams", apiparams);
         const suffix = (apiparams || '').replace(/^\/+/, '');
         const url = suffix ? `${base}/${suffix}` : base;
 
@@ -408,17 +408,17 @@ const SelectTypeInput = ({
     } else if (e.key === 'Tab') {
       if (showOptions) {
         if (highlightedIndex !== null) {
-          if (shouldShowCreateButton && highlightedIndex === 0) {
+          // Check if it's the bottom Create button
+          if (shouldShowCreateButton && highlightedIndex === filteredOptions.length) {
             handleCreateAndSave();
           } else {
-            const baseIndex = shouldShowCreateButton ? highlightedIndex - 1 : highlightedIndex;
-            const opt = filteredOptions[baseIndex];
+            // Direct 1:1 mapping for regular options
+            const opt = filteredOptions[highlightedIndex];
             if (opt) handleSelect(opt);
           }
         }
         setShowOptions(false);
       }
-      // allow natural focus move afterwards
     }
   }, [filteredOptions, highlightedIndex, showOptions, handleSelect, handleCreateAndSave, shouldShowCreateButton]);
 
