@@ -245,7 +245,7 @@ const SelectTypeInput = ({
     if (!inputValue) return options;
     const needle = inputValue.toLowerCase();
     return options.filter((opt) =>
-      needle.split(' ').every((w) => opt.label.toLowerCase().includes(w)) ||
+      needle.split(' ').every((w) => opt.label.toLowerCase() == w || opt.label.toLowerCase().includes(w)) ||
       htmlToPlainForSearch(opt.label).toLowerCase().includes(needle)
     );
   }, [options, inputValue, fetching]);
