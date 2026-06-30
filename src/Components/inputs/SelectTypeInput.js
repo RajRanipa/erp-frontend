@@ -239,7 +239,7 @@ const SelectTypeInput = ({
   }, [touched, required, inputValue, label, placeholder, name]);
 
   // ------------ 4) derived filtered options ------------
-  const filteredOptions = useMemo(() => {
+  const filteredOptions_old = useMemo(() => {
     // console.log("inputValue", inputValue)
     if (fetching) return [];
     if (!inputValue) return options;
@@ -248,6 +248,43 @@ const SelectTypeInput = ({
       needle.split(' ').every((w) => opt.label.toLowerCase() == w || opt.label.toLowerCase().includes(w)) ||
       htmlToPlainForSearch(opt.label).toLowerCase().includes(needle)
     );
+  }, [options, inputValue, fetching]);
+
+  const filteredOptions = useMemo(() => {
+    if (fetching) return [];
+    if (!inputValue) return options;
+    
+    const needle = inputValue.toLowerCase().trim();
+
+    // 1. Filter out the non-matches first (your existing logic, slightly cleaned up)
+    const matchedOptions = options.filter((opt) => {
+      const plainLabel = htmlToPlainForSearch(opt.label).toLowerCase();
+      return (
+        needle.split(' ').every((w) => plainLabel.includes(w)) ||
+        plainLabel.includes(needle)
+      );
+    });
+
+    // 2. Sort the remaining matches by relevance
+    return matchedOptions.sort((a, b) => {
+      const plainA = htmlToPlainForSearch(a.label).toLowerCase();
+      const plainB = htmlToPlainForSearch(b.label).toLowerCase();
+
+      // Priority 1: Exact Match
+      const aIsExact = plainA === needle;
+      const bIsExact = plainB === needle;
+      if (aIsExact && !bIsExact) return -1; // Push A to the top
+      if (!aIsExact && bIsExact) return 1;  // Push B to the top
+
+      // Priority 2: Starts With (e.g., searching "bl" puts "blanket" above "table")
+      const aStartsWith = plainA.startsWith(needle);
+      const bStartsWith = plainB.startsWith(needle);
+      if (aStartsWith && !bStartsWith) return -1;
+      if (!aStartsWith && bStartsWith) return 1;
+
+      // Priority 3: Leave as is (both are just partial includes in the middle of the word)
+      return 0; 
+    });
   }, [options, inputValue, fetching]);
 
   // ------------ helpers ------------

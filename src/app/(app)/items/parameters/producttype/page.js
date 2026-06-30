@@ -14,6 +14,7 @@ import useAuthz from '@/hooks/useAuthz';
 import Dialog from '@/Components/Dialog';
 import SubmitButton from '@/Components/buttons/SubmitButton';
 import AddButton from '@/Components/buttons/AddButton';
+import { addIcon } from '@/utils/SVG';
 
 
 export default function Finished() {
@@ -28,29 +29,56 @@ export default function Finished() {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState('');
   const [form, setForm] = useState({
-    catagory: '',
+    name: '',
+    categories: [],
     productType: '',
-    productTypeId: '',
   });
 
   const [originalForm, setOriginalForm] = useState({
-    catagory: '',
+    name: '',
+    categories: [],
     productType: '',
-    productTypeId: '',
   });
+
+  const addCategoryField = () => {
+    setForm(prev => ({
+      ...prev,
+      categories: [...prev.categories, ''],
+    }));
+  };
+
+  const removeCategoryField = (index) => {
+    setForm(prev => ({
+      ...prev,
+      categories: prev.categories.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateCategoryField = (index, value) => {
+    setForm(prev => {
+      const categories = [...prev.categories];
+      categories[index] = value;
+
+      return {
+        ...prev,
+        categories,
+      };
+    });
+  };
 
   const isCreateDirty = useMemo(() => {
     return Boolean(
-      String(form.catagory || '').trim() ||
-      String(form.productType || '').trim()
+      JSON.stringify(form.categories.filter(Boolean)) !==
+      JSON.stringify(originalForm.categories.filter(Boolean)) ||
+      form.name.trim() !== ''
     );
   }, [form]);
 
   const isUpdateDirty = useMemo(() => {
-    // console.log('isUpdateDirty', form, originalForm);
     return (
-      (form.productType || '').trim() !== (originalForm.productType || '').trim() ||
-      (form.catagory || '').trim() !== (originalForm.catagory || '').trim()
+      form.productType !== originalForm.productType ||
+      JSON.stringify(form.categories.filter(Boolean)) !==
+      JSON.stringify(originalForm.categories.filter(Boolean))
     );
   }, [form, originalForm]);
 
@@ -85,10 +113,13 @@ export default function Finished() {
         render: (r) => r?.name || '—',
       },
       {
-        key: 'catagory',
+        key: 'categories',
         header: 'Catagory',
         sortable: true,
-        render: (r) => r?.categoryID?.name || '—',
+        render: (r) =>
+          r?.categories?.length
+            ? r.categories.map(c => c.name).join(', ')
+            : '—'
       },
       {
         key: 'action',
@@ -108,9 +139,10 @@ export default function Finished() {
   // Dialog Helpers
   const resetDialogState = () => {
     const emptyForm = {
-      catagory: '',
+      name: '',
+      categories: [''],
       productType: '',
-      productTypeId: '',
+
     };
 
     setForm(emptyForm);
@@ -120,9 +152,9 @@ export default function Finished() {
 
   const openDialog = (data) => {
     const editForm = {
-      catagory: data?.categoryID?._id ?? '',
-      productType: data?.name ?? '',
-      productTypeId: data?._id ?? '',
+      categories: data?.categories?.map(c => c._id) ?? [''],
+      name: data?.name ?? '',
+      productType: data?._id ?? '',
     };
 
     setForm(editForm);
@@ -142,7 +174,7 @@ export default function Finished() {
       if (!ok) return;
       // optimistic UI: remove from list first
       await axiosInstance.delete(`/api/product-type/${id}`, { withCredentials: true });
-      setProductType(prev => prev.filter(p => p.value !== id));
+      setProductType(prev => prev.filter(p => p._id !== id));
       Toast.success('Product Type deleted');
       fetchProductTypes();
     } catch (err) {
@@ -156,9 +188,16 @@ export default function Finished() {
     }
   };
   const handleSave = async () => {
-    console.log('update', form.productType, form.productTypeId);
+    console.log('update', form.productType, form.productType);
     setUpdating(true);
     try {
+      const validCategories = form.categories.filter(Boolean);
+
+      if (validCategories.length === 0 || !form.productType) {
+        Toast.error('Please fill all the fields');
+        return;
+      }
+
       const ok = await Toast.promise(`Update "${form.productType}" productType? This will permanently Update the productType. Are you sure?`, {
         confirmText: 'Update',
         cancelText: 'Cancel',
@@ -166,9 +205,9 @@ export default function Finished() {
       if (!ok) return;
       // optimistic UI: remove from list first
       const payload = {
-        _id: form.productTypeId,
-        name: form.productType,
-        categoryID: form.catagory
+        _id: form.productType,
+        name: form.name,
+        categories: validCategories
       }
       const res = await axiosInstance.put(`/api/product-type`, payload);
       console.log("res :- ", res);
@@ -199,18 +238,23 @@ export default function Finished() {
   };
   const createProductType = async () => {
     setSaving(true);
-    console.log('create :- ', form.catagory, form.productType);
+    console.log('create :- ', form.categories, form.productType);
 
     try {
-      if (!form.catagory || !form.productType) {
+      const validCategories = form.categories.filter(Boolean);
+
+      if (validCategories.length === 0 || !form.productType) {
         Toast.error('Please fill all the fields');
-        return
+        return;
       }
       // optimistic UI: remove from list first
       const payload = {
-        categoryID: form.catagory,
+        categories: validCategories,
+        name: form.name,
         productType: form.productType,
       }
+      console.log("payload :- ", form);
+      // return;
       const res = await axiosInstance.post(`/api/product-type`, payload);
       console.log("res :- ", res);
       Toast.success('Product Type Is Created');
@@ -262,6 +306,7 @@ export default function Finished() {
 
       <Dialog
         open={open}
+        dialogHight='h-full'
         mode='create'
         title={mode === 'create' ? 'Create Product Type' : 'Update Product Type'}
         onClose={() => {
@@ -295,29 +340,58 @@ export default function Finished() {
           </>
         }
       >
-        <div className='h-[300px]'>
+        <div className='min-h-[300px]'>
           <SelectTypeInput
-            value={form.catagory}
-            label={'Category'}
-            name={'catagory'}
-            onChange={(e) => setForm(prev => ({ ...prev, catagory: e.target.value }))}
-            apiget={"/api/category"}
-            placeholder='Select Catagory'
-            required
-            autoFocus={mode === 'create' ? true : false}
-          />
-          <CustomInput
             value={form.productType}
             label={'Product Type'}
-            name={'new_productType'}
-            placeholder='Create new product type'
-            onChange={(e) => {
-              setForm(prev => ({
-                ...prev,
-                productType: e.target.value,
-              }));
-            }}
+            name={'productType'}
+            onChange={(e) => { setForm(prev => ({ ...prev, name: e.label.value, productType: e.target.value })) }}
+            apiget={"/api/product-type/options"}
+            placeholder='Select Product Type'
+            required
+            allowCustomValue={true}
+          // autoFocus={mode === 'create' ? true : false} 
           />
+          <span className='text-sm text-white-300 block pb-3'>Note : you can assign multiple categories to one product type so as per your requiremrnt you can update below </span>
+          <div className="space-y-3">
+
+            {form.categories.map((category, index) => (
+              <div
+                key={index}
+                className="flex gap-2 items-center justify-end"
+              >
+                <div className="flex-1">
+                  <SelectTypeInput
+                    value={category}
+                    label={index === 0 ? 'Category' : `Category ${index + 1}`}
+                    name={`category-${index}`}
+                    apiget="/api/category"
+                    placeholder="Select Category"
+                    required
+                    onChange={(e) =>
+                      updateCategoryField(index, e.target.value)
+                    }
+                  />
+                </div>
+
+                {form.categories.length > 1 && (
+                  <DeleteButton
+                    type="button"
+                    className="btn btn-danger mb-5"
+                    onClick={() => removeCategoryField(index)}
+                  >
+                    Delete
+                  </DeleteButton>
+                )}
+              </div>
+            ))}
+
+            <AddButton
+              onClick={addCategoryField}
+              title={'Add Category'}
+            />
+          </div>
+
         </div>
       </Dialog>
     </div>

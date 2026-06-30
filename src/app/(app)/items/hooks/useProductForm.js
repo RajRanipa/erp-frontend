@@ -264,12 +264,15 @@ export default function useProductForm({ mode = 'create', initialData = {} } = {
         console.log('submit payload:', payload);
 
         if (modeArg === 'create') {
+          // Create
+          delete payload.category_label;// i don't want to send category_label to payload 
           const res = await axiosInstance.post('/api/items', payload);
           Toast.success(res?.data?.message);
           return res?.data?.data || res?.data;
         } else {
           const docId = id || formData._id;
           if (!docId) throw new Error('Missing id for update');
+          delete payload.category_label;
           const res = await axiosInstance.put(`/api/items/${docId}`, payload);
           Toast.success(res?.data?.message || 'Updated');
           return res?.data?.data || res?.data;

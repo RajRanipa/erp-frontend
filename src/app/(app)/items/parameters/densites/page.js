@@ -22,6 +22,7 @@ export default function Finished() {
 
   // State
   const [density, setDensity] = useState([]);
+  const [error, setError] = useState(true);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -63,13 +64,13 @@ export default function Finished() {
     setLoading(true);
     try {
       const densityRes = await axiosInstance.get('/api/densities');
-      console.log("densityRes :- ", densityRes);
+      console.log("densityRes :- ", densityRes.data[0], densityRes.data[1]);
       const densityData = densityRes.data || [];
       setDensity(densityData);
     } catch (err) {
       console.error('fetch error', err);
       setError(err?.message || 'Failed to load');
-      Toast.error('Failed to fetch Densitys', { duration: 4000 });
+      Toast.error(err?.message || 'Failed to fetch Densitys', { duration: 4000 });
     } finally {
       setLoading(false);
     }
@@ -93,6 +94,12 @@ export default function Finished() {
         header: 'Unit',
         sortable: true,
         render: (r) => r?.unit || '—',
+      },
+      {
+        key: 'category',
+        header: 'Category Name',
+        sortable: true,
+        render: (r) => r?.productType?.categories ? r?.productType?.categories.map(c => c.name).join(', ') : '—',
       },
       {
         key: 'productType',
@@ -122,6 +129,7 @@ export default function Finished() {
       densityId: '',
       unit: '',
       productType: '',
+      category: '',
     };
 
     setForm(emptyForm);
@@ -132,6 +140,7 @@ export default function Finished() {
   const openDialog = (data) => {
     const editForm = {
       productType: data?.productType?._id ?? '',
+      category: data?.productType?.categoryID?._id ?? '',
       density: data?.value ?? '',
       densityId: data?._id ?? '',
       unit: data?.unit ?? '',
@@ -177,10 +186,16 @@ export default function Finished() {
       });
       if (!ok) return;
       // optimistic UI: remove from list first
+      if(!form.unit || !form.density || !form.productType || !form.category){
+        Toast.error('All fields are required');
+        return
+      }
+
       const payload = {
         unit: form.unit,
         value: form.density,
         productType: form.productType,
+        category: form.category,
       }
       const res = await axiosInstance.put(`/api/densities/${form.densityId}`, payload);
       console.log("res :- ", res);
@@ -211,16 +226,17 @@ export default function Finished() {
   };
   const createDensity = async () => {
     setSaving(true);
-    console.log('create :- ', form.productType, form.density);
+    // console.log('create :- ', form.productType, form.density);
 
     try {
-      if (!form.productType || !form.density) {
+      if (!form.productType || !form.density || !form.unit || !form.category) {
         Toast.error('Please fill all the fields');
         return
       }
       // optimistic UI: remove from list first
       const payload = {
         productType: form.productType,
+        category: form.category,
         value: form.density,
         unit: form.unit
       }
@@ -275,6 +291,7 @@ export default function Finished() {
 
       <Dialog
         open={open}
+        dialogHight='h-full'
         mode='create'
         title={mode === 'create' ? 'Create Density' : 'Update Density'}
         onClose={() => {
@@ -308,7 +325,7 @@ export default function Finished() {
           </>
         }
       >
-        <div className='h-[300px]'>
+        <div className='min-h-[300px]'>
           <CustomInput
             value={form.density}
             label={'Density'}
@@ -334,15 +351,26 @@ export default function Finished() {
             // autoFocus={mode === 'create' ? true : false}
           />
           <SelectTypeInput
+            value={form.category}
+            label={'Category Name'}
+            name={'category'}
+            onChange={(e) => setForm(prev => ({ ...prev, category: e.target.value }))}
+            apiget={"/api/category"}
+            placeholder='Select category'
+            required
+            // autoFocus={mode === 'create' ? true : false}
+          />
+          {form?.category && <SelectTypeInput
             value={form.productType}
             label={'Product Type'}
             name={'productType'}
             onChange={(e) => setForm(prev => ({ ...prev, productType: e.target.value }))}
-            apiget={"/api/product-type/options"}
+            apiget={"/api/product-type"}
+            apiparams={form?.category}
             placeholder='Select product type'
             required
             // autoFocus={mode === 'create' ? true : false}
-          />
+          />}
         </div>
       </Dialog>
     </div>

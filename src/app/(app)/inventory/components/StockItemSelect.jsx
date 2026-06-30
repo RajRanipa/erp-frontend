@@ -97,8 +97,9 @@ function StockItemSelect({
 
   const options = useMemo(() => {
     setLoading(true);
+    console.log('items', items);
     const shorted = (items || []).map((it) => ({
-      value: it?.itemId._id || it?.itemId.id,
+      value: it?.itemId?._id || it?.itemId?.id,
       label: formateLabel(it),
     }));
     setLoading(false);

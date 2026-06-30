@@ -10,7 +10,7 @@ const ToastContext = createContext(null);
 const TOAST_STYLES = {
   success: "bg-green-100 border border-green-300 text-green-800",
   error: "bg-red-100 border border-red-300 text-red-800",
-  warning: "bg-yellow-50 border border-yellow-500 text-yellow-800",
+  warning: "bg-amber-50 border border-yellow-500 text-amber-800",
   info: "bg-blue-100 border border-blue-300 text-blue-800",
 };
 
@@ -343,7 +343,7 @@ export const Toast = {
             <div className="flex gap-2 justify-end">
               <button
                 onClick={cancel}
-                className="px-3 py-1 rounded-lg bg-secondary hover:bg-primary"
+                className="px-3 py-1 rounded-lg bg-white hover:bg-amber-100 text-amber-600 hover:text-amber-800"
                 data-role="cancel-btn"
                 autoFocus
               >
@@ -351,7 +351,7 @@ export const Toast = {
               </button>
               <button
                 onClick={confirm}
-                className="px-3 py-1 rounded-lg bg-red-600 text-white hover:bg-red-700"
+                className="px-3 py-1 rounded-lg bg-amber-400  text-white hover:bg-amber-700"
                 data-role="confirm-btn"
               >
                 {confirmText}

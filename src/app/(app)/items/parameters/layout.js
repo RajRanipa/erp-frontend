@@ -51,6 +51,12 @@ export default function Parameters({ children }) {
           >
             temperature
           </NavLink>}
+          {can('parameters:dimensions:read') && <NavLink
+            href="/items/parameters/dimensions"
+            // onClick={() => setFilterType('raw')}
+          >
+            dimensions
+          </NavLink>}
         </div>)}
       </div>
       </div>

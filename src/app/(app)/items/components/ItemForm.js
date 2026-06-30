@@ -62,7 +62,6 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
       // on success navigate or show toast (submit already shows toast)
        if(onsubmit) {
         onsubmit();
-        return;
       }
       if (mode === 'create') {
         router.push('/items');

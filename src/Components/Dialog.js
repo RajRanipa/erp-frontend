@@ -1,4 +1,5 @@
 'use client';
+import { cn } from '@/utils/cn';
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -40,7 +41,8 @@ const Dialog = memo(function Dialog({
   overlayClassName = '',
   closeOnOverlay = true,
   closeOnEsc = true,
-  getBackFocus = null
+  getBackFocus = null,
+  dialogHight='',
 }) {
   const [mounted, setMounted] = useState(false);
   const [shown, setShown] = useState(false);
@@ -169,7 +171,7 @@ const Dialog = memo(function Dialog({
               {onClose && <button type="button" className="btn btn-ghost flex items-center justify-center" onClick={onClose} aria-label="Close dialog">✕</button>}
             </div>
           )}
-          <div className="p-4 space-y-3 overflow-auto">{children}</div>
+          <div className={cn("p-4 space-y-3 overflow-auto", dialogHight)}>{children}</div>
           {actions && <div className="flex justify-end gap-2 p-3 border-t border-color-100">{actions}</div>}
         </div>
       </div>

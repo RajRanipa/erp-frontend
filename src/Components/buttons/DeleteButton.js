@@ -1,8 +1,9 @@
 import { deleteIcon } from '@/utils/SVG';
 import React, { useEffect, useState } from 'react';
 import useAuthz from '@/hooks/useAuthz';
+import { cn } from '@/utils/cn';
 
-export default function DeleteButton({ onClick, itemName = '', requiredPermissions = '' }) {
+export default function DeleteButton({ onClick, itemName = '', requiredPermissions = '' , className = ''}) {
   const { can } = useAuthz();
   const [canDelete, setCanDelete] = useState(false);
   useEffect(() => {
@@ -16,7 +17,7 @@ export default function DeleteButton({ onClick, itemName = '', requiredPermissio
     <>
     { canDelete && <button
       onClick={onClick}
-      className="inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-red-100 text-error focus:outline-none cursor-pointer text-xl"
+      className={cn("inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-red-100 text-error focus:outline-none cursor-pointer text-xl", className)}
       aria-label={itemName ? `Delete ${itemName}` : 'Delete'}
     >
       {/* trash svg */}
