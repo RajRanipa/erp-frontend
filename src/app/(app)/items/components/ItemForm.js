@@ -63,7 +63,7 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
        if(onsubmit) {
         onsubmit();
       }
-      if (mode === 'create') {
+      if (mode === 'create' || mode === 'edit') {
         router.push('/items');
       }
     } catch (err) {
