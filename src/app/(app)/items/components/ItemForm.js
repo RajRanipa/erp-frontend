@@ -64,7 +64,8 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
         onsubmit();
       }
       if (mode === 'create' || mode === 'edit') {
-        router.push('/items');
+        // router.push('/items');
+        router.back()
       }
     } catch (err) {
       // errors already handled in hook
