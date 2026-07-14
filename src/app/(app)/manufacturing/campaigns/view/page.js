@@ -61,7 +61,9 @@ export default function CampaignDetailsPage() {
       { label: 'Total Raw Issued', value: fmtKg(campaign.totalRawIssued) },
       // show if present but not required to maintain here
       ...(campaign?.meltReturns != null ? [{ label: 'Melt Returns', value: fmtKg(campaign.meltReturns) }] : []),
+      ...(campaign?.totalBlanketRollsProduced != null ? [{ label: 'Total Fiber Produced', value: (campaign.totalBlanketRollsProduced) +" rolls"}] : []),
       ...(campaign?.totalFiberProduced != null ? [{ label: 'Total Fiber Produced', value: fmtKg(campaign.totalFiberProduced) }] : []),
+      ...(campaign?.totalRejectedFiber != null ? [{ label: 'Total Fiber Produced', value: fmtKg(campaign.totalRejectedFiber) }] : []),
       { label: 'Last Updated', value: campaign.updatedAt ? formatDateDMY(campaign.updatedAt) : '—' },
       { label: 'Created', value: campaign.createdAt ? formatDateDMY(campaign.createdAt) : '—' },
     ];
