@@ -5,17 +5,22 @@ import { useDateRange } from '../layout';
 import { axiosInstance } from '@/lib/axiosInstance';
 import Loading from '@/Components/Loading';
 import ProductionTable from './components/ProductionTable';
+import DateInput from '@/Components/inputs/DateInput';
 
 export default function Production() {
-  const { dateRange } = useDateRange();
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
   const [error, setError] = useState(false);
   const [productions, setProductions] = useState([]);
   const [refresh, setRefresh] = useState(null);
   const [filters, setFilters] = useState({
-      productType: '',
-    });
+    productType: '',
+  });
+
+  const [dateRange, setDateRange] = useState({
+    start: new Date().toISOString().split('T')[0],
+    end: new Date().toISOString().split('T')[0]
+  });
 
   const apiparams = {};
   const mergedParams = useMemo(() => {
@@ -52,7 +57,7 @@ export default function Production() {
         console.log('qs', qs);
         const url = `/api/production${qs ? `?${qs}` : ''}`;
         const res = await axiosInstance.get(url);
-        
+
         if (ignore) return;
         console.log('res', res);
         const list = Array.isArray(res?.data?.data) ? res.data.data : [];
@@ -70,18 +75,31 @@ export default function Production() {
   }, [dateRange]);
 
   return (
-    <div className='h-full w-full'>
-      {loading ? <Loading variant='skeleton' className='h-full w-full' />
-        : msg ? <div className='h-full w-full flex items-center justify-center'>{msg}</div> :
-        <div className='h-full w-full'>
-          <p>{dateRange?.start +" to "+ dateRange?.end}</p>
-          <ProductionTable
-            rows={productions}
-            loading={loading}
-            error={error}
-            filters={filters} // used for client-side query + productType filtering
+    <div>
+      <div className='flex items-center justify-between mb-4'>
+        <div className='fllex gap-2'><span>Check Production :- </span><span>{dateRange?.start + " to " + dateRange?.end}</span></div>
+        <div>
+          <DateInput
+            name="date"
+            mode="range"
+            rangeValues={dateRange}
+            onChange={(val) => setDateRange(val)}
+            parent_className="mb-0"
+            className="w-[250px]"
           />
         </div>
+      </div>
+      {loading ? <Loading variant='skeleton' className='h-full w-full' />
+        : msg ? <div className='h-full w-full flex items-center justify-center'>{msg}</div> :
+          <div className='h-full w-full'>
+            
+            <ProductionTable
+              rows={productions}
+              loading={loading}
+              error={error}
+              filters={filters} // used for client-side query + productType filtering
+            />
+          </div>
       }
     </div>
   )

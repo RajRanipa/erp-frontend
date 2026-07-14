@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
 import SelectInput from '@/Components/inputs/SelectInput';
 import TextArea from '@/Components/inputs/TextArea';
+import DateInput from '@/Components/inputs/DateInput';
 
 const statusOptions = [
     { value: 'PLANNED', label: 'Planned' },
@@ -21,16 +22,15 @@ function normalizeDate(d) {
 }
 
 export default function CampaignForm({
-    initialValues = { name: '', startDate: '', endDate: '', status: 'PLANNED', remarks: '' },
+    initialValues = { name: '', startDate: '', status: 'PLANNED', remarks: '' },
     mode = 'create',            // 'create' | 'edit'
     onSubmit,                   // async (values) => void
     submitting = false,
 }) {
-    console.log('initialValues ', initialValues)
+    // console.log('initialValues ', initialValues)
     const [formData, setFormData] = useState({
         ...initialValues,
         startDate: normalizeDate(initialValues.startDate),
-        endDate: normalizeDate(initialValues.endDate),
     });
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({});
@@ -39,46 +39,29 @@ export default function CampaignForm({
     const initKey = useMemo(() => [
         initialValues?.name ?? '',
         normalizeDate(initialValues?.startDate),
-        normalizeDate(initialValues?.endDate),
         initialValues?.status ?? '',
         initialValues?.remarks ?? ''
     ].join('|'), [
         initialValues?.name,
         initialValues?.startDate,
-        initialValues?.endDate,
         initialValues?.status,
         initialValues?.remarks
     ]);
 
     useEffect(() => {
-        const next = {
+        setFormData({
             ...initialValues,
             startDate: normalizeDate(initialValues?.startDate),
-            endDate: normalizeDate(initialValues?.endDate),
-        };
-
-        // Compare against current state; bail if no effective changes
-        const changed = !(
-            (formData?.name ?? '') === (next.name ?? '') &&
-            (formData?.startDate ?? '') === (next.startDate ?? '') &&
-            (formData?.endDate ?? '') === (next.endDate ?? '') &&
-            (formData?.status ?? '') === (next.status ?? '') &&
-            ((formData?.remarks ?? '') === (next.remarks ?? ''))
-        );
-
-        if (changed) {
-            setFormData(next);
-            setErrors({});
-            setTouched({});
-            setResetKey(k => k + 1);
-        }
-    }, [initKey, formData?.endDate, formData?.name, formData?.remarks, formData?.startDate, formData?.status, initialValues]);
+        });
+        setErrors({});
+        setTouched({});
+    }, [initKey]);
 
     const validate = (values) => {
         const e = {};
         const today = new Date(); today.setHours(0, 0, 0, 0);
         const s = values.startDate ? new Date(values.startDate) : null;
-        const ed = values.endDate ? new Date(values.endDate) : null;
+        // const ed = values.endDate ? new Date(values.endDate) : null;
 
         // requireds
         if (!values.name?.trim()) e.name = 'Name is required';
@@ -111,27 +94,6 @@ export default function CampaignForm({
             }
         }
 
-        // End date rules
-        if (ed) {
-            if (isNaN(ed.getTime())) e.endDate = 'End Date is invalid';
-        }
-        if (!e.endDate && s && ed) {
-            if (ed < s) e.endDate = 'End Date cannot be before Start Date';
-        }
-
-        if (!e.endDate && ed) {
-            if (status === 'PLANNED') {
-                // allow future end
-            }
-            if (status === 'RUNNING') {
-                // allow today/future end (planned completion)
-            }
-            if (status === 'COMPLETED') {
-                if (isFuture(ed)) e.endDate = 'Completed campaign cannot have a future end date';
-                if (!s) e.endDate = e.endDate || 'Start Date is required';
-            }
-        }
-
         return e;
     };
 
@@ -146,14 +108,14 @@ export default function CampaignForm({
     const submit = async (e) => {
         e.preventDefault();
         const nextErrors = validate(formData);
+        console.log('nextErrors', nextErrors);
         setErrors(nextErrors);
-        setTouched({ name: true, startDate: true, endDate: true, status: true, remarks: !!formData.remarks });
+        setTouched({ name: true, startDate: true, status: true, remarks: !!formData.remarks });
         if (Object.keys(nextErrors).length) return;
-
+        console.log('submitting', formData);    
         await onSubmit({
             name: formData.name.trim(),
             startDate: formData.startDate,
-            endDate: formData.endDate || undefined,
             status: formData.status,
             remarks: formData.remarks || '',
         });
@@ -192,63 +154,18 @@ export default function CampaignForm({
                     err={touched.status ? errors.status : ''}
                 />
 
-                <CustomInput
+                <DateInput
                     key={`startDate-${resetKey}`}
-                    type="date"
+                    mode="single"
                     name="startDate"
-                    value={formData.startDate}
+                    singleValue={formData.startDate}
                     onChange={(v) => handleChange('startDate', v)}
                     onBlur={() => handleBlur('startDate')}
                     required
                     placeholder="Start date"
                     label="Start Date"
-                    err={touched.startDate ? errors.startDate : ''}
+                    error={touched.startDate ? errors.startDate : ''}
                 />
-
-                <CustomInput
-                    key={`endDate-${resetKey}`}
-                    type="date"
-                    name="endDate"
-                    value={formData.endDate}
-                    onChange={(v) => handleChange('endDate', v)}
-                    onBlur={() => handleBlur('endDate')}
-                    placeholder="End date (optional)"
-                    label="End Date"
-                    err={touched.endDate ? errors.endDate : ''}
-                />
-
-                {/* <CustomInput
-                type="number"
-                name="totalRawIssued"
-                min="0"
-                step="0.001"
-                value={formData.totalRawIssued}
-                onChange={(value) => handleChange('totalRawIssued', value)}
-                placeholder="Total raw issued (kg)"
-                label="Total Raw Issued (kg)"
-              />
-
-              <CustomInput
-                type="number"
-                name="totalFiberProduced"
-                min="0"
-                step="0.001"
-                value={formData.totalFiberProduced}
-                onChange={(value) => handleChange('totalFiberProduced', value)}
-                placeholder="Total fiber produced (kg)"
-                label="Total Fiber Produced (kg)"
-              />
-
-              <CustomInput
-                type="number"
-                name="meltReturns"
-                min="0"
-                step="0.001"
-                value={formData.meltReturns}
-                onChange={(value) => handleChange('meltReturns', value)}
-                placeholder="Melt returns (kg)"
-                label="Melt Returns (kg)"
-              /> */}
 
                 <div className="md:col-span-2">
                     <TextArea

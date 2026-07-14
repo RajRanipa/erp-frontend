@@ -6,6 +6,7 @@ import { ActiveCampaignProvider, useActiveCampaign } from './ActiveCampaignProvi
 import { NavListProvider, useNavList } from './NavListContext';
 import React, { useState, useEffect, useRef } from 'react';
 import { downArrow } from '@/utils/SVG';
+import DisplayMain from '@/Components/layout/DisplayMain';
 
 // The sticky bar content that reads from context
 const NavList = [
@@ -31,7 +32,9 @@ function ManufacturingBar() {
     }, []);
     return (
         <DisplayBar title="manufacturing" href="/manufacturing" className="overflow-visible">
-            <div className="flex relative">
+            <div className="flex relative gap-4">
+                <NavLink href="/manufacturing/production">Production</NavLink>
+
                 {activeCampaign && (
                     <div className="flex items-center gap-4">
                         <NavLink
@@ -96,7 +99,7 @@ export default function ManufacturingLayout({ children }) {
         <ActiveCampaignProvider>
             <NavListProvider>
                     <ManufacturingBar />
-                    {children}
+                    <DisplayMain>{children}</DisplayMain>
             </NavListProvider>
         </ActiveCampaignProvider>
     );

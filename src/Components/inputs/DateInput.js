@@ -88,7 +88,7 @@ const DateInput = ({
   const [specificDate, setSpecificDate] = useState('');
 
   useEffect(() => {
-    console.log('rangeValues', rangeValues)
+    // console.log('rangeValues', rangeValues)
     rangeValues && rangeValues.start === rangeValues.end ? setSpecificDate(rangeValues.start) : setSpecificDate('')
   },[rangeValues.start])
   const dropdownOptions =
@@ -168,6 +168,7 @@ const DateInput = ({
           info={info}
           autoFocus={autoFocus}
           onInpute={onInpute}
+          onBlur={onBlur}
         />
       )}
 

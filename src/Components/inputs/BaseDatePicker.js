@@ -11,6 +11,7 @@ const BaseDatePicker = ({
   className,
   id,
   name, 
+  onBlur,
   required,
   readOnly,
   icon,
@@ -27,6 +28,7 @@ const BaseDatePicker = ({
       id={id}
       name={name}
       value={value || ''}
+      onBlur={onBlur}
       onChange={(e) => onChange(e.target.value)} // Returns "YYYY-MM-DD" directly
       disabled={disabled}
       placeholder={placeholder || ''}

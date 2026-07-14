@@ -17,7 +17,7 @@ const mapPacking = (packing) => {
 };
 
 const mapDimension = (dm) => {
-  console.log('dm', dm);
+  // console.log('dm', dm);
   const unit = dm?.unit ? ` ${dm.unit}` : '';
   const l = dm?.length ?? '';
   const w = dm?.width ?? '';

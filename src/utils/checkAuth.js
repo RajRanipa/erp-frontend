@@ -37,7 +37,13 @@ export function useCheckAuth() {
         if (!res.data.user.isSetupCompleted) {
           router.push('/setup');
         } else {
-          router.push('/setup');
+          const params = new URLSearchParams(window.location.search);
+          const next = params.get('next');
+          if (next) {
+            router.push(next);
+          } else {
+            router.push('/dashboard');
+          }
         }
       }
     } catch (err) {

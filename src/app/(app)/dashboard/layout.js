@@ -39,7 +39,6 @@ export default function InventoryLayout({ children }) {
       <DisplayBar title="Dashboard" href="/dashboard">
         <div className="flex gap-2 items-center justify-between w-full">
           <div className='flex gap-4'>
-            <NavLink href="/dashboard/production">Production</NavLink>
             <NavLink href="/dashboard/sales">Sales</NavLink>
           </div>
           <div className='flex gap-2 relative'>

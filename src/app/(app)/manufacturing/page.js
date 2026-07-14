@@ -91,7 +91,7 @@ export default function ProductionDashboard({ children }) {
 
    
     return (
-        <DisplayMain>
+        <div>
             {children ?? (
                 campaign.length > 0 ? (
                     <div>
@@ -136,6 +136,6 @@ export default function ProductionDashboard({ children }) {
                     <div>in developing</div>
                 )
             )}
-        </DisplayMain>
+        </div>
     );
 }
