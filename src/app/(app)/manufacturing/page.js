@@ -98,16 +98,16 @@ export default function ProductionDashboard({ children }) {
                     <div>
                         {campaign.map((c) => (
                             <div key={c._id} className="p-2 border-b flex items-center justify-between border-color-200 h-fit">
-                                <div className="flex gap-2 flex-1 group" style={{ height: '-webkit-fill-available' }}>
+                                <div className="flex gap-2 flex-1 h-[stretch] group">
                                     {/* above button hover below button grow applyed */}
                                     <NavLink
-                                        className="px-2 text-secondary-text capitalize cursor-pointer group-hover:grow text-start transition-all duration-300 group-hover:bg-gradient-to-r from-primary to-transparent"
+                                        className="px-2 h-[stretch] content-center text-secondary-text capitalize cursor-pointer group-hover:grow text-start transition-all duration-300 group-hover:bg-gradient-to-r from-primary to-transparent"
                                         href={`/manufacturing/campaigns/view/${c._id}`}
                                     >
                                         {c.name}
                                     </NavLink>
                                 </div>
-                                <div className="flex gap-2 ">
+                                <div className="flex gap-2 items-center">
                                     <span
                                         className={`text-sm capitalize px-2 py-1 rounded-lg h-fit ${c.status.toLowerCase() === "planned"
                                             ? "bg-yellow-100 text-yellow-800"
