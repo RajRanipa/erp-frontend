@@ -97,7 +97,7 @@ export default function ProductionDashboard({ children }) {
                 campaign.length > 0 ? (
                     <div>
                         {campaign.map((c) => (
-                            <div key={c._id} className="p-2 border-b flex items-center justify-between border-color-200">
+                            <div key={c._id} className="p-2 border-b flex items-center justify-between border-color-200 h-fit">
                                 <div className="flex gap-2 flex-1 group" style={{ height: '-webkit-fill-available' }}>
                                     {/* above button hover below button grow applyed */}
                                     <NavLink

@@ -8,6 +8,11 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata = { title: "My ERP", description: "ERP app" };
+export const viewport = {
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
+};
 
 export default function RootLayout({ children }) {
   return (
