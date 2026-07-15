@@ -123,15 +123,15 @@ export default function CampaignDetailsPage() {
                     </div>
                     <div className="flex flex-col">
                       <span className="text-sm text-blue-400">Total Fiber Produced</span>
-                      <span className="text-base font-medium capitalize text-blue-500">{campaign?.totalFiberProduced ?? '—'}</span>
+                      <span className="text-base font-medium capitalize text-blue-500">{campaign.totalFiberProduced ? fmtKg(campaign.totalFiberProduced) : '—' }</span>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-sm text-green-400">Total Good Fiber Produced</span>
-                      <span className="text-base font-medium capitalize text-green-500">{campaign?.totalGoodFiberProduced ?? '—'}</span>
+                      <span className="text-base font-medium capitalize text-green-500">{campaign?.totalGoodFiberProduced ? fmtKg(campaign?.totalGoodFiberProduced) : '—' }</span>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-sm text-red-400">Total Rejected Fiber Produced</span>
-                      <span className="text-base font-medium capitalize text-red-500">{campaign?.totalRejectedFiber ?? '—' }</span>
+                      <span className="text-base font-medium capitalize text-red-500">{campaign?.totalRejectedFiber ? fmtKg(campaign?.totalRejectedFiber) : '—' }</span>
                     </div>
                   </div>
                   <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 grow col-span-2'>
