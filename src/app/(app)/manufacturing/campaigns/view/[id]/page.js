@@ -136,8 +136,8 @@ export default function CampaignDetailsPage() {
                   </div>
                   <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 grow col-span-2'>
                     <div className="flex flex-col">
-                      <span className="text-sm text-white-700">Total Blanket Rolls Produced</span>
-                      <span className="text-base font-medium capitalize">{campaign?.totalBlanketRollsProduced ?? '—'}</span>
+                      <span className="text-sm text-yellow-400">Total Blanket Rolls Produced</span>
+                      <span className="text-base font-medium capitalize text-yellow-500">{campaign?.totalBlanketRollsProduced ?? '—'}</span>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-sm text-white-700">Melt Returns</span>
