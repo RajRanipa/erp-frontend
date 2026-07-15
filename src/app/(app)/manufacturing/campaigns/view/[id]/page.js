@@ -20,7 +20,7 @@ export default function CampaignDetailsPage() {
   // const { activeCampaign } = useActiveCampaign();
   const { id } = useParams();
   const router = useRouter();
-  
+
 
   const campaignId = id || null;
   const [campaign, setCampaign] = useState(id ? id : null);
@@ -43,7 +43,7 @@ export default function CampaignDetailsPage() {
         console.log('res', res.data, res.data?.name);
       } catch (e) {
         if (!mounted) return;
-        Toast.error( e?.response?.data?.message || 'Failed to load campaign');
+        Toast.error(e?.response?.data?.message || 'Failed to load campaign');
       } finally {
         if (mounted) setLoading(false);
       }
@@ -61,11 +61,12 @@ export default function CampaignDetailsPage() {
       { label: 'Start Date', value: campaign.startDate ? formatDateDMY(campaign.startDate) : '—' },
       { label: 'End Date', value: campaign.endDate ? formatDateDMY(campaign.endDate) : '—' },
       { label: 'Total Raw Issued', value: fmtKg(campaign.totalRawIssued) },
-      { label: 'Total Blanket Rolls Produced', value: campaign?.totalBlanketRollsProduced ? (campaign?.totalBlanketRollsProduced) +" rolls": '0 rolls' },
+      { label: 'Total Fiber Produced', value: campaign.totalFiberProduced ? fmtKg(campaign.totalFiberProduced) : '—' },
+      { label: 'Total Good Fiber Produced', value: campaign?.totalGoodFiberProduced ? fmtKg(campaign?.totalGoodFiberProduced) : '—' },
+      { label: 'Total Rejected Fiber Produced', value: campaign?.totalRejectedFiber ? fmtKg(campaign?.totalRejectedFiber) : '—' },
+      { label: 'Total Blanket Rolls Produced', value: campaign?.totalBlanketRollsProduced ? (campaign?.totalBlanketRollsProduced) + " rolls" : '0 rolls' },
       // show if present but not required to maintain here
-      ...(campaign?.meltReturns != null ? [{ label: 'Melt Returns', value: fmtKg(campaign.meltReturns) }] : []),
-      ...(campaign?.totalFiberProduced != null ? [{ label: 'Total Fiber Produced', value: fmtKg(campaign.totalFiberProduced) }] : []),
-      ...(campaign?.totalRejectedFiber != null ? [{ label: 'Total Fiber Produced', value: fmtKg(campaign.totalRejectedFiber) }] : []),
+      { label: 'Melt Returns', value: campaign.meltReturns ? fmtKg(campaign.meltReturns) : '—' },
       { label: 'Last Updated', value: campaign.updatedAt ? formatDateDMY(campaign.updatedAt) : '—' },
       { label: 'Created', value: campaign.createdAt ? formatDateDMY(campaign.createdAt) : '—' },
     ];
@@ -74,7 +75,7 @@ export default function CampaignDetailsPage() {
   return (
     <Manufacturing>
       <div className="w-full space-y-6">
-          <h1 className="lg:text-3xl text-xl font-semibold capitalize mb-5">campaign details</h1>
+        <h1 className="lg:text-3xl text-xl font-semibold capitalize mb-5">campaign details</h1>
         {!hasCampaign && (
           <div className="bg-most-secondary p-4 rounded">
             <p className="mb-2">No active campaign selected.</p>
@@ -91,12 +92,66 @@ export default function CampaignDetailsPage() {
             ) : campaign ? (
               <div className="flex gap-4 w-full">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 grow">
-                  {rows.map((r) => (
+                  {/* {rows.map((r) => (
                     <div key={r.label} className="flex flex-col">
                       <span className="text-sm text-muted-foreground">{r.label}</span>
                       <span className="text-base font-medium capitalize">{String(r.value ?? '—')}</span>
                     </div>
-                  ))}
+                  ))} */}
+                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 grow lg:col-span-2'>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-white-700">Campaign Name</span>
+                      <span className="text-base font-medium capitalize">{campaign?.name ?? '—'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-white-700">Status</span>
+                      <span className="text-base font-medium capitalize">{campaign?.status ?? '—'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-white-700">Start Date</span>
+                      <span className="text-base font-medium capitalize">{campaign?.startDate ? formatDateDMY(campaign?.startDate) : '—'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-white-700">End Date</span>
+                      <span className="text-base font-medium capitalize">{campaign.endDate ? formatDateDMY(campaign.endDate) : '—' }</span>
+                    </div>
+                  </div>
+                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 grow col-span-2'>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-white-700">Total Raw Material Issued</span>
+                      <span className="text-base font-medium capitalize">{campaign?.totalRawIssued ?? '—'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-blue-400">Total Fiber Produced</span>
+                      <span className="text-base font-medium capitalize text-blue-500">{campaign?.totalFiberProduced ?? '—'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-green-400">Total Good Fiber Produced</span>
+                      <span className="text-base font-medium capitalize text-green-500">{campaign?.totalGoodFiberProduced ?? '—'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-red-400">Total Rejected Fiber Produced</span>
+                      <span className="text-base font-medium capitalize text-red-500">{campaign?.totalRejectedFiber ?? '—' }</span>
+                    </div>
+                  </div>
+                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 grow col-span-2'>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-white-700">Total Blanket Rolls Produced</span>
+                      <span className="text-base font-medium capitalize">{campaign?.totalBlanketRollsProduced ?? '—'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-white-700">Melt Returns</span>
+                      <span className="text-base font-medium capitalize">{campaign.meltReturns ? fmtKg(campaign.meltReturns) : '—'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-white-700">Last Updated</span>
+                      <span className="text-base font-medium capitalize">{campaign.updatedAt ? formatDateDMY(campaign.updatedAt) : '—'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-white-700">Created</span>
+                      <span className="text-base font-medium capitalize">{campaign.createdAt ? formatDateDMY(campaign.createdAt) : '—' }</span>
+                    </div>
+                  </div>
                 </div>
                 <div className="flex gap-4 flex-col">
                   <NavLink
