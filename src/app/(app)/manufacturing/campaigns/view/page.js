@@ -22,7 +22,7 @@ export default function CampaignDetailsPage() {
   
 
   const campaignId = activeCampaign?._id || null;
-
+  console.log('campaignId', campaignId);
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -39,6 +39,7 @@ export default function CampaignDetailsPage() {
         const res = await axiosInstance.get(`/api/campaigns/${campaignId}`);
         if (!mounted) return;
         setCampaign(res?.data?.data || res?.data || null);
+        console.log('res', res.data, res.data?.name, campaign);
       } catch (e) {
         if (!mounted) return;
         Toast.error( e?.response?.data?.message || 'Failed to load campaign');
@@ -59,9 +60,9 @@ export default function CampaignDetailsPage() {
       { label: 'Start Date', value: campaign.startDate ? formatDateDMY(campaign.startDate) : '—' },
       { label: 'End Date', value: campaign.endDate ? formatDateDMY(campaign.endDate) : '—' },
       { label: 'Total Raw Issued', value: fmtKg(campaign.totalRawIssued) },
+      { label: 'Total Blanket Rolls Produced', value: campaign?.totalBlanketRollsProduced ? (campaign?.totalBlanketRollsProduced) +" rolls": '0 rolls' },
       // show if present but not required to maintain here
       ...(campaign?.meltReturns != null ? [{ label: 'Melt Returns', value: fmtKg(campaign.meltReturns) }] : []),
-      ...(campaign?.totalBlanketRollsProduced != null ? [{ label: 'Total Fiber Produced', value: (campaign.totalBlanketRollsProduced) +" rolls"}] : []),
       ...(campaign?.totalFiberProduced != null ? [{ label: 'Total Fiber Produced', value: fmtKg(campaign.totalFiberProduced) }] : []),
       ...(campaign?.totalRejectedFiber != null ? [{ label: 'Total Fiber Produced', value: fmtKg(campaign.totalRejectedFiber) }] : []),
       { label: 'Last Updated', value: campaign.updatedAt ? formatDateDMY(campaign.updatedAt) : '—' },

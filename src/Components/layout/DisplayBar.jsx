@@ -12,10 +12,6 @@ const DisplayBar = ({ title, children, href, className = '' }) => {
     const [open, setOpen] = useState(false);
     const [collapsed, setCollapsed] = useState(true);
 
-    useEffect(() => {
-        console.log('open', open);
-    }, [open]);
-
     const hoverTimeout = useRef();
     const handleMouseEnter = useCallback(() => {
         if (hoverTimeout.current) clearTimeout(hoverTimeout.current);

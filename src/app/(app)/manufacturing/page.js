@@ -65,6 +65,7 @@ export default function ProductionDashboard({ children }) {
      const opencampaigns = (c) => {
         // console.log("opencampaigns called");
         setActiveCampaign(c); // when i set here it's not working becuse first this called and then again clearActiveCampaign useEffect called
+        console.log("c", c);
         // console.log("campaign ", campaign);
         if (campaign.length > 1) {
             setList(campaign);
