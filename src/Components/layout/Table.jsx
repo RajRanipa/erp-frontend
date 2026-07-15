@@ -324,7 +324,7 @@ export default function Table(
           </tfoot>
         )}
       </table>
-      <div className="flex items-center justify-between px-2 py-1 text-sm text-secondary-text bg-white-100 border-t border-white-100 sticky bottom-0 backdrop-blur-xl rounded-bl-lg overflow-hidden">
+      <div className="flex items-center gap-8 justify-between px-2 py-1 text-sm text-secondary-text bg-white-100 border-t border-white-100 sticky bottom-0 backdrop-blur-xl rounded-bl-lg overflow-auto min-w-max">
         {/* Rows per page selector */}
         <div className="flex items-center gap-2">
           <span>Rows per page:</span>

@@ -123,7 +123,7 @@ export default function CampaignForm({
 
     return (
         <form onSubmit={submit} className="bg-most-secondary shadow-md rounded-lg p-6 space-y-6">
-            <h2 className="text-lg font-semibold mb-3">
+            <h2 className="text-lg lg:text-2xl font-semibold mb-3">
                 {mode === 'create' ? 'Campaign Details' : 'Edit Campaign'}
             </h2>
 

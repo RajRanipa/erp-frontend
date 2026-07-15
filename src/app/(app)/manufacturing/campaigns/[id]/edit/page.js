@@ -45,7 +45,7 @@ export default function EditCampaignPage() {
   return (
     <Manufacturing>
       <div className="max-w-3xl">
-        <h1 className="text-3xl font-semibold mb-6">Edit Campaign</h1>
+        {/* <h1 className="lg:text-3xl text-xl  font-semibold mb-6">Edit Campaign</h1> */}
         {loading
           ? <div>Loading…</div>
           : <CampaignForm mode="edit" initialValues={initial} onSubmit={handleUpdate} submitting={submitting} />

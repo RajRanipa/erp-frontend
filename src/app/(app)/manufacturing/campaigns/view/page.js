@@ -72,7 +72,7 @@ export default function CampaignDetailsPage() {
   return (
     <Manufacturing>
       <div className="w-full space-y-6">
-          <h1 className="text-3xl font-semibold capitalize mb-5">campaign details</h1>
+          <h1 className="lg:text-3xl text-xl font-semibold capitalize mb-5">campaign details</h1>
         {!hasCampaign && (
           <div className="bg-most-secondary p-4 rounded">
             <p className="mb-2">No active campaign selected.</p>

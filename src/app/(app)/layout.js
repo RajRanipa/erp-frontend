@@ -29,7 +29,7 @@ export default function AppLayout({ children }) {
                 <div className="flex-1 bg-transparent relative flex overflow-hidden">
                     <Sidebar open={open} setOpen={setOpen} />
                     <div className='w-full overflow-hidden flex flex-col p-2 pt-0 bg-primary'>
-                        <main className="w-full flex-1 bg-secondary text-secondary-text border border-color-100 rounded-lg overflow-hidden flex flex-col">
+                        <main className="w-full flex-1 bg-secondary text-secondary-text border border-color-100 rounded-lg overflow-hidden flex flex-col z-5">
                             {children}
                         </main>
                     </div>

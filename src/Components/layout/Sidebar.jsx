@@ -136,10 +136,12 @@ const Sidebar = ({ open, setOpen }) => {
     if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
     hoverTimeout.current = setTimeout(() => setCollapsed(false), 80);
   }, []);
+
   const handleMouseLeave = useCallback(() => {
     if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
     hoverTimeout.current = setTimeout(() => setCollapsed(true), 80);
   }, []);
+  
   // Cleanup on unmount
   useEffect(() => {
     return () => {
