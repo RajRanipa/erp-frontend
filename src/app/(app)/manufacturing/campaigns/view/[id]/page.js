@@ -1,12 +1,12 @@
 'use client';
 // src/app/manufacturing/campaigns/view/page.js (Campaign Details View)
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Manufacturing from '../../page';
+import { useParams, useRouter } from 'next/navigation';
+import Manufacturing from '../../../page';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
 import NavLink from '@/Components/NavLink';
-import { useActiveCampaign } from '../../ActiveCampaignProvider';
+import { useActiveCampaign } from '../../../ActiveCampaignProvider';
 import { formatDateDMY } from '@/utils/date';
 
 // simple helpers
@@ -17,13 +17,13 @@ const fmtKg = (n) => {
 };
 
 export default function CampaignDetailsPage() {
-  const { activeCampaign } = useActiveCampaign();
+  // const { activeCampaign } = useActiveCampaign();
+  const { id } = useParams();
   const router = useRouter();
   
 
-  const campaignId = activeCampaign?._id || null;
-  console.log('campaignId', campaignId);
-  const [campaign, setCampaign] = useState(null);
+  const campaignId = id || null;
+  const [campaign, setCampaign] = useState(id ? id : null);
   const [loading, setLoading] = useState(true);
 
   // derived
@@ -36,10 +36,11 @@ export default function CampaignDetailsPage() {
         setLoading(true);
         if (!hasCampaign) return;
         // Fresh read from API to avoid stale context values
+        console.log('campaignId', campaignId);
         const res = await axiosInstance.get(`/api/campaigns/${campaignId}`);
         if (!mounted) return;
         setCampaign(res?.data?.data || res?.data || null);
-        console.log('res', res.data, res.data?.name, campaign);
+        console.log('res', res.data, res.data?.name);
       } catch (e) {
         if (!mounted) return;
         Toast.error( e?.response?.data?.message || 'Failed to load campaign');

@@ -78,7 +78,7 @@ export default function ProductionDashboard({ children }) {
             // console.log("fetchCampaign called");
             try {
                 const response = await axiosInstance.get("/api/campaigns");
-                // console.log("response", response);
+                console.log("response", response);
                 setCampaign(response.data);
                 setLoading(false);
             } catch (error) {
@@ -100,13 +100,12 @@ export default function ProductionDashboard({ children }) {
                             <div key={c._id} className="p-2 border-b flex items-center justify-between border-color-200">
                                 <div className="flex gap-2 flex-1 group" style={{ height: '-webkit-fill-available' }}>
                                     {/* above button hover below button grow applyed */}
-                                    <button
+                                    <NavLink
                                         className="px-2 text-secondary-text capitalize cursor-pointer group-hover:grow text-start transition-all duration-300 group-hover:bg-gradient-to-r from-primary to-transparent"
-                                        onClick={() => opencampaigns(c)}
+                                        href={`/manufacturing/campaigns/view/${c._id}`}
                                     >
-                                        {/*   */}
                                         {c.name}
-                                    </button>
+                                    </NavLink>
                                 </div>
                                 <div className="flex gap-2 ">
                                     <span
