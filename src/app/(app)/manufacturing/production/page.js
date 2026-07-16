@@ -55,11 +55,15 @@ export default function Production() {
 
         const qs = params.toString();
         console.log('qs', qs);
-        const url = `/api/production/report`;
-        const res = await axiosInstance.get(url);
+        const url1 = `/api/production${qs ? `?${qs}` : ''}`;
+        const url2 = `/api/production/report`;
+        const res = await axiosInstance.get(url1);
+        const res2 = await axiosInstance.get(url2);
 
         if (ignore) return;
-        console.log('res', res);
+        console.log('res :- ', res);
+        console.log('res 2 :- ', res2);
+
         const list = Array.isArray(res?.data?.data) ? res.data.data : [];
         setProductions(list);
       } catch (err) {
