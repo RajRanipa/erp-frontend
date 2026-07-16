@@ -55,7 +55,7 @@ export default function Production() {
 
         const qs = params.toString();
         console.log('qs', qs);
-        const url = `/api/production${qs ? `?${qs}` : ''}`;
+        const url = `/api/production/report`;
         const res = await axiosInstance.get(url);
 
         if (ignore) return;
