@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useDateRange } from '../layout';
 import { axiosInstance } from '@/lib/axiosInstance';
 import Loading from '@/Components/Loading';
-import ProductionTable from './components/ProductionTable';
+import ProductionTable from '../components/ProductionTable';
 import DateInput from '@/Components/inputs/DateInput';
 
 export default function Production() {
@@ -55,7 +55,7 @@ export default function Production() {
 
         const qs = params.toString();
         console.log('qs', qs);
-        const url = `/api/production${qs ? `?${qs}` : ''}`;
+        const url = `/api/production/night`;
         const res = await axiosInstance.get(url);
 
         if (ignore) return;
@@ -77,16 +77,16 @@ export default function Production() {
   return (
     <div className='w-full'>
       <div className='flex items-center justify-between mb-4'>
-        <div className='fllex gap-2'><span>Check Production :- </span><span>{dateRange?.start + " to " + dateRange?.end}</span></div>
+        <div className='fllex gap-2'><span>Production for Night</span></div>
         <div>
-          <DateInput
+          {/* <DateInput
             name="date"
             mode="range"
             rangeValues={dateRange}
             onChange={(val) => setDateRange(val)}
             parent_className="mb-0"
             className="w-[250px]"
-          />
+          /> */}
         </div>
       </div>
       {loading ? <Loading variant='skeleton' className='h-full w-full' />
