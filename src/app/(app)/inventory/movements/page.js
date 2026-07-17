@@ -51,7 +51,7 @@ export default function InventoryMovement() {
         if (f.txnType && f.txnType !== 'all types') params.txnType = f.txnType;
 
         if (!reset && useCursor) params.cursor = useCursor;
-        console.log('fetchLedger', params);
+        // console.log('fetchLedger', params);
         const res = await axiosInstance.get('/api/inventory/ledger', { params });
         const list = Array.isArray(res?.data?.data) ? res.data.data : [];
         const next = res?.data?.nextCursor || null;

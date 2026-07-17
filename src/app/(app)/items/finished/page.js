@@ -52,7 +52,7 @@ export default function Finished() {
     try {
       const itemsRes = await axiosInstance.get('/api/items/finished');
       const itemsData = itemsRes.data || [];
-      console.log('itemsData', itemsData);
+      // console.log('itemsData', itemsData);
       setItems(itemsData);
 
       const uniqueTypes = Array.from(

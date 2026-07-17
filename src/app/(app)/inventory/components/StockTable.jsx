@@ -33,7 +33,7 @@ export default function StockTable({
 
     return rows.filter((r) => {
       const item = r.itemId || {};
-      console.log("item", item)
+      // console.log("item", item)
       const productTypeStr = r?.productType ? `${r.productType}` : '';
       const tempStr = item?.temperature
         ? `${item.temperature?.value ?? ''} ${item.temperature?.unit ?? ''}`

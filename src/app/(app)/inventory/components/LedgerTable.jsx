@@ -65,7 +65,7 @@ export default function LedgerTable({
     // - deep mode (serverSearch=true): trust server results; do not re-filter here
     const needle = (filters?.query || '').toLowerCase().trim();
     if (!serverSearch) {
-      console.log('needle', needle);
+      // console.log('needle', needle);
       if (!needle) return result;
 
       const str = (v) => (v == null ? '' : String(v)).toLowerCase();

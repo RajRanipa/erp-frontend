@@ -38,7 +38,7 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
   if (eOrName && eOrName.target) {
     const { name, value } = eOrName.target;
     const labelValue = eOrName.label?.value ?? value;
-    console.log('labelValue', labelValue, name, value);
+    // console.log('labelValue', labelValue, name, value);
     // Update main formData via useProductForm handleChange
     handleChange(name, value);
 
@@ -58,7 +58,7 @@ export default function ItemForm({ mode = 'create', initialData = {}, onsubmit =
     setLoading(true);
     try {
       const doc = await submit(mode);
-      console.log('doc', doc);
+      // console.log('doc', doc);
       // on success navigate or show toast (submit already shows toast)
        if(onsubmit) {
         onsubmit();
