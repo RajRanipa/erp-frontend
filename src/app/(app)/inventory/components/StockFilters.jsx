@@ -100,7 +100,7 @@ export default function StockFilters({
           placeholder="Product Type"
           value={filters.productType}
           onChange={handleProductTypeChange}
-          apiget="/api/product-type"
+          apiget="/api/product-type/options"
           icon={filter1Icon()}
         />
 

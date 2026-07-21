@@ -49,7 +49,7 @@ export default function Production() {
       setSubmitting(true);
       try{
         const res = await axiosInstance.post('/api/production/send-report', {
-          shift : 'DAY'
+          shift : 'NIGHT'
         })
         console.log('res', res.status);
         if(res?.status === 200){
