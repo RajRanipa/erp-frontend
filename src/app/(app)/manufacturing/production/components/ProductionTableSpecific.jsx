@@ -24,7 +24,7 @@ export default function ProductionTableSpecific({
   const pt = filters.productType || '';
   const q = filters.query || '';
   const stockTabelRef = useHighlight((filters?.query || '').toLowerCase().trim(), 'textHighlight');
-  
+
   const filteredRows = useMemo(() => {
     if (!q && !pt) return rows;
     const needle = String(q).toLowerCase().trim();
@@ -70,19 +70,25 @@ export default function ProductionTableSpecific({
     const date = new Date(dateValue);
 
     if (Number.isNaN(date.getTime())) {
-        return "-";
+      return "-";
     }
 
     return new Intl.DateTimeFormat("en-IN", {
-        timeZone: "Asia/Kolkata",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
+      timeZone: "Asia/Kolkata",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     }).format(date);
-};
+  };
 
   const columns = useMemo(
     () => [
+      {
+        key: 'srno',
+        header: 'Sr No.',
+        sortable: false,
+        render: (_row, index) => index + 1,
+      },
       {
         key: 'item',
         header: 'Item',
@@ -136,11 +142,10 @@ export default function ProductionTableSpecific({
         render: (r) =>
           typeof r.statusOk === 'boolean' ? (
             <span
-              className={`px-2 py-1 rounded text-xs font-medium ${
-                r.statusOk
+              className={`px-2 py-1 rounded text-xs font-medium ${r.statusOk
                   ? 'bg-green-100 text-green-700'
                   : 'bg-red-100 text-red-700'
-              }`}
+                }`}
             >
               {r.statusOk ? 'OK' : 'Rejected'}
             </span>
@@ -153,7 +158,7 @@ export default function ProductionTableSpecific({
         header: 'Total Rolls',
         sortable: true,
         align: 'right',
-        render: (r) => r.totalRolls ?? 0,
+        render: (r) => 1 ?? 0,
       },
       {
         key: 'Weight',
