@@ -102,7 +102,7 @@ export default function Production() {
               error={error}
               filters={filters} // used for client-side query + productType filtering
             />
-            <ProductionTable
+            <ProductionTableSpecific
               rows={SpecificProductions}
               loading={loading}
               error={error}
