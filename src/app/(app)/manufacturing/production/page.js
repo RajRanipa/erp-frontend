@@ -12,6 +12,7 @@ export default function Production() {
   const [msg, setMsg] = useState('');
   const [error, setError] = useState(false);
   const [productions, setProductions] = useState([]);
+  const [SpecificProductions, setSpecificProductions] = useState([]);
   const [refresh, setRefresh] = useState(null);
   const [filters, setFilters] = useState({
     productType: '',
@@ -61,7 +62,9 @@ export default function Production() {
         if (ignore) return;
 
         const list = Array.isArray(res?.data?.data) ? res.data.data : [];
+        const specificList = Array.isArray(res?.data?.specificData) ? res.data.specificData : [];
         setProductions(list);
+        setSpecificProductions(specificList);
       } catch (err) {
         // if (!ignore) Toast.error('Failed to load productions');
         console.error("error in fetching production", err);
@@ -95,6 +98,12 @@ export default function Production() {
             
             <ProductionTable
               rows={productions}
+              loading={loading}
+              error={error}
+              filters={filters} // used for client-side query + productType filtering
+            />
+            <ProductionTable
+              rows={SpecificProductions}
               loading={loading}
               error={error}
               filters={filters} // used for client-side query + productType filtering
