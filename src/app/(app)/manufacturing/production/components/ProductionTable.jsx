@@ -168,7 +168,7 @@ export default function ProductionTable({
         <Table
           columns={columns}
           data={filteredRows}
-          rowKey={(r) => r.matchedItem?._id}
+          rowKey={(r) => r.matchedItem?._id+r?.totalRolls}
           virtualization={filteredRows.length > 200}
           loading={loading}
           tableRef={stockTabelRef}

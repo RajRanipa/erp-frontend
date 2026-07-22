@@ -22,6 +22,7 @@ export default function ProductionTableSpecific({
   refrence = null,
 }) {
   const pt = filters.productType || '';
+  const st = filters?.status || '';
   const q = filters.query || '';
   const stockTabelRef = useHighlight((filters?.query || '').toLowerCase().trim(), 'textHighlight');
 
@@ -29,19 +30,21 @@ export default function ProductionTableSpecific({
     if (!q && !pt) return rows;
     const needle = String(q).toLowerCase().trim();
     const str = (v) => (v == null ? '' : String(v)).toLowerCase();
-
+    const newst = st === "false" ? false : st === "true" ? true : st
     return rows.filter((r) => {
-      const item = r.itemId || {};
-      console.log("item", item)
-      const productTypeStr = r?.productType ? `${r.productType}` : '';
-      const tempStr = item?.temperature
-        ? `${item.temperature?.value ?? ''} ${item.temperature?.unit ?? ''}`
+      // const item = r.itemId || {};
+      // console.log("item specific", item)
+      const productTypeStr = r?.productType ? `${r.productType._id}` : '';
+      const statusValue = r.statusOk;
+      typeof statusValue === "boolean"
+      const tempStr = rows?.temperature
+        ? `${r.temperature?.value ?? ''} ${r.temperature?.unit ?? ''}`
         : '';
-      const denStr = item?.density
-        ? `${item.density?.value ?? ''} ${item.density?.unit ?? ''}`
+      const denStr = rows?.density
+        ? `${r.density?.value ?? ''} ${r.density?.unit ?? ''}`
         : '';
-      const dimStr = item?.dimension ? mapDimension(item.dimension) : '';
-      const pack = item?.packing || {};
+      const dimStr = r?.dimension ? mapDimension(r.dimension) : '';
+      const pack = r?.packing || {};
       const packStr = [
         pack?.name,
         pack?.brandType,
@@ -50,19 +53,19 @@ export default function ProductionTableSpecific({
       ]
         .filter(Boolean)
         .join(' ');
-      const nameStr = item?.name || ''; // if we want to filter by name as well latter we can use this
-      const gradeStr = item?.grade || '';
+      const nameStr = r?.name || ''; // if we want to filter by name as well latter we can use this
+      const gradeStr = r?.grade || '';
 
       const haystack = [tempStr, denStr, dimStr, packStr, gradeStr]
         .map(str)
         .join(' | ');
-
+      if (st !== "") return statusValue === newst;
       if (needle && pt) return needle.split(' ').every((w) => haystack.includes(w)) && productTypeStr.includes(pt);
       if (pt) return productTypeStr.includes(pt);
       if (needle) return needle.split(' ').every((w) => haystack.includes(w));
       return true;
     });
-  }, [rows, q, pt]);
+  }, [rows, q, pt, st]);
 
   const formatTimeIST = (dateValue) => {
     if (!dateValue) return "-";
@@ -143,8 +146,8 @@ export default function ProductionTableSpecific({
           typeof r.statusOk === 'boolean' ? (
             <span
               className={`px-2 py-1 rounded text-xs font-medium ${r.statusOk
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-red-100 text-red-700'
+                ? 'bg-green-100 text-green-700'
+                : 'bg-red-100 text-red-700'
                 }`}
             >
               {r.statusOk ? 'OK' : 'Rejected'}
@@ -197,7 +200,7 @@ export default function ProductionTableSpecific({
         <Table
           columns={columns}
           data={filteredRows}
-          rowKey={(r) => r.matchedItem?._id}
+          rowKey={(r) => r?._id}
           virtualization={filteredRows.length > 200}
           loading={loading}
           tableRef={stockTabelRef}
