@@ -6,6 +6,7 @@ import { axiosInstance } from '@/lib/axiosInstance';
 import Loading from '@/Components/Loading';
 import ProductionTable from './components/ProductionTable';
 import DateInput from '@/Components/inputs/DateInput';
+import ProductionTableSpecific from './components/ProductionTableSpecific';
 
 export default function Production() {
   const [loading, setLoading] = useState(true);
