@@ -59,8 +59,9 @@ export default function ProductionTableSpecific({
       const haystack = [tempStr, denStr, dimStr, packStr, gradeStr]
         .map(str)
         .join(' | ');
-      if (st !== "") return statusValue === newst;
       if (needle && pt) return needle.split(' ').every((w) => haystack.includes(w)) && productTypeStr.includes(pt);
+      if (pt && st !== "") return productTypeStr.includes(pt) &&statusValue === newst;
+      if (st !== "") return statusValue === newst;
       if (pt) return productTypeStr.includes(pt);
       if (needle) return needle.split(' ').every((w) => haystack.includes(w));
       return true;
