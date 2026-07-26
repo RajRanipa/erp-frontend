@@ -37,6 +37,7 @@ export default function LedgerTable({
   refrence = null,
   hasMore = false,
   onLoadMore,
+  loadingMore = false,
 }) {
   const serverSearch = !!filters?.serverSearch;
   const leadgerTabelRef = useHighlight((filters?.query || '').toLowerCase().trim(), 'textHighlight');
@@ -273,9 +274,9 @@ export default function LedgerTable({
                 type="button"
                 className="px-3 py-1 text-sm border rounded disabled:opacity-50"
                 onClick={onLoadMore}
-                disabled={loading}
+                disabled={loading || loadingMore}
               >
-                {loading ? 'Loading more…' : 'Load older entries'}
+                {loadingMore ? 'Loading more…' : 'Load older entries'}
               </button>
             </div>
           )}

@@ -1,7 +1,6 @@
 // src/app/warehouse/create/page.js
 'use client';
 
-import DisplayMain from '@/Components/layout/DisplayMain';
 import WarehouseForm from '../components/warehouseForm';
 import Warehouse from '../page';
 

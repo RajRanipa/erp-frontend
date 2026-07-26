@@ -1,274 +1,191 @@
 'use client';
-// frontend-erp/src/app/(app)/inventory/components/PackingChangeForm.jsx
-import { useEffect, useMemo, useState, useCallback } from 'react';
+
+import { useMemo, useState } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
-import ItemSelect from './ItemSelect';
-import WarehouseSelect from './WarehouseSelect';
 import CustomInput from '@/Components/inputs/CustomInput';
 import TextArea from '@/Components/inputs/TextArea';
+import ItemSelect from './ItemSelect';
 import StockItemSelect from './StockItemSelect';
+import WarehouseSelect from './WarehouseSelect';
 
-export default function PackingChangeForm({
-    onSuccess,
-    warehouses = [],
-}) {
-    const [form, setForm] = useState({
-        fromItemId: '',
-        toItemId: '',
-        warehouseId: '',
-        qty: '',
-        uom: '',
-        batchNo: '',
-        bin: '',
-        note: '',
-    });
-    const [loading, setLoading] = useState(false);
-    const baseParams = useMemo(() => ({ categoryKey: 'FG' }), []);
-    const [toItemParams, setToItemParams] = useState(baseParams);
-    const [itemForm, setItemForm] = useState(false);
-    const [fromMeta, setFromMeta] = useState(null);
-    const [toMeta, setToMeta] = useState(null);
-    const [error, setError] = useState(false);
+const newRequestId = () =>
+  globalThis.crypto?.randomUUID?.() ||
+  `repack-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-    const sameItem = form.fromItemId && form.toItemId && form.fromItemId === form.toItemId;
+const initialForm = () => ({
+  stockBucketId: '',
+  fromItemId: '',
+  toItemId: '',
+  warehouseId: '',
+  qty: '',
+  uom: '',
+  batchNo: '',
+  bin: '',
+  note: '',
+  requestId: newRequestId(),
+});
 
-    // // console.log('form.toItemId', form.toItemId);
-    const qtyNumber = useMemo(() => {
-        const n = Number(form.qty);
-        return Number.isFinite(n) ? n : NaN;
-    }, [form.qty]);
+const objectId = value => value?._id || value || '';
 
-    const isQtyValid = Number.isFinite(qtyNumber) && qtyNumber > 0;
+export default function PackingChangeForm({ onSuccess, warehouses = [] }) {
+  const [form, setForm] = useState(initialForm);
+  const [sourceItem, setSourceItem] = useState(null);
+  const [targetItem, setTargetItem] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const quantity = Number(form.qty);
+  const sameItem = form.fromItemId && form.fromItemId === form.toItemId;
 
-    useEffect(() => {
-        if (form.qty) setError(!isQtyValid);
-    }, [isQtyValid, form.qty, qtyNumber])
-
-    const isValid = Boolean(
-        form.fromItemId &&
-        form.toItemId &&
-        form.warehouseId &&
-        form.uom?.trim() &&
-        isQtyValid &&
-        !sameItem
-    );
-
-    const handleChange = useCallback((patch, itemObj) => {
-        // Only compute derived filters when FROM item changes
-        const isFromChange = Object.prototype.hasOwnProperty.call(patch, 'fromItemId');
-
-        // console.log('itemObj', itemObj);
-        if (isFromChange && itemObj) {
-            const derived = {};
-            if (itemObj.temperature?._id) derived.temperature = itemObj.temperature._id;
-            if (itemObj.density?._id) derived.density = itemObj.density._id;
-            if (itemObj.dimension?._id) derived.dimension = itemObj.dimension._id;
-            if (itemObj?.productType) derived.productType = itemObj.productType;
-            console.log('derived', derived);
-            setToItemParams(prev => ({
-                ...baseParams,
-                ...prev,
-                ...derived,
-            }));
-        }
-
-        if (isFromChange) {
-            setItemForm(Boolean(patch.fromItemId));
-        }
-
-        setForm(prev => ({ ...prev, ...patch }));
-    }, [baseParams]);
-
-    // Prefill/lock UOM from the "from" item
-    useEffect(() => {
-        if (fromMeta?.uom) {
-            setForm((f) => ({ ...f, uom: fromMeta.uom }));
-        }
-    }, [fromMeta?.uom]);
-
-    const submit = async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (loading) return;       // prevent double submit
-        if (!isValid) return;
-
-        // Client-side productType guard (nice UX; backend also enforces)
-        if (fromMeta?.productType && toMeta?.productType && String(fromMeta.productType) !== String(toMeta.productType)) {
-            Toast.error('From/To items must have the same product type.');
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const body = {
-                fromItemId: form.fromItemId,
-                toItemId: form.toItemId,
-                warehouseId: form.warehouseId,
-                qty: qtyNumber,
-                uom: form.uom.trim(),
-                batchNo: form.batchNo?.trim() || null,
-                bin: form.bin?.trim() || null,
-                note: form.note?.trim() || '',
-            };
-
-            const res = await axiosInstance.post('/api/inventory/repack', body);
-
-            if (res?.data?.status) {
-                Toast.success('Packing changed successfully');
-                setForm((f) => ({ ...f, qty: '', note: '' }));
-                onSuccess?.(res.data);
-            } else {
-                const msg = res?.data?.message || 'Failed to change packing';
-                Toast.error(msg);
-            }
-        } catch (err) {
-            const code = err?.response?.status;
-            if (code === 403) {
-                Toast.error('You do not have permission to perform packing change.');
-            } else {
-                const msg = err?.response?.data?.message || err?.message || 'Failed to change packing';
-                Toast.error(msg);
-            }
-        } finally {
-            setLoading(false);
-        }
+  const targetParams = useMemo(() => {
+    if (!sourceItem) return { categoryKey: 'FG', status: 'active' };
+    return {
+      categoryKey: 'FG',
+      status: 'active',
+      productType: objectId(sourceItem.productType),
+      temperature: objectId(sourceItem.temperature),
+      density: objectId(sourceItem.density),
+      dimension: objectId(sourceItem.dimension),
     };
+  }, [sourceItem]);
 
-    const handleFromItemChange = useCallback(
-        (v, itemObj) => {
-            setFromMeta(itemObj || null);
-            handleChange({ fromItemId: v }, itemObj);
-        },
-        [handleChange]
-    );
+  const warehouseOptions = useMemo(
+    () => warehouses.map(warehouse => ({
+      value: String(warehouse._id),
+      label: warehouse.name,
+    })),
+    [warehouses],
+  );
 
-    const handleToItemChange = useCallback(
-        (v, itemObj) => {
-            setToMeta(itemObj || null);
-            handleChange({ toItemId: v }, itemObj);
-        },
-        [handleChange]
-    );
+  const valid = Boolean(
+    form.fromItemId &&
+    form.toItemId &&
+    form.warehouseId &&
+    form.uom &&
+    Number.isFinite(quantity) &&
+    quantity > 0 &&
+    !sameItem,
+  );
 
-    const handleFromFocus = useCallback(() => {
-        setItemForm(false);
-    }, []);
+  const change = patch => setForm(current => ({ ...current, ...patch }));
 
-    const warehouseOptions = useMemo(
-        () => warehouses.map(w => ({ value: String(w._id), label: w.name })),
-        [warehouses]
-    );
+  const selectSource = (itemId, item, snapshot) => {
+    setSourceItem(item || null);
+    setTargetItem(null);
+    change({
+      stockBucketId: snapshot?._id ? String(snapshot._id) : '',
+      fromItemId: itemId || '',
+      toItemId: '',
+      warehouseId: snapshot?.warehouseId?._id || snapshot?.warehouseId || '',
+      uom: snapshot?.uom || item?.UOM || '',
+      batchNo: snapshot?.batchNo || '',
+      bin: snapshot?.bin || '',
+    });
+  };
 
-    return (
-        <form onSubmit={submit} className="rounded-lg p-3 space-y-3">
-            <div className="flex items-center justify-between pb-4">
-                <h2 className="font-bold text-lg text-most-text">Packing Change</h2>
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className={`btn-primary ${!isValid || loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-black'}`}
-                >
-                    {loading ? 'Saving…' : 'Submit'}
-                </button>
-            </div>
+  const submit = async event => {
+    event.preventDefault();
+    if (!valid || loading) return;
+    if (objectId(sourceItem?.productType) !== objectId(targetItem?.productType)) {
+      Toast.error('Source and target must use the same Product Type');
+      return;
+    }
 
-            <div className="grid md:grid-cols-2 gap-3 py-2 items-center">
-                <div>
-                    <StockItemSelect
-                        name="fromItemId"
-                        label="From Item (current packing)"
-                        value={form.fromItemId}
-                        onChange={handleFromItemChange}
-                        required
-                        disabled={loading}
-                        apiparams={baseParams}
-                        onFocus={handleFromFocus}
-                    />
-                </div>
-                <div>
-                    {itemForm && <ItemSelect
-                        name="toItemId"
-                        label="To Item (target packing)"
-                        value={form.toItemId}
-                        onChange={handleToItemChange}
-                        required
-                        disabled={!itemForm}
-                        readOnly={!itemForm}
-                        apiparams={toItemParams}
-                    />}
-                </div>
-            </div>
+    setLoading(true);
+    try {
+      const response = await axiosInstance.post('/api/inventory/repack', {
+        fromItemId: form.fromItemId,
+        toItemId: form.toItemId,
+        warehouseId: form.warehouseId,
+        qty: quantity,
+        uom: form.uom,
+        batchNo: form.batchNo.trim() || null,
+        bin: form.bin.trim() || null,
+        note: form.note.trim(),
+        requestId: form.requestId,
+      });
+      if (!response?.data?.status) {
+        throw new Error(response?.data?.message || 'Failed to change packing');
+      }
+      Toast.success(response.data.message || 'Packing changed');
+      setForm(initialForm());
+      setSourceItem(null);
+      setTargetItem(null);
+      onSuccess?.(response.data);
+    } catch (error) {
+      Toast.error(
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to change packing',
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            {sameItem && (
-                <p className="text-sm text-error">
-                    From and To items must be different.
-                </p>
-            )}
+  return (
+    <form onSubmit={submit} className="rounded-lg p-3 space-y-3">
+      <div className="flex items-center justify-between pb-4">
+        <h2 className="font-bold text-lg text-most-text">Finished-goods packing change</h2>
+        <button type="submit" disabled={!valid || loading} className="btn-primary disabled:opacity-50">
+          {loading ? 'Saving…' : 'Submit'}
+        </button>
+      </div>
 
-            <div className="grid md:grid-cols-2 gap-3 py-2">
-                <WarehouseSelect
-                    value={form.warehouseId}
-                    onChange={(v) => handleChange({ warehouseId: v })}
-                    required
-                    label="Warehouse"
-                    disabled={loading}
-                    options={warehouseOptions}
-                />
-                <CustomInput
-                    label="UOM"
-                    value={form.uom}
-                    onChange={(e) => handleChange({ uom: e.target.value })}
-                    required
-                    placeholder="pcs / kg / roll"
-                    disabled={Boolean(fromMeta?.uom) || loading} // lock if prefilled
-                />
-            </div>
+      <div className="grid md:grid-cols-2 gap-3 py-2">
+        <StockItemSelect
+          label="Source stock bucket"
+          value={form.stockBucketId}
+          onChange={selectSource}
+          apiparams={{ categoryKey: 'FG' }}
+          required
+        />
+        <ItemSelect
+          label="Target packing Item"
+          value={form.toItemId}
+          onChange={(itemId, item) => {
+            setTargetItem(item || null);
+            change({ toItemId: itemId || '' });
+          }}
+          apiparams={targetParams}
+          disabled={!sourceItem}
+          required
+        />
+      </div>
 
-            <div className="grid md:grid-cols-3 gap-3 py-2">
-                <CustomInput
-                    label="Quantity"
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={form.qty}
-                    onChange={(e) => handleChange({ qty: e.target.value })}
-                    required
-                    placeholder="quantity > 0"
-                    disabled={loading}
-                    err={error && 'Invalid quantity'}
-                />
-                <CustomInput
-                    label="Batch"
-                    value={form.batchNo}
-                    onChange={(e) => handleChange({ batchNo: e.target.value })}
-                    placeholder="optional"
-                    disabled={loading}
-                />
-                <CustomInput
-                    label="Bin"
-                    value={form.bin}
-                    onChange={(e) => handleChange({ bin: e.target.value })}
-                    placeholder="optional"
-                    disabled={loading}
-                />
-            </div>
+      {sameItem && <p className="text-sm text-error">Source and target Items must differ.</p>}
 
-            <TextArea
-                label="Note"
-                value={form.note}
-                onChange={(e) => handleChange({ note: e.target.value })}
-                rows={2}
-                placeholder="Add a note (optional)"
-                disabled={loading}
-            />
+      <div className="grid md:grid-cols-3 gap-3 py-2">
+        <WarehouseSelect
+          label="Warehouse"
+          value={form.warehouseId}
+          options={warehouseOptions}
+          disabled
+          required
+        />
+        <CustomInput label="UOM" value={form.uom} readOnly required />
+        <CustomInput
+          label="Quantity"
+          type="number"
+          step="any"
+          value={form.qty}
+          onChange={event => change({ qty: event.target.value })}
+          required
+          err={form.qty && !(quantity > 0) ? 'Quantity must be greater than zero' : ''}
+        />
+      </div>
 
-            {/* Optional inline hints */}
-            {fromMeta?.uom && (
-                <div className="text-xs text-secondary-text">
-                    UOM is set by the source item: <span className="font-medium">{fromMeta.uom}</span>
-                </div>
-            )}
-        </form>
-    );
+      <div className="grid md:grid-cols-2 gap-3 py-2">
+        <CustomInput label="Batch" value={form.batchNo} readOnly />
+        <CustomInput label="Bin" value={form.bin} readOnly />
+      </div>
+
+      <TextArea
+        label="Note"
+        value={form.note}
+        onChange={event => change({ note: event.target.value })}
+        rows={2}
+        placeholder="Packing-change reason or reference (optional)"
+      />
+    </form>
+  );
 }

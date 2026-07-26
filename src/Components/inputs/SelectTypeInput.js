@@ -90,6 +90,7 @@ const SelectTypeInput = ({
   onChange,
   required = false,
   readOnly = false,
+  disabled = false,
   parent_className = '',
   className = '',
   allowCustomValue = false,
@@ -126,7 +127,6 @@ const SelectTypeInput = ({
   const clearBtnRef = useRef(null);
   const listItemRefs = useRef([]);
   const listRef = useHighlight(inputValue.toLowerCase(), 'inputHighlight');
-
   // Helper: find by option.value OR by plain-text option.label
   const findOptionByValueOrLabel = useCallback((opts, v) => {
     if (!v) return { found: null, matched: null };
@@ -301,11 +301,11 @@ const SelectTypeInput = ({
 
   const handleFocus = useCallback(() => {
     onFocus?.();
-    if (readOnly) return;
+    if (readOnly || disabled) return;
     // Always open the dropdown on focus so the inline "Create" option can be shown
     setShowOptions(true);
     setHighlightedIndex(0);
-  }, [onFocus, readOnly]);
+  }, [onFocus, readOnly, disabled]);
 
   const handleBlur = useCallback(
     (e) => {
@@ -531,7 +531,7 @@ const SelectTypeInput = ({
             readOnly={readOnly}
             ref={inputRef}
             autoComplete="off"
-            disabled={loading}
+            disabled={loading || disabled}
             aria-invalid={!!displayErr}
             aria-describedby={errorId}
             className={cn(
@@ -540,12 +540,12 @@ const SelectTypeInput = ({
               displayErr
                 ? 'border-error focus:ring-error/30 focus:border-error'
                 : 'border-white-200 focus:ring-blue-500/30 focus:border-blue-500',
-              readOnly ? 'bg-black-200 pointer-events-none' : '',
+              readOnly || disabled ? 'bg-black-200 pointer-events-none opacity-75' : '',
               loading ? 'bg-gray-100 text-gray-400' : '',
               className
             )}
             autoFocus={autoFocus}
-            tabIndex={readOnly ? -1 : 0}
+            tabIndex={readOnly || disabled ? -1 : 0}
           />
 
           {!loading && (
@@ -594,7 +594,8 @@ const SelectTypeInput = ({
                       handleSelect(option);
                     }}
                   >
-                    <span>{htmlToPlainForSearch(option.label)}</span>
+                    <span dangerouslySetInnerHTML={{ __html: option.label }} />
+                    {/* <span>{htmlToPlainForSearch(option.label)}</span> */}
                   </li>
                 ))}
 
@@ -639,6 +640,7 @@ const SelectTypeInput = ({
 function propsAreEqual(prev, next) {
   if (prev.value !== next.value) return false;
   if (prev.err !== next.err) return false;
+  if (prev.options !== next.options) return false;
   if (prev.apiget !== next.apiget) return false;
   if (prev.apiparams !== next.apiparams) return false;
   if ((prev.params?.productType ?? '') !== (next.params?.productType ?? '')) return false;
@@ -649,6 +651,7 @@ function propsAreEqual(prev, next) {
     prev.placeholder === next.placeholder &&
     prev.required === next.required &&
     prev.readOnly === next.readOnly &&
+    prev.disabled === next.disabled &&
     prev.className === next.className &&
     prev.parent_className === next.parent_className
   );

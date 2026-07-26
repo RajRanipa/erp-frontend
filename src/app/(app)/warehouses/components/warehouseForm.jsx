@@ -57,7 +57,6 @@ export default function WarehouseForm({ initial = null, onSuccess = null }) {
         Toast.success('Warehouse updated');
       } else {
         res = await axiosInstance.post('/api/warehouses', payload);
-        console.log('res warehouse', res);
         Toast.success('Warehouse created');
       }
 

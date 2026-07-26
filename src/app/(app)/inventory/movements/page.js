@@ -1,148 +1,113 @@
 'use client';
-import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
-import StockFilters from '../components/StockFilters';
-import LedgerTable from '../components/LedgerTable';
-import { axiosInstance } from '@/lib/axiosInstance';
-import { Toast } from '@/Components/toast';
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Loading from '@/Components/Loading';
+import { Toast } from '@/Components/toast';
+import { useWarehouses } from '@/hooks/useWarehouses';
+import { axiosInstance } from '@/lib/axiosInstance';
+import LedgerTable from '../components/LedgerTable';
+import StockFilters from '../components/StockFilters';
+
+const INITIAL_FILTERS = {
+  categoryKey: '',
+  productType: '',
+  txnType: 'all types',
+  warehouseId: '',
+  batchNo: '',
+  query: '',
+};
 
 export default function InventoryMovement() {
-  const defaultFilters = useMemo(
-    () => ({
-      itemId: '',
-      categoryKey: '',
-      productType: '',
-      txnType: 'all types',
-      warehouseId: '',
-      batchNo: '',
-      query: '',
-      serverSearch: false,
-    }),
-    []
-  );
-
-  const [filters, setFilters] = useState(defaultFilters);
-  const filtersRef = useRef(defaultFilters);
+  const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [rows, setRows] = useState([]);
-  const [limit, setLimit] = useState(200); // per-page server limit
-  const [loading, setLoading] = useState(false);
+  const [limit, setLimit] = useState(200);
+  const [cursor, setCursor] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
-  const [cursor, setCursor] = useState(null); // for pagination (older than this date)
-  const [hasMore, setHasMore] = useState(false);
-
-  // default window for shallow mode: last 30 days
-  const defaultFrom = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 30);
-    return d.toISOString();
-  }, []);
-
-
-  const fetchLedger = useCallback(
-    async ({ reset = false, useFilters, useCursor } = {}) => {
-      setLoading(true);
-      setError('');
-      try {
-        const params = { limit };
-        const f = useFilters || {};
-
-        // Always keep a sane default range (last 30 days). User can load older via cursor.
-        params.from = defaultFrom;
-
-        if (f.productType) params.productType = f.productType;
-        if (f.categoryKey) params.categoryKey = f.categoryKey;
-        if (f.txnType && f.txnType !== 'all types') params.txnType = f.txnType;
-
-        if (!reset && useCursor) params.cursor = useCursor;
-        // console.log('fetchLedger', params);
-        const res = await axiosInstance.get('/api/inventory/ledger', { params });
-        const list = Array.isArray(res?.data?.data) ? res.data.data : [];
-        const next = res?.data?.nextCursor || null;
-
-        setRows(prev => reset ? list : [...prev, ...list]);
-        setCursor(next);
-        setHasMore(Boolean(next));
-      } catch (e) {
-        const msg = e?.response?.data?.message || 'Failed to load movements';
-        setError(msg);
-        Toast.error(msg);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [limit, defaultFrom]
-  );
+  const { list: warehouses } = useWarehouses();
 
   useEffect(() => {
-    filtersRef.current = filters;
-  }, [filters]);
+    const timer = setTimeout(() => setDebouncedQuery(filters.query.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [filters.query]);
+
+  const requestFilters = useMemo(() => ({
+    categoryKey: filters.categoryKey || undefined,
+    productType: filters.productType || undefined,
+    txnType: filters.txnType !== 'all types' ? filters.txnType : undefined,
+    warehouseId: filters.warehouseId || undefined,
+    batchNo: filters.batchNo || undefined,
+    search: debouncedQuery || undefined,
+  }), [
+    filters.categoryKey,
+    filters.productType,
+    filters.txnType,
+    filters.warehouseId,
+    filters.batchNo,
+    debouncedQuery,
+  ]);
+
+  const fetchLedger = useCallback(async ({ append = false, nextCursor = null } = {}) => {
+    append ? setLoadingMore(true) : setLoading(true);
+    setError('');
+    try {
+      const response = await axiosInstance.get('/api/inventory/ledger', {
+        params: {
+          ...requestFilters,
+          limit,
+          cursor: append ? nextCursor : undefined,
+        },
+      });
+      const list = Array.isArray(response?.data?.data) ? response.data.data : [];
+      setRows(current => append ? [...current, ...list] : list);
+      setCursor(response?.data?.nextCursor || null);
+    } catch (requestError) {
+      const message = requestError?.response?.data?.message || 'Failed to load movements';
+      setError(message);
+      Toast.error(message);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [limit, requestFilters]);
 
   useEffect(() => {
-    setCursor(null);
-    fetchLedger({
-      reset: true,
-      useFilters: filtersRef.current,
-      useCursor: null,
-    });
-  }, [limit, filters.serverSearch, fetchLedger]);
-
-  const handleFiltersChange = (patch) => {
-    setFilters(prev => ({ ...prev, ...patch }));
-  };
+    fetchLedger();
+  }, [fetchLedger]);
 
   return (
-    <>
-      <div className="space-y-4 h-full flex flex-col">
-        {/* Loading state */}
-        {loading && (
-          <div className="space-y-4 h-full flex flex-col gap-2">
-            <Loading variant="skeleton" className="h-[40px]" />
-            <Loading variant="skeleton" className="flex-1" />
-          </div>
-        )}
+    <div className="space-y-4 h-full flex flex-col">
+      <StockFilters
+        title="Stock movements"
+        value={filters}
+        onChange={patch => setFilters(current => ({ ...current, ...patch }))}
+        onRefresh={() => fetchLedger()}
+        loading={loading}
+        warehouses={warehouses}
+      />
 
-        {/* Error state */}
-        {!loading && error && (
-          <div className="min-h-50 flex flex-col items-center justify-center gap-3 text-center">
-            <div className="text-error font-medium">{error}</div>
-            <button
-              type="button"
-              onClick={() => fetchLedger({ reset: true, useFilters: filters, useCursor: null })}
-              className="btn-secondary"
-              title="Retry"
-            >
-              Retry
-            </button>
-          </div>
-        )}
-
-        {/* Data / empty state */}
-        {!loading && !error && (
-          <>
-            <StockFilters
-              title="Stock Movements"
-              value={filters}
-              onChange={handleFiltersChange}
-              loading={loading}
-              onRefresh={() => fetchLedger({ reset: true, useFilters: filters, useCursor: null })}
-              hasMore={hasMore}
-              onLoadMore={() => fetchLedger({ reset: false, useFilters: filters, useCursor: cursor })}
-            />
-
-            <LedgerTable
-              rows={rows}
-              loading={loading}
-              error={error}
-              filters={filters}
-              limit={limit}
-              onLimitChange={setLimit}
-              hasMore={hasMore}
-              onLoadMore={() => fetchLedger({ reset: false, useFilters: filters, useCursor: cursor })}
-              serverSearch={filters.serverSearch}
-            />
-          </>
-        )}
-      </div>
-    </>
+      {loading ? (
+        <Loading variant="skeleton" className="flex-1" />
+      ) : error ? (
+        <div className="flex-1 flex flex-col items-center justify-center gap-3">
+          <p className="text-error">{error}</p>
+          <button type="button" className="btn-secondary" onClick={() => fetchLedger()}>
+            Retry
+          </button>
+        </div>
+      ) : (
+        <LedgerTable
+          rows={rows}
+          filters={{ query: filters.query, serverSearch: true }}
+          limit={limit}
+          onLimitChange={setLimit}
+          hasMore={Boolean(cursor)}
+          onLoadMore={() => fetchLedger({ append: true, nextCursor: cursor })}
+          loadingMore={loadingMore}
+        />
+      )}
+    </div>
   );
 }

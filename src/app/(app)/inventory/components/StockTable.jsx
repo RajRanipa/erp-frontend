@@ -35,7 +35,13 @@ export default function StockTable({
     return rows.filter((r) => {
       const item = r.itemId || {};
       // console.log("item", item)
-      const productTypeStr = r?.productType ? `${r.productType}` : '';
+      const productTypeStr = String(
+        r?.productType?._id ||
+        r?.productType ||
+        item?.productType?._id ||
+        item?.productType ||
+        '',
+      );
       const rowCategory = item?.categoryKey || r?.categoryKey || '';
       const tempStr = item?.temperature
         ? `${item.temperature?.value ?? ''} ${item.temperature?.unit ?? ''}`
@@ -180,7 +186,18 @@ export default function StockTable({
         header: 'Available',
         sortable: true,
         align: 'right',
-        render: (r) => r.available ?? (r.onHand ?? 0) - (r.reserved ?? 0),
+        render: (r) => {
+          const available = r.available ?? (r.onHand ?? 0) - (r.reserved ?? 0);
+          const minimum = Number(r.itemId?.minimumStock || 0);
+          return (
+            <span
+              className={minimum > 0 && available <= minimum ? 'text-error font-semibold' : ''}
+              title={minimum > 0 ? `Minimum stock: ${minimum}` : undefined}
+            >
+              {available}
+            </span>
+          );
+        },
       },
       {
         key: 'uom',
@@ -211,7 +228,7 @@ export default function StockTable({
         <Table
           columns={columns}
           data={filteredRows}
-          rowKey={(r) => `${r.itemId?._id || r.itemId}-${r.warehouseId?._id || r.warehouseId}-${r.batchNo || 'none'}-${r.uom || ''}`}
+          rowKey={(r) => r._id || `${r.itemId?._id || r.itemId}-${r.warehouseId?._id || r.warehouseId}-${r.batchNo || 'none'}-${r.bin || 'none'}-${r.uom || ''}`}
           virtualization={filteredRows.length > 200}
           loading={loading}
           tableRef={stockTabelRef}

@@ -1,87 +1,124 @@
 'use client';
-// src/app/(app)/inventory/stock/page.js
-import React, { useEffect, useState, useCallback } from 'react';
-import { axiosInstance } from '@/lib/axiosInstance';
-import { Toast } from '@/Components/toast';
-import StockFilters from '../components/StockFilters';
-import StockTable from '../components/StockTable';
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Loading from '@/Components/Loading';
 import NavLink from '@/Components/NavLink';
+import { Toast } from '@/Components/toast';
+import { useWarehouses } from '@/hooks/useWarehouses';
+import { axiosInstance } from '@/lib/axiosInstance';
+import StockFilters from '../components/StockFilters';
+import StockTable from '../components/StockTable';
+
+const INITIAL_FILTERS = {
+  warehouseId: '',
+  batchNo: '',
+  categoryKey: '',
+  productType: '',
+  query: '',
+};
 
 export default function InventoryStock() {
-  // Filters controlled here; StockFilters merges via onChange(patch)
-  const [filters, setFilters] = useState({
-    itemId: '',
-    warehouseId: '',
-    batchNo: '',
-    categoryKey: '',
-    productType: '',
-    query: '',
-  });
-
+  const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [cursor, setCursor] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
-  const [refresh, setRefresh] = useState(null);
+  const { list: warehouses } = useWarehouses();
 
-  const fetchStock = useCallback(async () => {
-    setLoading(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(filters.query.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [filters.query]);
+
+  const requestFilters = useMemo(() => ({
+    warehouseId: filters.warehouseId || undefined,
+    batchNo: filters.batchNo || undefined,
+    categoryKey: filters.categoryKey || undefined,
+    productType: filters.productType || undefined,
+    search: debouncedQuery || undefined,
+  }), [
+    filters.warehouseId,
+    filters.batchNo,
+    filters.categoryKey,
+    filters.productType,
+    debouncedQuery,
+  ]);
+
+  const fetchStock = useCallback(async ({ append = false, nextCursor = null } = {}) => {
+    append ? setLoadingMore(true) : setLoading(true);
     setError('');
     try {
-      const res = await axiosInstance.get(`/api/inventory/stock`);
-      const list = Array.isArray(res?.data?.data) ? res.data.data : [];
-      setRows(list);
-    } catch (e) {
-      const msg = e?.response?.data?.message || 'Failed to load stock';
-      setError(msg);
-      Toast.error(msg);
+      const response = await axiosInstance.get('/api/inventory/stock', {
+        params: {
+          ...requestFilters,
+          limit: 200,
+          cursor: append ? nextCursor : undefined,
+        },
+      });
+      const list = Array.isArray(response?.data?.data) ? response.data.data : [];
+      setRows(current => append ? [...current, ...list] : list);
+      setCursor(response?.data?.nextCursor || null);
+    } catch (requestError) {
+      const message = requestError?.response?.data?.message || 'Failed to load stock';
+      setError(message);
+      Toast.error(message);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, []);
+  }, [requestFilters]);
 
-  // Initial load
   useEffect(() => {
     fetchStock();
   }, [fetchStock]);
 
-  // If you truly want to render both widgets only when data exists:
-  // const ready = rows.length > 0 && !loading && !error;
-  // But usually we render filters first anyway. Your call:
-  const ready = !loading && !error; // show table once the initial fetch resolved (even if empty)
-
   return (
-    <>
-      {loading &&  (
-              <div className="space-y-4 h-full flex flex-col gap-2">
-                <Loading variant="skeleton" className="h-[40px]" />
-                <Loading variant="skeleton" className="flex-1" />
-              </div>
-            )}
-      {ready && <div className="space-y-4 h-full flex flex-col">
-        {(rows && rows.length>0) ? <>
-          {/* Filters always visible (recommended) */}
-          <StockFilters
-            title="Current Stock"
-            value={filters}
-            onChange={(patch) => setFilters((prev) => ({ ...prev, ...patch }))}
-            showTxnType={false} // hide txnType for Stock page
-            onRefresh={fetchStock}
-            loading={loading}
-            StockFiltersRef={setRefresh}
-          />
+    <div className="space-y-4 h-full flex flex-col">
+      <StockFilters
+        title="Current stock"
+        value={filters}
+        onChange={patch => setFilters(current => ({ ...current, ...patch }))}
+        showTxnType={false}
+        onRefresh={() => fetchStock()}
+        loading={loading}
+        warehouses={warehouses}
+      />
 
-          {/* Table area */}
-          <StockTable
-            rows={rows}
-            loading={loading}
-            error={error}
-            filters={filters} // used for client-side query + productType filtering
-            refrence={refresh}
-          />
-        </>: <div className='flex items-center justify-center gap-0 text-white-500 flex-col min-h-50 capitalize'>Add Receipt Entry for items <NavLink href="/inventory/create" type='link' className='underline text-action'>here</NavLink> to get started.</div>}
-      </div> 
-       }
-    </>
+      {loading ? (
+        <Loading variant="skeleton" className="flex-1" />
+      ) : error ? (
+        <div className="flex-1 flex flex-col items-center justify-center gap-3">
+          <p className="text-error">{error}</p>
+          <button type="button" className="btn-secondary" onClick={() => fetchStock()}>
+            Retry
+          </button>
+        </div>
+      ) : rows.length ? (
+        <>
+          <StockTable rows={rows} filters={{ query: filters.query }} />
+          {cursor && (
+            <div className="flex justify-center pb-3">
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={loadingMore}
+                onClick={() => fetchStock({ append: true, nextCursor: cursor })}
+              >
+                {loadingMore ? 'Loading…' : 'Load more stock'}
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="flex-1 flex items-center justify-center gap-1 text-white-500">
+          No stock matches these filters.
+          <NavLink href="/inventory/create" type="link" className="underline text-action">
+            Post a receipt
+          </NavLink>
+        </div>
+      )}
+    </div>
   );
 }

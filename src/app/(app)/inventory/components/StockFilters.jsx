@@ -1,35 +1,16 @@
 'use client';
-// src/app/(app)/inventory/components/StockFilters.jsx
-import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
-import CustomInput from '@/Components/inputs/CustomInput';
-import { filter1Icon, filter2Icon, searchIcon } from '@/utils/SVG';
-import { useHighlight } from '@/hooks/useHighlight';
-import { useEffect } from 'react';
 
-/**
- * StockFilters (fully controlled)
- *
- * Props:
- * - value: {
- *     itemId?: string,
- *     warehouseId?: string,
- *     batchNo?: string,
- *     productType?: string,
- *     query?: string,
- *     txnType?: string,
- *   }
- * - onChange: (patch) => void   // we only emit the patch, parent merges
- * - className?: string
- * - showTxnType?: boolean       // NEW: hide txnType when false
- */
+import { useMemo } from 'react';
+import CustomInput from '@/Components/inputs/CustomInput';
+import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
+import { filter1Icon, filter2Icon, searchIcon } from '@/utils/SVG';
 
 const txnTypeOptions = [
-  { label: 'All Types', value: 'all types' },
-  { label: 'RECEIPT', value: 'RECEIPT' },
-  { label: 'ISSUE', value: 'ISSUE' },
-  { label: 'TRANSFER', value: 'TRANSFER' },
-  { label: 'ADJUST', value: 'ADJUST' },
-  { label: 'REPACK', value: 'REPACK' },
+  { label: 'All types', value: 'all types' },
+  ...['RECEIPT', 'ISSUE', 'TRANSFER', 'ADJUST', 'REPACK'].map(value => ({
+    label: value,
+    value,
+  })),
 ];
 
 const categoryOptions = [
@@ -45,125 +26,117 @@ export default function StockFilters({
   onChange,
   className = '',
   showTxnType = true,
-  onRefresh = () => {},
+  onRefresh,
   loading = false,
-  StockFiltersRef = () => {},
+  warehouses = [],
 }) {
   const filters = {
-    itemId: value.itemId || '',
     warehouseId: value.warehouseId || '',
     batchNo: value.batchNo || '',
     categoryKey: value.categoryKey || '',
     productType: value.productType || '',
     query: value.query || '',
-    txnType: showTxnType ? (value.txnType || 'all types') : (value.txnType || ''),
+    txnType: showTxnType ? value.txnType || 'all types' : '',
   };
-  // parent merge
-  const emit = (patch) => {
-    onChange?.(patch, "it's from stock filters");
-  };
+  const emit = patch => onChange?.(patch);
+  const warehouseOptions = useMemo(
+    () => warehouses.map(warehouse => ({
+      value: String(warehouse._id),
+      label: warehouse.name,
+    })),
+    [warehouses],
+  );
 
-  const handleProductTypeChange = (e) => {
-    const v = e?.target?.value ?? '';
-    emit({ productType: v });
-  };
-
-  const handleTxnTypeChange = (e) => {
-    const v = e?.target?.value ?? '';
-    if (!showTxnType) return;
-    if (v === filters.txnType) return;
-    emit({ txnType: v });
-  };
-
-  const r = useHighlight(filters.query);
-
-  useEffect(() => {
-    StockFiltersRef(r);
-  }, [r, StockFiltersRef]);
-
-  const handleQueryChange = (e) => {
-    emit({ query: e.target.value });
-  };
-
-  const clear = () => {
-    const patch = {
-      itemId: '',
-      warehouseId: '',
-      batchNo: '',
-      categoryKey: '',
-      productType: '',
-      query: '',
-      txnType: showTxnType ? 'all types' : '',
-    };
-    onChange?.(patch, "it's from stock filters");
-  };
+  const clear = () => emit({
+    warehouseId: '',
+    batchNo: '',
+    categoryKey: '',
+    productType: '',
+    query: '',
+    txnType: showTxnType ? 'all types' : '',
+  });
 
   return (
-    <div className={`flex flex-wrap items-center justify-between gap-3 ${className}`}>
-      {title && <h3 className="text-lg font-semibold capitalize text-nowrap text-secondary-text mb-5">{title}</h3>}
-      <div className="flex items-center gap-3 flex-0">
+    <div className={`flex flex-wrapitems-start justify-between gap-3 ${className}`}>
+      {title && (
+        <h3 className="text-lg font-semibold capitalize text-nowrap text-secondary-text mb-5">
+          {title}
+        </h3>
+      )}
+      <div className="flex items-start gap-3">
         <SelectTypeInput
           name="categoryKey"
-          id="categoryKey"
           placeholder="Item category"
           value={filters.categoryKey}
-          onChange={(event) =>
-            emit({
-              categoryKey: event?.target?.value ?? '',
-              productType: '',
-            })
-          }
+          onChange={event => emit({
+            categoryKey: event.target.value,
+            productType: '',
+          })}
           options={categoryOptions}
           className="min-w-[150px]"
         />
 
-        {/* Product Type */}
         {(!filters.categoryKey || filters.categoryKey === 'FG') && (
           <SelectTypeInput
             name="productType"
-            id="productType"
             placeholder="Product Type"
             value={filters.productType}
-            onChange={handleProductTypeChange}
+            onChange={event => emit({ productType: event.target.value })}
             apiget="/api/product-type/options"
             icon={filter1Icon()}
           />
         )}
 
-        {/* Txn type (optional) */}
+        {warehouseOptions.length > 1 && <SelectTypeInput
+          name="warehouseId"
+          placeholder="Warehouse"
+          value={filters.warehouseId}
+          onChange={event => emit({ warehouseId: event.target.value })}
+          options={warehouseOptions}
+          className="min-w-[150px]"
+        />}
+
         {showTxnType && (
           <SelectTypeInput
             name="txnType"
             value={filters.txnType}
-            placeholder="Txn Type"
-            onChange={handleTxnTypeChange}
+            placeholder="Movement type"
+            onChange={event => emit({ txnType: event.target.value })}
             options={txnTypeOptions}
             className="min-w-[120px]"
             icon={filter2Icon()}
           />
         )}
 
-        {/* Client-side search */}
+        {false && <CustomInput
+          name="batchNo"
+          parent_className="mb-5 max-w-[180px]"
+          placeholder="Batch number"
+          value={filters.batchNo}
+          onChange={event => emit({ batchNo: event.target.value })}
+        />}
+
         <CustomInput
+          name="inventorySearch"
           type="search"
           parent_className="mb-5"
-          className="min-w-[260px]"
-          placeholder="Search item / grade / specification"
+          className="min-w-[240px]"
+          placeholder="Search Item, SKU, grade…"
           value={filters.query}
-          onChange={handleQueryChange}
+          onChange={event => emit({ query: event.target.value })}
           icon={searchIcon()}
         />
 
-        <button
-          type="button"
-          onClick={clear}
-          className="btn-secondary mb-5"
-          title="Clear filters"
-        >
+        <button type="button" onClick={clear} className="btn-secondary mb-5">
           Clear
         </button>
         {onRefresh && (
-          <button className="text-sm underline mb-5" onClick={onRefresh} disabled={loading}>
+          <button
+            type="button"
+            className="text-sm underline mb-5 px-2 py-2"
+            onClick={onRefresh}
+            disabled={loading}
+          >
             {loading ? 'Loading…' : 'Refresh'}
           </button>
         )}

@@ -12,6 +12,7 @@ const SelectInput = ({
   onBlur,
   required = false,
   readOnly = false,
+  disabled = false,
   icon,
   parent_className = '',
   autocomplete = 'on',
@@ -82,6 +83,7 @@ const SelectInput = ({
           onBlur={handleBlur}
           required={required}
           readOnly={readOnly}
+          disabled={disabled}
           autoComplete={autocomplete}
           aria-invalid={!!displayErr}
           aria-describedby={errorId}
@@ -92,12 +94,12 @@ const SelectInput = ({
           ${(displayErr && readOnly)
               ? 'focus:ring-error focus:ring-3 focus:border-error focus:border-0.5 '
               : 'focus:ring-blue-500/30  focus:border-blue-500 focus:border-0.5'} 
-          ${readOnly ? 'bg-black-200 pointer-events-none' : ''} 
+          ${readOnly || disabled ? 'bg-black-200 pointer-events-none opacity-75' : ''}
                ${icon ? 'pl-10' : ''}
           ${type === 'password' ? 'pr-10' : ''}
           ${className} 
           `)}
-          tabIndex={readOnly ? -1 : undefined}
+          tabIndex={readOnly || disabled ? -1 : undefined}
           onFocus={readOnly ? (e) => e.target.blur() : undefined}
           autoFocus={autoFocus}
           {...(type === 'number' ? { min, max, inputMode: 'decimal' } : {})}

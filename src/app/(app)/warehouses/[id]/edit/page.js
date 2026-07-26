@@ -9,7 +9,6 @@ import Warehouse from '../../page';
 
 export default function EditWarehousePage() {
   const { id } = useParams();
-  console.log(id);
   const router = useRouter();
   
 
@@ -24,18 +23,17 @@ export default function EditWarehousePage() {
       try {
         const res = await axiosInstance.get(`/api/warehouses/${id}`);
         const data = res?.data?.data ?? res?.data ?? null;
-        console.log('data', data);
         if (!mounted) return;
         if (!data) {
           Toast.error('Warehouse not found');
-          router.push('/warehouse');
+          router.push('/warehouses');
           return;
         }
         setInitial(data);
       } catch (err) {
         if (!mounted) return;
         Toast.error(err?.response?.data?.message || 'Failed to load warehouse');
-        router.push('/warehouse');
+        router.push('/warehouses');
       } finally {
         if (mounted) setLoading(false);
       }
@@ -43,9 +41,9 @@ export default function EditWarehousePage() {
     return () => { mounted = false; };
   }, [id, router]);
 
-  const handleSuccess = (saved) => {
+  const handleSuccess = () => {
     Toast.success('Warehouse saved');
-    router.push('/warehouse');
+    router.push('/warehouses');
   };
 
   return (

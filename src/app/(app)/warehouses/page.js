@@ -1,11 +1,11 @@
 // src/app/warehouse/page.js
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import DisplayMain from '@/Components/layout/DisplayMain';
 import DisplayBar from '@/Components/layout/DisplayBar';
 import NavLink from '@/Components/NavLink';
 import { axiosInstance } from '@/lib/axiosInstance';
-import { useToast, useConfirmToast, Toast } from '@/Components/toast';
+import { Toast } from '@/Components/toast';
 import { useRouter } from 'next/navigation';
 import EditButton from "@/Components/buttons/EditButton";
 import DeleteButton from "@/Components/buttons/DeleteButton";
@@ -39,33 +39,33 @@ export default function WarehousePage({ children, setTitle, setHref }) {
     useEffect(() => {
         
         if (setTitle) setTitle("Warehouse");
-        if (setHref) setHref("/warehouse");
+        if (setHref) setHref("/warehouses");
     }, [setTitle, setHref]);
 
     const handleDelete = async (id, name, triggerEl) => {
-        const ok = await Toast.promise(`Delete ${name} warehouse? This action cannot be undone.`, {
+        const ok = await Toast.promise(`Archive ${name}? Historical inventory records will be preserved.`, {
             cancelText: 'Cancel',
-            confirmText: 'Delete',
+            confirmText: 'Archive',
             focusTarget: triggerEl,
         });
         if (!ok) return;
         try {
             await axiosInstance.delete(`/api/warehouses/${id}`);
             setWarehouses(prev => prev.filter(x => x._id !== id));
-            Toast.success('Warehouse deleted');
+            Toast.success('Warehouse archived');
         } catch (err) {
-            Toast.error(err?.response?.data?.message || 'Failed to delete warehouse');
+            Toast.error(err?.response?.data?.message || 'Failed to archive warehouse');
         }
     };
 
     return (
         <>
-            <DisplayBar title="warehouse" href="/warehouse">
+            <DisplayBar title="warehouse" href="/warehouses">
                 <div className="flex items-center justify-between w-full">
                     <div>
                     </div>
                     <div className='flex gap-2'>
-                        <NavLink href={'/warehouse/create'} type="button">create warehouse</NavLink>
+                        <NavLink href="/warehouses/create" type="button">create warehouse</NavLink>
                     </div>
                 </div>
             </DisplayBar>
@@ -78,7 +78,7 @@ export default function WarehousePage({ children, setTitle, setHref }) {
                         {loading ? (
                             <div>Loading…</div>
                         ) : warehouses.length === 0 ? (
-                            <div className="bg-most-secondary p-4 rounded">No warehouses found. <NavLink href="/warehouse/create" className="underline">Create one</NavLink></div>
+                            <div className="bg-most-secondary p-4 rounded">No warehouses found. <NavLink href="/warehouses/create" className="underline">Create one</NavLink></div>
                         ) : (
                             <div className="bg-most-secondary p-4 rounded-lg shadow-md overflow-x-auto">
                                 <table className="min-w-full text-sm">
@@ -102,7 +102,7 @@ export default function WarehousePage({ children, setTitle, setHref }) {
                                                 <td className="py-2 pr-4">{w.state ?? '—'}</td>
                                                 <td className="py-2 pr-4 flex gap-2">
                                                     <div className="flex items-center justify-center gap-3">
-                                                        <EditButton itemName={w.name} onClick={() => router.push(`/warehouse/${w._id}/edit`)} />
+                                                        <EditButton itemName={w.name} onClick={() => router.push(`/warehouses/${w._id}/edit`)} />
                                                         <DeleteButton itemName={w.name} onClick={(e) => handleDelete(w._id, w.name || w.code || 'this', e.currentTarget)} />
                                                     </div>
                                                 </td>

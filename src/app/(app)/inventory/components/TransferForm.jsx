@@ -1,171 +1,182 @@
-// frontend-erp/src/app/(app)/inventory/components/TransferForm.jsx
-// frontend-erp/src/app/(app)/inventory/components/TransferForm.jsx
 'use client';
 
 import { useMemo, useState } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
-import ItemSelect from './ItemSelect';
-import WarehouseSelect from './WarehouseSelect';
 import CustomInput from '@/Components/inputs/CustomInput';
 import TextArea from '@/Components/inputs/TextArea';
 import StockItemSelect from './StockItemSelect';
+import WarehouseSelect from './WarehouseSelect';
 
-export default function TransferForm({
-  onSuccess,
-  warehouses = [],
-}) {
-  const [form, setForm] = useState({
-    itemId: '',
-    fromWarehouseId: '',
-    toWarehouseId: '',
-    qty: '',
-    uom: '',
-    batchNo: '',
-    bin: '',
-    note: '',
-  });
+const newRequestId = () =>
+  globalThis.crypto?.randomUUID?.() ||
+  `transfer-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+const initialForm = () => ({
+  stockBucketId: '',
+  itemId: '',
+  fromWarehouseId: '',
+  toWarehouseId: '',
+  qty: '',
+  uom: '',
+  batchNo: '',
+  fromBin: '',
+  toBin: '',
+  toBatchNo: '',
+  note: '',
+  requestId: newRequestId(),
+});
+
+export default function TransferForm({ onSuccess, warehouses = [] }) {
+  const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
-
-  const isQtyValid = useMemo(() => {
-    const n = Number(form.qty);
-    return Number.isFinite(n) && n > 0;
-  }, [form.qty]);
-
-  const sameWarehouse = form.fromWarehouseId && form.fromWarehouseId === form.toWarehouseId;
-
-  const isValid = Boolean(
+  const quantity = Number(form.qty);
+  const sameLocation = form.fromWarehouseId === form.toWarehouseId &&
+    (form.fromBin || '') === (form.toBin || '') &&
+    (form.batchNo || '') === (form.toBatchNo || form.batchNo || '');
+  const valid = Boolean(
     form.itemId &&
     form.fromWarehouseId &&
     form.toWarehouseId &&
-    !sameWarehouse &&
     form.uom &&
-    isQtyValid
+    Number.isFinite(quantity) &&
+    quantity > 0 &&
+    !sameLocation,
   );
 
-  const handleChange = (patch) => setForm((f) => ({ ...f, ...patch }));
+  const warehouseOptions = useMemo(
+    () => warehouses.map(warehouse => ({
+      value: String(warehouse._id),
+      label: warehouse.name,
+    })),
+    [warehouses],
+  );
 
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!isValid) {
-      if (sameWarehouse) Toast.warning('From and To warehouse must be different');
-      return;
-    }
+  const change = patch => setForm(current => ({ ...current, ...patch }));
+
+  const selectSource = (itemId, item, snapshot) => {
+    change({
+      stockBucketId: snapshot?._id ? String(snapshot._id) : '',
+      itemId: itemId || '',
+      fromWarehouseId: snapshot?.warehouseId?._id || snapshot?.warehouseId || '',
+      uom: snapshot?.uom || item?.UOM || '',
+      batchNo: snapshot?.batchNo || '',
+      fromBin: snapshot?.bin || '',
+      toBatchNo: snapshot?.batchNo || '',
+    });
+  };
+
+  const submit = async event => {
+    event.preventDefault();
+    if (!valid || loading) return;
     setLoading(true);
     try {
-      const body = {
+      const response = await axiosInstance.post('/api/inventory/transfer', {
         itemId: form.itemId,
         fromWarehouseId: form.fromWarehouseId,
         toWarehouseId: form.toWarehouseId,
-        qty: Math.abs(Number(form.qty)),
-        uom: form.uom.trim(),
-        batchNo: form.batchNo?.trim() || null,
-        bin: form.bin?.trim() || null,
-        note: form.note?.trim() || '',
-      };
-
-      const res = await axiosInstance.post('/inventory/transfer', body);
-
-      if (res?.data?.status) {
-        Toast.success('Transfer posted');
-        setForm((f) => ({ ...f, qty: '', note: '' }));
-        onSuccess?.(res.data);
-      } else {
-        const msg = res?.data?.message || 'Failed to transfer';
-        Toast.error(msg);
+        qty: quantity,
+        uom: form.uom,
+        batchNo: form.batchNo.trim() || null,
+        toBatchNo: form.toBatchNo.trim() || null,
+        fromBin: form.fromBin.trim() || null,
+        toBin: form.toBin.trim() || null,
+        note: form.note.trim(),
+        requestId: form.requestId,
+      });
+      if (!response?.data?.status) {
+        throw new Error(response?.data?.message || 'Failed to transfer stock');
       }
-    } catch (err) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to transfer';
-      Toast.error(msg);
+      Toast.success(response.data.message || 'Stock transferred');
+      setForm(initialForm());
+      onSuccess?.(response.data);
+    } catch (error) {
+      Toast.error(
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to transfer stock',
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={submit} className=" rounded-lg p-3 space-y-3">
+    <form onSubmit={submit} className="rounded-lg p-3 space-y-3">
       <div className="flex items-center justify-between pb-4">
-        <h2 className="font-bold text-lg text-most-text">Transfer</h2>
-        <button
-          type="submit"
-          disabled={!isValid || loading}
-          className={`btn-primary  ${!isValid || loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-black'
-            }`}
-        >
+        <h2 className="font-bold text-lg text-most-text">Transfer stock</h2>
+        <button type="submit" disabled={!valid || loading} className="btn-primary disabled:opacity-50">
           {loading ? 'Saving…' : 'Submit'}
         </button>
       </div>
 
       <StockItemSelect
-        value={form.itemId}
-        onChange={(v) => handleChange({ itemId: v })}
+        value={form.stockBucketId}
+        onChange={selectSource}
         required
-        label='Item'
+        label="Source stock bucket"
       />
 
       <div className="grid md:grid-cols-2 gap-3 py-2">
         <WarehouseSelect
-          label="From Warehouse"
+          label="From warehouse"
           value={form.fromWarehouseId}
-          onChange={(v) => handleChange({ fromWarehouseId: v })}
+          options={warehouseOptions}
+          disabled
           required
-          options={warehouses.map(w => ({ value: String(w._id), label: w.name }))}
         />
         <WarehouseSelect
-          label="To Warehouse"
+          label="To warehouse"
           value={form.toWarehouseId}
-          onChange={(v) => handleChange({ toWarehouseId: v })}
+          onChange={value => change({ toWarehouseId: value })}
+          options={warehouseOptions}
           required
-          options={warehouses.map(w => ({ value: String(w._id), label: w.name }))}
         />
       </div>
-      {sameWarehouse && (
-        <p className="text-xs text-red-400 mb-1">
-          From and To warehouse cannot be the same.
-        </p>
-      )}
+
       <div className="grid md:grid-cols-3 gap-3 py-2">
         <CustomInput
           label="Quantity"
           type="number"
           step="any"
           value={form.qty}
-          onChange={(e) => handleChange({ qty: e.target.value })}
+          onChange={event => change({ qty: event.target.value })}
           required
-          placeholder="quantity > 0"
+          err={form.qty && !(quantity > 0) ? 'Quantity must be greater than zero' : ''}
+        />
+        <CustomInput label="UOM" value={form.uom} readOnly required />
+        <CustomInput label="Source batch" value={form.batchNo} readOnly />
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-3 py-2">
+        <CustomInput label="Source bin" value={form.fromBin} readOnly />
+        <CustomInput
+          label="Destination batch"
+          value={form.toBatchNo}
+          onChange={event => change({ toBatchNo: event.target.value })}
+          placeholder="Defaults to source batch"
         />
         <CustomInput
-          label="UOM"
-          value={form.uom}
-          onChange={(e) => handleChange({ uom: e.target.value })}
-          required
-          placeholder="pcs / kg / roll"
-        />
-        <CustomInput
-          label="Batch"
-          value={form.batchNo}
-          onChange={(e) => handleChange({ batchNo: e.target.value })}
-          placeholder="optional"
+          label="Destination bin"
+          value={form.toBin}
+          onChange={event => change({ toBin: event.target.value })}
+          placeholder="Optional"
         />
       </div>
 
-      <div className="grid md:grid-cols-2 gap-3 py-2">
-        <CustomInput
-          label="Bin"
-          value={form.bin}
-          onChange={(e) => handleChange({ bin: e.target.value })}
-          placeholder="optional"
-        />
-        <TextArea
-          label="Note"
-          value={form.note}
-          onChange={(e) => handleChange({ note: e.target.value })}
-          rows={2}
-          placeholder="Add a note for this transfer (optional)"
-        />
-      </div>
+      {sameLocation && form.itemId && (
+        <p className="text-sm text-error">
+          Destination warehouse, bin, or batch must differ from the source.
+        </p>
+      )}
 
-
+      <TextArea
+        label="Note"
+        value={form.note}
+        onChange={event => change({ note: event.target.value })}
+        rows={2}
+        placeholder="Transfer reason or reference (optional)"
+      />
     </form>
   );
 }
