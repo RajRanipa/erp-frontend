@@ -148,7 +148,17 @@ const SelectTypeInput = ({
     });
   }, [onChange, name]);
 
-  const displayErr = err || internalErr;
+  useEffect(() => {
+    if (touched && required && !value) {
+      setInternalErr(`${label || placeholder || name} is required`);
+    }
+    else {
+      setInternalErr('');
+    }
+  }, [value, touched, required, label, name, placeholder]);
+
+  console.log('SelectInput err', err);
+  const displayErr = (typeof err === 'string' && err.length) ? err : internalErr;
   const errorId = displayErr ? `${id || name}-error` : undefined;
 
   // ------------ 1) fetch options once (and when api deps change) ------------
@@ -513,7 +523,7 @@ const SelectTypeInput = ({
         ) : null}
 
 
-        {loading || fetching  ? <Loading variant='skeleton' className='h-[38px] inline-block' /> : (<div className="relative flex items-center gap-2">
+        {loading || fetching ? <Loading variant='skeleton' className='h-[38px] inline-block' /> : (<div className="relative flex items-center gap-2">
           {icon && (
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white-300">
               {icon}
@@ -641,6 +651,7 @@ const SelectTypeInput = ({
 // keep memo but make it simpler — re-render if value or endpoints change
 function propsAreEqual(prev, next) {
   if (prev.value !== next.value) return false;
+  if (prev.err !== next.err) return false;
   if (prev.apiget !== next.apiget) return false;
   if (prev.apiparams !== next.apiparams) return false;
   if ((prev.params?.productType ?? '') !== (next.params?.productType ?? '')) return false;

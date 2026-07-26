@@ -129,6 +129,7 @@ export default function Production() {
               error={error}
               filters={filters} // used for client-side query + productType filtering
             />
+            <div className='w-full py-2'> individual production report </div>
             <ProductionTableSpecific
               rows={SpecificProductions}
               loading={loading}

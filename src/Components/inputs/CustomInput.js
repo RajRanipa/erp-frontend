@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { cn } from '../../utils/cn';
-import { eyeHideIcon, eyeShowIcon} from '@/utils/SVG';
+import { eyeHideIcon, eyeShowIcon } from '@/utils/SVG';
 
 const CustomInput = ({
   label,
@@ -23,7 +23,7 @@ const CustomInput = ({
   onBtnClick,
   btnContent,
   info,
-  autoFocus=false,
+  autoFocus = false,
   min,
   max,
   onInpute,
@@ -41,6 +41,7 @@ const CustomInput = ({
     }
   }, [value, touched, required, label, name, placeholder]);
 
+  console.log('CustomInput err', err);
   const displayErr = (typeof err === 'string' && err.length) ? err : internalErr;
   const errorId = displayErr ? `${id || name}-error` : undefined;
 
@@ -87,41 +88,41 @@ const CustomInput = ({
           aria-invalid={!!displayErr}
           aria-describedby={errorId}
           className={cn(` block w-full px-3 py-2 border sm:text-sm
-          ${ displayErr ? 'border-error' : 'border-white-200' } 
+          ${displayErr ? 'border-error' : 'border-white-200'} 
           rounded-lg shadow-xs placeholder-white-400 focus:outline-none
           focus:border-0.5 focus:ring-3
-          ${ (displayErr && readOnly)
+          ${(displayErr && readOnly)
               ? 'focus:ring-error focus:ring-3 focus:border-error focus:border-0.5 '
-              : 'focus:ring-blue-500/30  focus:border-blue-500 focus:border-0.5' } 
+              : 'focus:ring-blue-500/30  focus:border-blue-500 focus:border-0.5'} 
           ${readOnly ? 'bg-black-200 pointer-events-none' : ''} 
                ${icon ? 'pl-10' : ''}
-          ${ type === 'password' ? 'pr-10' : '' }
+          ${type === 'password' ? 'pr-10' : ''}
           ${className} text-most-text 
           `)}
           tabIndex={readOnly ? -1 : undefined}
           onFocus={readOnly ? (e) => e.target.blur() : undefined}
           autoFocus={autoFocus}
           {...(type === 'number' ? { min, max, inputMode: 'decimal' } : {})}
-          onInput={(e)=> onInpute?.(e)}
+          onInput={(e) => onInpute?.(e)}
         />
-        
-  {type === 'password' && !readOnly && (
-    <button
-      type="button"
-      onClick={() => setShowPassword(v => !v)}
-      className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-white-600 focus:outline-none text-white-300"
-      aria-label={showPassword ? 'Hide password' : 'Show password'}
-      tabIndex={-1}
-    >
-      {showPassword ? (
-        // eye closed (slash) icon
-        <>{eyeHideIcon()}</>
-      ) : (
-        // eye open icon
-       <>{eyeShowIcon()}</>
-      )}
-    </button>
-  )}
+
+        {type === 'password' && !readOnly && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(v => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-white-600 focus:outline-none text-white-300"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            tabIndex={-1}
+          >
+            {showPassword ? (
+              // eye closed (slash) icon
+              <>{eyeHideIcon()}</>
+            ) : (
+              // eye open icon
+              <>{eyeShowIcon()}</>
+            )}
+          </button>
+        )}
 
         {(onBtnClick || btnContent) && (
           <button
@@ -133,7 +134,7 @@ const CustomInput = ({
           </button>
         )}
       </div>
-        {/* {console.log(readOnly)} */}
+      {/* {console.log(readOnly)} */}
       {displayErr && <p id={errorId} className="mt-1 text-sm text-error absolute">{displayErr}</p>}
       {readOnly && info && <p id={errorId} className="mt-1 text-sm text-white-500 absolute">{info}</p>}
     </div>

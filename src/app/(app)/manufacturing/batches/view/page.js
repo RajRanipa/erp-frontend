@@ -1,16 +1,13 @@
 // src/app/manufacturing/batches/view/page.js
 'use client';
 import { useEffect, useState } from 'react';
-import Manufacturing from '../page';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { formatDateDMY } from '@/utils/date';
 import NavLink from '@/Components/NavLink';
-import { useNavList } from '../NavListContext';
 import { Toast } from '@/Components/toast';
 
-export default function BatchesMain() {
+export default function BatchesViews() {
   // const { activeCampaign } = useActiveCampaign();
-  const { addLink, removeLink } = useNavList();
   const [activeCampaign, setActiveCampaign] = useState({
     _id: null,
     name: null,
@@ -26,7 +23,7 @@ export default function BatchesMain() {
   }, [])
   const active = async () => {
     try {
-      const { data } = await axiosInstance.get('/api/campaigns/active');
+      const { data } = await axiosInstance.get('/api/campaigns');
       setActiveCampaign(data[0]);
     } catch (e) {
       console.log(e);
@@ -61,11 +58,10 @@ export default function BatchesMain() {
   }, [campaignId]);
 
 
-
   return (
     <div className="w-full">
       <div className="flex items-center mb-4">
-        <h1 className="text-xl font-semibold">View Batches for {activeCampaign?.name} </h1>
+        <h1 className="text-xl font-semibold">View Batches</h1>
       </div>
 
       {!campaignId && (
@@ -123,7 +119,6 @@ export default function BatchesMain() {
                         )}
                       </td>
                       <td className="py-2 pr-4 font-medium">{b.batche_id}</td>
-
                     </tr>
                   ))}
                 </tbody>

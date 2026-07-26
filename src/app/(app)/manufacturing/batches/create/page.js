@@ -8,8 +8,11 @@ import NavLink from '@/Components/NavLink';
 import { Toast } from '@/Components/toast';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { useWarehouses } from '@/hooks/useWarehouses';
-import WarehouseSelect from '../../inventory/components/WarehouseSelect';
-import Manufacturing from '../page';
+// import Manufacturing from '../page';
+import WarehouseSelect from '@/app/(app)/inventory/components/WarehouseSelect';
+import { addIcon } from '@/utils/SVG';
+import DeleteButton from '@/Components/buttons/DeleteButton';
+import AddButton from '@/Components/buttons/AddButton';
 
 const createMaterialRow = (rowId) => ({
     rowId,
@@ -122,6 +125,8 @@ function MaterialRow({
     onRemove,
     canRemove,
 }) {
+    console.log('MaterialRow error', error?.materialId);
+    console.log('MaterialRow touched', touched?.materialId);
     return (
         <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto]">
             <SelectTypeInput
@@ -152,26 +157,23 @@ function MaterialRow({
             />
 
             <div className="flex gap-2 pt-0 md:pt-6">
-                <button
-                    type="button"
+                <AddButton
+                    type="iconButton"
                     onClick={onAdd}
-                    className="rounded-lg border border-color-100 px-3 py-1.5 shadow-md"
+                    className="rounded-lg text-xl "
                     aria-label="Add another raw material"
-                    title="Add another raw material"
-                >
-                    +
-                </button>
+                    title=""
+                />
 
                 {canRemove && (
-                    <button
+                    <DeleteButton
                         type="button"
                         onClick={() => onRemove(index)}
-                        className="rounded-lg border border-color-100 px-3 py-1.5 shadow-md"
+                        className="rounded-lg p-2 shadow-md text-xl"
                         aria-label="Remove raw material"
                         title="Remove raw material"
-                    >
-                        −
-                    </button>
+                    />
+
                 )}
             </div>
         </div>
@@ -187,9 +189,9 @@ export default function RawMaterialsBatchPage() {
         name: null,
         status: null,
     });
-  const [numberOfBatches, setNumberOfBatches] = useState('');
-  const [batchDate, setBatchDate] = useState(localToday);
-  const [warehouseId, setWarehouseId] = useState('');
+    const [numberOfBatches, setNumberOfBatches] = useState('');
+    const [batchDate, setBatchDate] = useState(localToday);
+    const [warehouseId, setWarehouseId] = useState('');
     const [materials, setMaterials] = useState(() => [createMaterialRow(1)]);
     const [batchNonce, setBatchNonce] = useState('');
     const [materialOptions, setMaterialOptions] = useState([]);
@@ -199,23 +201,23 @@ export default function RawMaterialsBatchPage() {
     const [errors, setErrors] = useState({ materials: [] });
     const [touched, setTouched] = useState({ materials: [] });
     const [formError, setFormError] = useState('');
-  const [saving, setSaving] = useState(false);
-  const {
-    loading: loadingWarehouses,
-    list: warehouses,
-    error: warehousesError,
-  } = useWarehouses();
+    const [saving, setSaving] = useState(false);
+    const {
+        loading: loadingWarehouses,
+        list: warehouses,
+        error: warehousesError,
+    } = useWarehouses();
 
-  const warehouseOptions = useMemo(
-    () =>
-      warehouses.map((warehouse) => ({
-        value: String(warehouse._id),
-        label: warehouse.code
-          ? `${warehouse.name} (${warehouse.code})`
-          : warehouse.name,
-      })),
-    [warehouses],
-  );
+    const warehouseOptions = useMemo(
+        () =>
+            warehouses.map((warehouse) => ({
+                value: String(warehouse._id),
+                label: warehouse.code
+                    ? `${warehouse.name} (${warehouse.code})`
+                    : warehouse.name,
+            })),
+        [warehouses],
+    );
 
     const refreshNonce = useCallback(() => {
         const now = new Date();
@@ -230,11 +232,11 @@ export default function RawMaterialsBatchPage() {
         active();
     }, [])
     const active = async () => {
-        try{
+        try {
 
             const { data } = await axiosInstance.get('/api/campaigns/active');
             setActiveCampaign(data[0]);
-        }catch(e){
+        } catch (e) {
             console.log(e);
         }
     }
@@ -331,12 +333,12 @@ export default function RawMaterialsBatchPage() {
             }
         }
 
-    if (!activeCampaign?._id) {
-      nextErrors.campaign = 'Select a campaign before creating a batch';
-    }
-    if (!warehouseId) {
-      nextErrors.warehouseId = 'Source warehouse is required';
-    }
+        if (!activeCampaign?._id) {
+            nextErrors.campaign = 'Select a campaign before creating a batch';
+        }
+        if (!warehouseId) {
+            nextErrors.warehouseId = 'Source warehouse is required';
+        }
 
         const seen = new Map();
         materials.forEach((row, index) => {
@@ -357,20 +359,20 @@ export default function RawMaterialsBatchPage() {
         });
 
         return nextErrors;
-  }, [
-    activeCampaign?._id,
-    batchDate,
-    materials,
-    numberOfBatches,
-    warehouseId,
-  ]);
+    }, [
+        activeCampaign?._id,
+        batchDate,
+        materials,
+        numberOfBatches,
+        warehouseId,
+    ]);
 
     const hasErrors = (nextErrors) =>
         Boolean(
             nextErrors.numberOfBatches ||
-        nextErrors.batchDate ||
-        nextErrors.campaign ||
-        nextErrors.warehouseId ||
+            nextErrors.batchDate ||
+            nextErrors.campaign ||
+            nextErrors.warehouseId ||
             nextErrors.materials?.some((row) => Object.keys(row || {}).length > 0),
         );
 
@@ -519,9 +521,9 @@ export default function RawMaterialsBatchPage() {
 
     const resetForm = useCallback(() => {
         nextRowId.current = 2;
-    setNumberOfBatches('');
-    setBatchDate(localToday());
-    setWarehouseId('');
+        setNumberOfBatches('');
+        setBatchDate(localToday());
+        setWarehouseId('');
         setMaterials([createMaterialRow(1)]);
         setErrors({ materials: [] });
         setTouched({ materials: [] });
@@ -537,9 +539,9 @@ export default function RawMaterialsBatchPage() {
         setErrors(nextErrors);
         setTouched({
             numberOfBatches: true,
-      batchDate: true,
-      campaign: true,
-      warehouseId: true,
+            batchDate: true,
+            campaign: true,
+            warehouseId: true,
             materials: materials.map(() => ({ materialId: true, weight: true })),
         });
 
@@ -561,16 +563,15 @@ export default function RawMaterialsBatchPage() {
                 date: batchDate,
                 numbersBatches: Number(numberOfBatches),
                 batche_id: batchId,
-        campaign: activeCampaign._id,
-        warehouseId,
-        rawMaterials: materials.map((row) => ({
-          itemId: row.materialId,
+                campaign: activeCampaign._id,
+                warehouseId,
+                rawMaterials: materials.map((row) => ({
+                    itemId: row.materialId,
                     weight: Number(row.weight),
                     unit: 'kg',
                 })),
             };
 
-            console.log("payload",payload);
             const response = await axiosInstance.post('/api/batches', payload);
             Toast.success(response?.data?.message || 'Raw-material batch added');
             resetForm();
@@ -588,41 +589,42 @@ export default function RawMaterialsBatchPage() {
     };
 
     return (
-        <Manufacturing>
-            <div className="w-full space-y-4">
-                <div>
-                    <h1 className="text-xl font-semibold">Add Raw Materials Batch</h1>
-                    <p className="mt-1 text-sm text-white-500">
-                        Enter material weight for one batch. Planned usage is multiplied by
-                        the number of batches.
+        // <Manufacturing>
+        <div className="w-full space-y-4">
+            <div>
+                <h1 className="text-xl font-semibold">Add Raw Materials Batch</h1>
+                <p className="mt-1 text-sm text-white-500">
+                    Enter material weight for one batch. Planned usage is multiplied by
+                    the number of batches.
+                </p>
+            </div>
+
+            {!activeCampaign?._id && (
+                <div className="rounded-lg border border-yellow-500/40 bg-yellow-500/10 p-4">
+                    <p className="font-medium text-yellow-300">
+                        No campaign is selected.
                     </p>
+                    <p className="mt-1 text-sm text-white-500">
+                        Open a campaign before creating a manufacturing batch.
+                    </p>
+                    <NavLink
+                        href="/manufacturing"
+                        type="button"
+                        className="mt-3 inline-flex"
+                    >
+                        View campaigns
+                    </NavLink>
                 </div>
+            )}
 
-                {!activeCampaign?._id && (
-                    <div className="rounded-lg border border-yellow-500/40 bg-yellow-500/10 p-4">
-                        <p className="font-medium text-yellow-300">
-                            No campaign is selected.
-                        </p>
-                        <p className="mt-1 text-sm text-white-500">
-                            Open a campaign before creating a manufacturing batch.
-                        </p>
-                        <NavLink
-                            href="/manufacturing"
-                            type="button"
-                            className="mt-3 inline-flex"
-                        >
-                            View campaigns
-                        </NavLink>
-                    </div>
-                )}
-
-                <form
-                    onSubmit={handleSubmit}
-                    className="space-y-6 rounded-lg bg-most-secondary p-6 shadow-md"
-                    noValidate
-                >
-          <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <CustomInput
+            <form
+                onSubmit={handleSubmit}
+                className="space-y-6 rounded-lg bg-most-secondary p-6 shadow-md"
+                noValidate
+            >
+                <div className='flex flex-col gap-3'>
+                    <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-5">
+                        <CustomInput
                             type="number"
                             min="1"
                             placeholder="Number of batches"
@@ -640,10 +642,8 @@ export default function RawMaterialsBatchPage() {
                                 }));
                                 setErrors(validateForm());
                             }}
-                            err={
-                                touched.numberOfBatches ? errors.numberOfBatches || '' : ''
-                            }
                             required
+                            err={touched.numberOfBatches ? errors.numberOfBatches || '' : ''}
                         />
 
                         <CustomInput
@@ -682,44 +682,45 @@ export default function RawMaterialsBatchPage() {
                             required
                             placeholder="Batch date"
                             label="Date"
-              err={touched.batchDate ? errors.batchDate || '' : ''}
-            />
+                            err={touched.batchDate ? errors.batchDate || '' : ''}
+                        />
 
-            <div className="relative">
-              <WarehouseSelect
-                value={warehouseId}
-                onChange={(value) => {
-                  setWarehouseId(value || '');
-                  setTouched((current) => ({
-                    ...current,
-                    warehouseId: true,
-                  }));
-                  setFormError('');
-                }}
-                label="Source warehouse"
-                placeholder={
-                  loadingWarehouses
-                    ? 'Loading warehouses…'
-                    : 'Select source warehouse'
-                }
-                required
-                disabled={loadingWarehouses || Boolean(warehousesError)}
-                options={warehouseOptions}
-              />
-              {touched.warehouseId && errors.warehouseId && (
-                <p className="absolute mt-1 text-sm text-error">
-                  {errors.warehouseId}
-                </p>
-              )}
-              {warehousesError && (
-                <p className="absolute mt-1 text-sm text-error">
-                  Failed to load warehouses
-                </p>
-              )}
-            </div>
+                        <div className="relative">
+                            <WarehouseSelect
+                                value={warehouseId}
+                                onChange={(value) => {
+                                    setWarehouseId(value || '');
+                                    setTouched((current) => ({
+                                        ...current,
+                                        warehouseId: true,
+                                    }));
+                                    setFormError('');
+                                }}
+                                label="Source warehouse"
+                                placeholder={
+                                    loadingWarehouses
+                                        ? 'Loading warehouses…'
+                                        : 'Select source warehouse'
+                                }
+                                required
+                                disabled={loadingWarehouses || Boolean(warehousesError)}
+                                options={warehouseOptions}
+                                error={touched.warehouseId ? errors.warehouseId : ""}
+                            />
+                            {/* {touched.warehouseId && errors.warehouseId && (
+                            <p className="absolute mt-1 text-sm text-error">
+                                {errors.warehouseId}
+                            </p>
+                        )} */}
+                            {warehousesError && (
+                                <p className="absolute mt-1 text-sm text-error">
+                                    Failed to load warehouses
+                                </p>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-4 p-3 border-1 rounded-lg border-color-200">
                         <div className="flex items-center justify-between">
                             <h2 className="font-medium">Raw materials</h2>
                             {loadingMaterials && (
@@ -780,10 +781,10 @@ export default function RawMaterialsBatchPage() {
                             type="submit"
                             disabled={
                                 saving ||
-                loadingMaterials ||
-                loadingWarehouses ||
-                Boolean(materialsError) ||
-                Boolean(warehousesError) ||
+                                loadingMaterials ||
+                                loadingWarehouses ||
+                                Boolean(materialsError) ||
+                                Boolean(warehousesError) ||
                                 !activeCampaign?._id
                             }
                             className="inline-flex justify-center rounded-lg border border-transparent bg-indigo-600 px-4 py-2 text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
@@ -801,9 +802,9 @@ export default function RawMaterialsBatchPage() {
                         </button>
 
                         {formError && <p className="text-sm text-error">{formError}</p>}
-                    </div>
-                </form>
-            </div>
-        </Manufacturing>
+                    </div></div>
+            </form>
+        </div>
+        // </Manufacturing>
     );
 }

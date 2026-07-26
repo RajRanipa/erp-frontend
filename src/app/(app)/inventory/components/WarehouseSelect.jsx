@@ -26,6 +26,7 @@ export default function WarehouseSelect({
   disabled = false,
   autoFocus = false,
   options = [],
+  error='',
 }) {
   // Normalize options (defensive)
   const normalized = useMemo(() => {
@@ -61,6 +62,7 @@ export default function WarehouseSelect({
         placeholder={placeholder}
         disabled={disabled}
         autoFocus={autoFocus}
+        err={error}
       />
     </div>
   );
