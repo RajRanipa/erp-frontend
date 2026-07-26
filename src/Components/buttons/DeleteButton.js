@@ -17,7 +17,7 @@ export default function DeleteButton({ onClick, itemName = '', requiredPermissio
     <>
       {canDelete && <button
         onClick={onClick}
-        className={cn("inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-red-50 focus:bg-red-50 text-error cursor-pointer text-xl border border-error/50 focus:outline-none focus:ring-3 focus:ring-error/30  focus:border-0.5 focus:border-error ", className)}
+        className={cn("inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-red-50 focus:bg-red-50 text-error cursor-pointer text-xl border border-transparent focus:outline-none focus:ring-3 focus:ring-error/30  focus:border-0.5 focus:border-error ", className)}
         aria-label={itemName ? `Delete ${itemName}` : 'Delete'}
       >
         {/* trash svg */}

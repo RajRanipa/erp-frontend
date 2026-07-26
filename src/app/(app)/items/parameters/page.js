@@ -1,29 +1,12 @@
-// src/app/items/create/page.js
-'use client';
-import React, { useEffect } from 'react';
-import ItemForm from '../components/ItemForm'
-import { Toast } from '@/Components/toast';
-
-export default function Parameter() {
-    const fetchDimension = async () => {
-        Toast.error(`Update "anyway" dimension? This will permanently Update the dimension. Are you sure?`, {
-            confirmText: 'Update',
-            cancelText: 'Cancel',
-        });
-
-        const ok = await Toast.promise(`Update "anyway" dimension? This will permanently Update the dimension. Are you sure?`, {
-            confirmText: 'Update',
-            cancelText: 'Cancel',
-        });
-        if (!ok) return;
-    }
-    useEffect(() => {
-        // fetchDimension();
-    }, [2000]);
-
-    return (
-        <div>
-
-        </div>
-    );
+export default function ParametersPage() {
+  return (
+    <div className="flex min-h-40 w-full items-center justify-center rounded bg-white-100 p-6 text-center">
+      <div>
+        <h3 className="font-semibold">Choose a parameter group</h3>
+        <p className="mt-1 text-sm text-white-500">
+          Categories, product types, densities, temperatures, and dimensions are managed separately.
+        </p>
+      </div>
+    </div>
+  );
 }

@@ -41,7 +41,6 @@ const CustomInput = ({
     }
   }, [value, touched, required, label, name, placeholder]);
 
-  console.log('CustomInput err', err);
   const displayErr = (typeof err === 'string' && err.length) ? err : internalErr;
   const errorId = displayErr ? `${id || name}-error` : undefined;
 
@@ -87,7 +86,7 @@ const CustomInput = ({
           autoComplete={autocomplete}
           aria-invalid={!!displayErr}
           aria-describedby={errorId}
-          className={cn(` block w-full px-3 py-2 border sm:text-sm
+          className={cn(`text-most-text  block w-full px-3 py-2 border sm:text-sm
           ${displayErr ? 'border-error' : 'border-white-200'} 
           rounded-lg shadow-xs placeholder-white-400 focus:outline-none
           focus:border-0.5 focus:ring-3
@@ -97,7 +96,7 @@ const CustomInput = ({
           ${readOnly ? 'bg-black-200 pointer-events-none' : ''} 
                ${icon ? 'pl-10' : ''}
           ${type === 'password' ? 'pr-10' : ''}
-          ${className} text-most-text 
+          ${className} 
           `)}
           tabIndex={readOnly ? -1 : undefined}
           onFocus={readOnly ? (e) => e.target.blur() : undefined}

@@ -1,7 +1,7 @@
 // src/app/items/finished/page.js
 'use client';
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import CustomInput from '@/Components/inputs/CustomInput';
+import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
 import EditButton from '@/Components/buttons/EditButton';
@@ -13,6 +13,13 @@ import Dialog from '@/Components/Dialog';
 import SubmitButton from '@/Components/buttons/SubmitButton';
 import AddButton from '@/Components/buttons/AddButton';
 import Table from '@/Components/layout/Table.jsx';
+
+const CATEGORY_OPTIONS = [
+  { value: 'finished goods', label: 'Finished Goods' },
+  { value: 'raw material', label: 'Raw Material' },
+  { value: 'packing material', label: 'Packing Material' },
+  { value: 'non-conformance', label: 'Non-Conformance' },
+];
 
 export default function Finished() {
 
@@ -49,11 +56,9 @@ export default function Finished() {
       const categoryRes = await axiosInstance.get('/api/category');
       const categoryData = categoryRes.data || [];
       setCatagory(categoryData);
-      console.log("categoryData :- ", categoryData);
     } catch (err) {
       console.error('fetch error', err);
-      setError(err?.message || 'Failed to load');
-      Toast.error('Failed to fetch items', { duration: 4000 });
+      Toast.error(err?.response?.data?.message || 'Failed to fetch categories');
     } finally {
       setLoading(false);
     }
@@ -121,10 +126,9 @@ export default function Finished() {
     setOpen(true);
   };
 
-  const onDelete = async (name, id, triggerEl) => {
-    console.log('delete', name, id);
+  const onDelete = async (name, id) => {
     try {
-      const ok = await Toast.promise(`Delete "${name}" category? This will permanently delete the item. Are you sure?`, {
+      const ok = await Toast.promise(`Delete the "${name}" category? This is allowed only when nothing uses it.`, {
         confirmText: 'Delete',
         cancelText: 'Cancel',
       });
@@ -136,7 +140,7 @@ export default function Finished() {
     } catch (err) {
       console.error('delete failed', err);
       // restore removed item on error by refetching (simple approach)
-      Toast.error('Failed to delete Category');
+      Toast.error(err?.response?.data?.message || 'Failed to delete Category');
       // quick refetch to ensure state is consistent
       try {
         const resp = await axiosInstance.get('/api/category');
@@ -173,10 +177,9 @@ export default function Finished() {
   };
 
   const handleSave = async () => {
-    console.log('update', form.category, form.categoryId);
     setUpdating(true);
     try {
-      const ok = await Toast.promise(`Update "${form.category}" category? This will permanently Update the category. Are you sure?`, {
+      const ok = await Toast.promise(`Update this category to "${form.category}"?`, {
         confirmText: 'Update',
         cancelText: 'Cancel',
       });
@@ -186,30 +189,20 @@ export default function Finished() {
         categoryId: form.categoryId,
         category: form.category,
       }
-      const res = await axiosInstance.put(`/api/category`, payload);
-      console.log("res :- ", res);
+      await axiosInstance.put('/api/category', payload);
       Toast.success('Category Updated');
       setOriginalForm(form);
       await fetchCatagory();
       resetDialogState();
       setOpen(false);
     } catch (err) {
-      console.error('delete failed', err);
-      // restore removed item on error by refetching (simple approach)
-      if(err?.response?.statusText){
-        if(err?.response?.statusText === 'Forbidden'){
-          Toast.error("You don't have permission to update category");
-          return;
-        }
-        Toast.error(err?.response?.data?.message);
-      }
-      Toast.error('Failed to Update category');
-      // quick refetch to ensure state is consistent
-      try {
-        // const resp = await axiosInstance.get('/api/items/finished');
-        resetDialogState();
-        setOpen(false);
-      } catch (e) { /* ignore */ }
+      console.error('Category update failed', err);
+      Toast.error(
+        err?.response?.data?.message ||
+        (err?.response?.status === 403
+          ? "You don't have permission to update categories"
+          : 'Failed to update category')
+      );
     }finally{
       setUpdating(false);
     }
@@ -272,12 +265,15 @@ export default function Finished() {
           </>
         )}
       >
-        <CustomInput
+        <SelectTypeInput
           value={form.category}
-          label={'category'}
-          name={'active_category'}
-          placeholder='type a catagory name'
+          label="Category"
+          name="active_category"
+          placeholder="Select a category"
           id={form.categoryId}
+          options={CATEGORY_OPTIONS}
+          allowCustomValue={false}
+          required
           onChange={(e) => {
             setForm(prev => ({
               ...prev,

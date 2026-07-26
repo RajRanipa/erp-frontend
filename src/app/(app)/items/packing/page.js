@@ -78,21 +78,23 @@ export default function Packing() {
   const onDelete = async (name, id, triggerEl) => {
     // console.log('delete', name, id);
     try {
-      const ok = await Toast.promise(`Delete ${name} packing? This will permanently delete the item. Are you sure?`, {
-        confirmText: 'Delete',
+      const ok = await Toast.promise(`Archive ${name}? It will remain in historical inventory and production records.`, {
+        confirmText: 'Archive',
         cancelText: 'Cancel',
         focusTarget: triggerEl,
       });
       if (!ok) return;
 
-      // optimistic UI: remove from list first
-      setItems(prev => prev.filter(p => p._id !== id));
-      await axiosInstance.delete(`/api/items/${id}`, { withCredentials: true });
-      Toast.success('Item deleted');
+      const response = await axiosInstance.delete(`/api/items/${id}`, { withCredentials: true });
+      const archived = response.data?.data || response.data?.item;
+      setItems(prev => prev.map(item =>
+        item._id === id ? { ...item, ...(archived || {}), status: 'archived' } : item
+      ));
+      Toast.success('Item archived');
     } catch (err) {
       console.error('delete failed', err);
       // restore removed item on error by refetching (simple approach)
-      Toast.error('Failed to delete item');
+      Toast.error(err?.response?.data?.message || 'Failed to archive Item');
       // quick refetch to ensure state is consistent
       try {
         await fetchItems();
@@ -158,7 +160,18 @@ export default function Packing() {
                 ),
               },
               { key: 'description', header: 'Description', render: r => r.description || '\u2014' },
-              { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
+              {
+                key: 'status',
+                header: 'Status',
+                render: r => (
+                  <StatusActions
+                    item={r}
+                    onStatusChange={updated => setItems(current =>
+                      current.map(item => item._id === updated._id ? { ...item, ...updated } : item)
+                    )}
+                  />
+                ),
+              },
               {
                 key: 'updated',
                 header: 'Updated',
@@ -197,8 +210,12 @@ export default function Packing() {
                 header: 'Actions',
                 render: r => (
                   <div className='flex gap-2 items-center justify-end'>
-                    <EditButton onClick={() => onEdit(r)} itemName={r.name} requiredPermissions='items:update' />
-                    <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} requiredPermissions='items:delete' />
+                    {r.status !== 'archived' && (
+                      <>
+                        <EditButton onClick={() => onEdit(r)} itemName={r.name} requiredPermissions="items:update" />
+                        <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} requiredPermissions="items:delete" />
+                      </>
+                    )}
                   </div>
                 ),
                 align: 'right',

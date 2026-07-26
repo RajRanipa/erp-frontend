@@ -1,334 +1,263 @@
 'use client';
-// src/app/items/hooks/useProductForm.js
+
 import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance';
-import { productParameters } from '../../../../config/productConfig';
-// import { formReducer } from '../../(app)/items/components/formReducer';
-
 import { Toast } from '@/Components/toast';
+import { productParameters } from '../../../../config/productConfig';
+import formReducer from '../components/formReducer';
 
-// --- simple client-side validators ---
-function isBlank(v) {
-  return v == null || (typeof v === 'string' && v.trim() === '');
+const REFERENCE_FIELDS = ['productType', 'temperature', 'density', 'dimension', 'packing'];
+
+const initialFormState = {
+  category: '',
+  category_label: '',
+  name: '',
+  UOM: '',
+  minimumStock: '0',
+  description: '',
+  grade: '',
+  brandType: '',
+  productColor: '',
+};
+
+const isBlank = value =>
+  value === null ||
+  value === undefined ||
+  (typeof value === 'string' && value.trim() === '');
+
+const categoryKeyFromLabel = label => {
+  const normalized = String(label || '').trim().toLowerCase();
+  if (normalized === 'finished goods') return 'FG';
+  if (normalized === 'raw material') return 'RAW';
+  if (normalized === 'packing material') return 'PACKING';
+  if (normalized === 'non-conformance') return 'NC';
+  return '';
+};
+
+const requiredParametersFor = formData => {
+  const categoryKey = categoryKeyFromLabel(formData.category_label);
+  const productType = String(formData.productType_label || '').trim().toLowerCase();
+
+  if (categoryKey === 'PACKING') return ['dimension'];
+  if (categoryKey !== 'FG') return [];
+  if (productType === 'bulk') return ['temperature', 'packing'];
+  if (productType === 'board') return ['dimension', 'temperature', 'packing'];
+  return ['dimension', 'density', 'temperature', 'packing'];
+};
+
+function validate(formData, requiredParameters) {
+  const errors = {};
+  const categoryKey = categoryKeyFromLabel(formData.category_label);
+
+  if (isBlank(formData.category)) errors.category = 'Category is required';
+  if (isBlank(formData.name)) errors.name = 'Name is required';
+  if (isBlank(formData.UOM)) errors.UOM = 'Unit is required';
+
+  const minimumStock = Number(formData.minimumStock || 0);
+  if (!Number.isFinite(minimumStock) || minimumStock < 0) {
+    errors.minimumStock = 'Minimum stock must be a non-negative number';
+  }
+
+  if (['FG', 'PACKING'].includes(categoryKey) && isBlank(formData.productType)) {
+    errors.productType = 'Product type is required';
+  }
+
+  for (const field of requiredParameters) {
+    if (isBlank(formData[field])) {
+      const label = productParameters.find(item => item.key === field)?.label || field;
+      errors[field] = `${label} is required`;
+    }
+  }
+
+  return errors;
 }
 
-function validate(localFormData, enabledParams) {
-  const errs = {};
+function buildPayload(formData, mode) {
+  const categoryKey = categoryKeyFromLabel(formData.category_label);
+  const payload = {
+    category: formData.category,
+    name: String(formData.name || '').trim(),
+    UOM: String(formData.UOM || '').trim(),
+    minimumStock: Number(formData.minimumStock || 0),
+    description: String(formData.description || '').trim(),
+    grade: String(formData.grade || '').trim(),
+    brandType: formData.brandType || '',
+    productColor: String(formData.productColor || '').trim(),
+  };
 
-  // Base required fields (adjust as needed)
-  if (isBlank(localFormData.category)) errs.category = 'Category is required';
-  if (isBlank(localFormData.name)) errs.name = 'Name is required';
-  if (isBlank(localFormData.UOM)) errs.UOM = 'Unit is required';
+  if (formData.sku) payload.sku = String(formData.sku).trim();
 
-  // Numeric checks
-  if (!isBlank(localFormData.minimumStock) && Number.isNaN(Number(localFormData.minimumStock))) {
-    errs.minimumStock = 'Minimum stock must be a number';
+  for (const field of REFERENCE_FIELDS) {
+    payload[field] = formData[field] || null;
   }
-  if (!isBlank(localFormData.currentStock) && Number.isNaN(Number(localFormData.currentStock))) {
-    errs.currentStock = 'Current stock must be a number';
-  }
 
-  // Parameter-driven checks based on your productParameters config
-  (productParameters || []).forEach((param) => {
-    if (!enabledParams[param.key]) return;
-
-    const fields = Array.isArray(param.fields) ? param.fields : [];
-    fields.forEach((f) => {
-      const fname = typeof f === 'string' ? f : f?.name;
-      if (!fname) return;
-      if (isBlank(localFormData[fname])) {
-        errs[fname] = 'Required';
-      }
+  if (categoryKey === 'RAW') {
+    Object.assign(payload, {
+      productType: null,
+      temperature: null,
+      density: null,
+      dimension: null,
+      packing: null,
+      brandType: '',
+      productColor: '',
     });
+  } else if (categoryKey === 'PACKING') {
+    Object.assign(payload, {
+      temperature: null,
+      density: null,
+      packing: null,
+    });
+  } else if (categoryKey === 'NC') {
+    Object.assign(payload, {
+      productType: null,
+      temperature: null,
+      density: null,
+      dimension: null,
+      packing: null,
+      brandType: '',
+      productColor: '',
+    });
+  }
 
-    if (param.unitName && isBlank(localFormData[param.unitName])) {
-      errs[param.unitName] = 'Required';
+  if (mode === 'create') {
+    for (const field of REFERENCE_FIELDS) {
+      if (payload[field] === null) delete payload[field];
     }
-    if (param.uniqueName && isBlank(localFormData[param.uniqueName])) {
-      errs[param.uniqueName] = 'Required';
-    }
-  });
+  }
 
-  return errs;
+  return payload;
 }
 
-// --- formReducer logic (inlined from formReducer.js) ---
-const formReducer = (state, action) => {
-//   console.log('formReducer action:', action.type, action);
-  switch (action.type) {
-    case 'SET_FIELD': {
-      let value = action.value;
-      if (typeof value === 'string' && value.trim() !== '' && !isNaN(Number(value))) {
-        value = Number(value);
-      }
-      return { ...state, [action.field]: value };
-    }
-
-    case 'TOGGLE_PARAMETER': {
-      const param = productParameters.find(p => p.key === action.key);
-      if (!param) return state;
-
-      const fields = Array.isArray(param.fields) ? param.fields : [];
-      const getName = (f) => (typeof f === 'string' ? f : f?.name);
-
-      if (action.enabled) {
-        const newFields = {};
-        if (fields.length > 0) {
-          fields.forEach(f => {
-            const name = getName(f);
-            if (name) newFields[name] = '';
-          });
-        } else if (param.key) {
-          // If no fields defined, use the top-level key as a single value holder
-          newFields[param.key] = '';
-        }
-        return { ...state, ...newFields };
-      } else {
-        const newState = { ...state };
-        if (fields.length > 0) {
-          fields.forEach(f => {
-            const name = getName(f);
-            if (name) delete newState[name];
-          });
-        }
-        // Also clean up the top-level key if it was used
-        if (param.key) delete newState[param.key];
-        return newState;
-      }
-    }
-
-    case 'RESET_FORM':
-      return action.initialState || action.payload || {};
-
-    default:
-      return state;
-  }
+const backendErrorsToObject = responseData => {
+  const details = responseData?.details;
+  if (!Array.isArray(details)) return {};
+  return details.reduce((result, item) => {
+    if (item?.field) result[item.field] = item.message;
+    return result;
+  }, {});
 };
 
-// Minimal default initial form shape used for seeding state
-const initialFormStateDefault = {
-    category: '',
-    category_label: '',
-    name: '',
-    UOM: '',
-    currentStock: '',
-    minimumStock: '0',
-    description: '',
-};
-
-/**
- * useProductForm
- * Encapsulates product form state, parameter toggles, transform & submit logic.
- *
- * @param {Object} opts
- * @param {'create'|'edit'} opts.mode
- * @param {Object} opts.initialData - when editing, seed values
- */
 export default function useProductForm({ mode = 'create', initialData = {} } = {}) {
-    
-    const [errors, setErrors] = useState({});
-    // console.log('initialData in useProductForm:', initialData);
-    // merged initial state (memoized)
-    const mergedInitialState = useMemo(() => ({
-      ...initialFormStateDefault, // default fields
-      ...initialData,             // include all fields from existing product
-    }), [initialData]);
+  const mergedInitialState = useMemo(
+    () => ({ ...initialFormState, ...initialData }),
+    [initialData],
+  );
+  const [formData, dispatch] = useReducer(formReducer, mergedInitialState);
+  const [errors, setErrors] = useState({});
 
-    const [formData, dispatch] = useReducer(formReducer, mergedInitialState);
+  useEffect(() => {
+    dispatch({ type: 'RESET_FORM', initialState: mergedInitialState });
+  }, [mergedInitialState]);
 
-    // useEffect(() => { console.log('formData after seed:', formData); }, [formData]);
+  const requiredParameters = useMemo(
+    () => requiredParametersFor(formData),
+    [formData],
+  );
 
-    // If initialData changes while in edit mode, reseed the reducer state
-    useEffect(() => {
-      if (mode === 'edit') {
-        const seed = {
-          ...initialFormStateDefault,
-          ...initialData, // preserve all initial data fields
-        };
-        dispatch({ type: 'RESET_FORM', initialState: seed });
-        // console.log('dispatch RESET_FORM seed:', seed);
+  useEffect(() => {
+    const missingFields = requiredParameters.reduce((result, field) => {
+      if (!Object.prototype.hasOwnProperty.call(formData, field)) {
+        result[field] = '';
       }
-    }, [initialData, mode]);
+      return result;
+    }, {});
+    if (Object.keys(missingFields).length) {
+      dispatch({ type: 'SET_FIELDS', fields: missingFields });
+    }
+  }, [formData, requiredParameters]);
 
-    // compute enabledParameters based on presence of keys/fields in formData
-    const enabledParameters = useMemo(() => {
-        const enabled = {};
-        (productParameters || []).forEach((param) => {
-            const key = param?.key;
-            const fields = Array.isArray(param?.fields) ? param.fields : [];
-            const hasKey = key ? Object.prototype.hasOwnProperty.call(formData, key) : false;
-            const hasAnyField = fields.some((f) => {
-                const name = typeof f === 'string' ? f : f?.name;
-                return name ? Object.prototype.hasOwnProperty.call(formData, name) : false;
-            });
-            enabled[key] = hasKey || hasAnyField;
-        });
-        return enabled;
-    }, [formData]);
+  const enabledParameters = useMemo(() => {
+    return productParameters.reduce((result, parameter) => {
+      result[parameter.key] =
+        requiredParameters.includes(parameter.key) ||
+        Object.prototype.hasOwnProperty.call(formData, parameter.key);
+      return result;
+    }, {});
+  }, [formData, requiredParameters]);
 
-    const handleChange = useCallback((eOrName, maybeValue) => {
-        // console.log('handleChange', eOrName, maybeValue);
-        let name, value;
-        if (eOrName && eOrName.target) {
-            name = eOrName.target.name;
-            value = eOrName.target.value;
-        } else {
-            name = eOrName;
-            value = maybeValue;
-        }
+  const handleChange = useCallback((eventOrName, maybeValue) => {
+    const name = eventOrName?.target?.name || eventOrName;
+    const value = eventOrName?.target?.value ?? maybeValue;
+    dispatch({ type: 'SET_FIELD', field: name, value });
+    setErrors(current => {
+      if (!current[name]) return current;
+      const next = { ...current };
+      delete next[name];
+      return next;
+    });
+  }, []);
 
-        if (name === 'category' && !initialData.category) {
-            // preserve existing category_label (from current formData) or fallback to initialData
-            const preservedLabel = (typeof formData !== 'undefined' && formData.category_label) ||
-                (initialData && initialData.category_label) ||
-                '';
-            const resetState = { ...initialFormStateDefault, category_label: preservedLabel };
-            dispatch({ type: 'RESET_FORM', initialState: resetState }); // it's resetting the whole form
-            dispatch({ type: 'SET_FIELD', field: name, value });
-        } else {
-            dispatch({ type: 'SET_FIELD', field: name, value });
-        }
-    }, [formData, initialData]);
+  const resetForCategory = useCallback((category, categoryLabel) => {
+    dispatch({
+      type: 'RESET_FORM',
+      initialState: {
+        ...initialFormState,
+        ...(formData._id ? { _id: formData._id } : {}),
+        category,
+        category_label: categoryLabel,
+      },
+    });
+    setErrors({});
+  }, [formData._id]);
 
-    const toggleParameter = useCallback((key) => {
-        const willEnable = !(enabledParameters && enabledParameters[key]);
-        dispatch({ type: 'TOGGLE_PARAMETER', key, enabled: willEnable });
-    }, [enabledParameters]);
+  const toggleParameter = useCallback((key) => {
+    if (requiredParameters.includes(key)) return;
+    dispatch({
+      type: 'TOGGLE_PARAMETER',
+      key,
+      enabled: !enabledParameters[key],
+    });
+  }, [enabledParameters, requiredParameters]);
 
-    // transform formData into API payload
-    function transformFormData(localFormData, enabledParams) {
-        const cleanedFormData = { ...localFormData };
-        const finalData = {};
-
-        (productParameters || []).forEach(param => {
-            if (enabledParams[param.key]) {
-                const obj = {};
-                const tFields = Array.isArray(param.fields) ? param.fields : [];
-                tFields.forEach((field) => {
-                    const fname = typeof field === 'string' ? field : field?.name;
-                    if (fname && Object.prototype.hasOwnProperty.call(cleanedFormData, fname)) {
-                        obj[fname] = cleanedFormData[fname];
-                        delete cleanedFormData[fname];
-                    }
-                });
-                if (param.unitName && cleanedFormData[param.unitName]) {
-                    obj.unit = cleanedFormData[param.unitName];
-                    delete cleanedFormData[param.unitName];
-                }
-                if (param.uniqueName && cleanedFormData[param.uniqueName]) {
-                    obj.unique = cleanedFormData[param.uniqueName];
-                    delete cleanedFormData[param.uniqueName];
-                }
-
-                // For non-dimension params, if fields exist convert first field to value
-                if (param.key !== 'dimension' && Array.isArray(param.fields) && param.fields.length > 0) {
-                    const firstField = param.fields[0];
-                    const firstFieldName = typeof firstField === 'string' ? firstField : firstField?.name;
-                    if (firstFieldName && Object.prototype.hasOwnProperty.call(obj, firstFieldName)) {
-                        obj.value = obj[firstFieldName];
-                        delete obj[firstFieldName];
-                    }
-                }
-
-                if (Object.keys(obj).length > 0) {
-                    finalData[param.key] = obj;
-                }
-            }
-        });
-
-        // domain specific cleanup
-        if (cleanedFormData.category === 'raw' || cleanedFormData.category === 'packing') {
-            delete cleanedFormData.productType;
-            delete cleanedFormData.salePrice;
-        }
-
-        return {
-            ...cleanedFormData,
-            ...finalData,
-        };
+  const submit = useCallback(async () => {
+    setErrors({});
+    const clientErrors = validate(formData, requiredParameters);
+    if (Object.keys(clientErrors).length) {
+      setErrors(clientErrors);
+      Toast.error('Please correct the highlighted fields');
+      throw new Error('Client validation failed');
     }
 
-    const submit = useCallback(async (modeArg = mode, id) => {
-      try {
-        setErrors({});
+    const payload = buildPayload(formData, mode);
 
-        // Run client-side validation first
-        const clientErrors = validate(formData, enabledParameters);
-        if (Object.keys(clientErrors).length) {
-          setErrors(clientErrors);
-          Toast.error('Please fix the highlighted fields');
-          throw new Error('Client validation failed');
-        }
+    try {
+      const response = mode === 'create'
+        ? await axiosInstance.post('/api/items', payload)
+        : await axiosInstance.put(`/api/items/${formData._id}`, payload);
+      Toast.success(response?.data?.message || (mode === 'create' ? 'Item created' : 'Item updated'));
+      return response?.data?.data || response?.data?.item || response?.data;
+    } catch (error) {
+      const backendErrors = backendErrorsToObject(error?.response?.data);
+      if (Object.keys(backendErrors).length) setErrors(backendErrors);
+      Toast.error(
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to save Item',
+      );
+      throw error;
+    }
+  }, [formData, mode, requiredParameters]);
 
-        const payload = transformFormData(formData, enabledParameters);
-        console.log('submit payload:', payload);
+  const remove = useCallback(async id => {
+    const itemId = id || formData._id;
+    if (!itemId) throw new Error('Missing Item id');
+    await axiosInstance.delete(`/api/items/${itemId}`);
+    Toast.success('Item archived');
+    return true;
+  }, [formData._id]);
 
-        if (modeArg === 'create') {
-          // Create
-          delete payload.category_label;// i don't want to send category_label to payload 
-          const res = await axiosInstance.post('/api/items', payload);
-          Toast.success(res?.data?.message);
-          return res?.data?.data || res?.data;
-        } else {
-          const docId = id || formData._id;
-          if (!docId) throw new Error('Missing id for update');
-          delete payload.category_label;
-          const res = await axiosInstance.put(`/api/items/${docId}`, payload);
-          Toast.success(res?.data?.message || 'Updated');
-          return res?.data?.data || res?.data;
-        }
-      } catch (err) {
-        console.error('submit error', err);
-        if (err?.response?.data?.errors) setErrors(err.response.data.errors);
-        if (!String(err.message || '').includes('Client validation failed')) {
-          Toast.error(err?.response?.data?.message || err.message || 'Failed');
-        }
-        throw err;
-      }
-    }, [formData, enabledParameters, mode]);
-
-    const remove = useCallback(async (id) => {
-        try {
-            const docId = id || formData._id;
-            if (!docId) throw new Error('Missing id for delete');
-            await axiosInstance.delete(`/api/items/${docId}`);
-            Toast.success('Deleted', {duration: 4000, autoClose: true, placement: "top-center", animation: "top-bottom" });
-            return true;
-        } catch (err) {
-            console.error('delete error', err);
-            Toast.error( err?.response?.data?.message || err.message || 'Failed to delete', {duration: 4000, autoClose: true, placement: "top-center", animation: "top-bottom" });
-            throw err;
-        }
-    }, [formData]);
-
-    // compute paramRequirements (which parameters currently have fields)
-    const paramRequirements = useMemo(() => {
-        return (productParameters || []).reduce((acc, param) => {
-            const rFields = Array.isArray(param.fields) ? param.fields : [];
-            if (rFields.length > 0) {
-                rFields.forEach((field) => {
-                    const fname = typeof field === 'string' ? field : field?.name;
-                    if (fname) {
-                        acc[param.key] = acc[param.key] || Object.prototype.hasOwnProperty.call(formData, fname);
-                    }
-                });
-            }
-            if (param.unitName) acc[param.key] = acc[param.key] || !!formData[param.unitName];
-            if (param.uniqueName) acc[param.key] = acc[param.key] || !!formData[param.uniqueName];
-            return acc;
-        }, {});
-    }, [formData]);
-
-    return {
-        formData,
-        dispatch,
-        errors,
-        setErrors,
-        enabledParameters,
-        toggleParameter,
-        handleChange,
-        submit,
-        remove,
-        paramRequirements,
-    };
+  return {
+    formData,
+    dispatch,
+    errors,
+    setErrors,
+    enabledParameters,
+    requiredParameters,
+    toggleParameter,
+    handleChange,
+    resetForCategory,
+    submit,
+    remove,
+    paramRequirements: {},
+  };
 }

@@ -2,7 +2,6 @@
 'use client';
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
-import CustomInput from '@/Components/inputs/CustomInput';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
 import EditButton from '@/Components/buttons/EditButton';
@@ -14,8 +13,14 @@ import useAuthz from '@/hooks/useAuthz';
 import Dialog from '@/Components/Dialog';
 import SubmitButton from '@/Components/buttons/SubmitButton';
 import AddButton from '@/Components/buttons/AddButton';
-import { addIcon } from '@/utils/SVG';
 
+const PRODUCT_TYPE_OPTIONS = ['blanket', 'bulk', 'board', 'module', 'et']
+  .map(value => ({
+    value,
+    label: value.toUpperCase() === 'ET'
+      ? 'ET'
+      : value.charAt(0).toUpperCase() + value.slice(1),
+  }));
 
 export default function Finished() {
 
@@ -72,7 +77,7 @@ export default function Finished() {
       JSON.stringify(originalForm.categories.filter(Boolean)) ||
       form.name.trim() !== ''
     );
-  }, [form]);
+  }, [form, originalForm]);
 
   const isUpdateDirty = useMemo(() => {
     return (
@@ -87,12 +92,10 @@ export default function Finished() {
     setLoading(true);
     try {
       const productTypeRes = await axiosInstance.get('/api/product-type');
-      console.log("productTypeRes :- ", productTypeRes.data);
       const productTypeData = productTypeRes.data || [];
       setProductType(productTypeData);
     } catch (err) {
       console.error('fetch error', err);
-      setError(err?.message || 'Failed to load');
       Toast.error('Failed to fetch Product Types', { duration: 4000 });
     } finally {
       setLoading(false);
@@ -104,8 +107,7 @@ export default function Finished() {
   }, [fetchProductTypes]);
 
   // Table Configuration
-  const columns = useMemo(
-    () => [
+  const columns = [
       {
         key: 'producttype',
         header: 'Product Type',
@@ -132,9 +134,7 @@ export default function Finished() {
           </div>
         )
       }
-    ],
-    []
-  );
+  ];
 
   // Dialog Helpers
   const resetDialogState = () => {
@@ -167,7 +167,7 @@ export default function Finished() {
   const onDelete = async (name, id, triggerEl) => {
     // console.log('delete', name, id);
     try {
-      const ok = await Toast.promise(`Delete "${name}" product type? This will permanently delete the item. Are you sure?`, {
+      const ok = await Toast.promise(`Delete product type "${name}"?`, {
         confirmText: 'Delete',
         cancelText: 'Cancel',
       });
@@ -180,7 +180,7 @@ export default function Finished() {
     } catch (err) {
       console.error('delete failed', err);
       // restore removed item on error by refetching (simple approach)
-      Toast.error('Failed to delete item');
+      Toast.error(err?.response?.data?.message || 'Failed to delete Product Type');
       // quick refetch to ensure state is consistent
       try {
         fetchProductTypes();
@@ -188,7 +188,6 @@ export default function Finished() {
     }
   };
   const handleSave = async () => {
-    console.log('update', form.productType, form.productType);
     setUpdating(true);
     try {
       const validCategories = form.categories.filter(Boolean);
@@ -198,7 +197,7 @@ export default function Finished() {
         return;
       }
 
-      const ok = await Toast.promise(`Update "${form.productType}" productType? This will permanently Update the productType. Are you sure?`, {
+      const ok = await Toast.promise(`Update "${form.name}" Product Type categories?`, {
         confirmText: 'Update',
         cancelText: 'Cancel',
       });
@@ -209,36 +208,26 @@ export default function Finished() {
         name: form.name,
         categories: validCategories
       }
-      const res = await axiosInstance.put(`/api/product-type`, payload);
-      console.log("res :- ", res);
+      await axiosInstance.put('/api/product-type', payload);
       Toast.success('Product Type Updated');
       setOriginalForm(form);
       resetDialogState();
       setOpen(false);
       fetchProductTypes();
     } catch (err) {
-      console.error('delete failed', err);
-      // restore removed item on error by refetching (simple approach)
-      if (err?.response?.statusText) {
-        if (err?.response?.statusText === 'Forbidden') {
-          Toast.error("You don't have permission to update productType");
-          return;
-        }
-        Toast.error(err?.response?.data?.message);
-      }
-      Toast.error('Failed to Update productType');
-      // quick refetch to ensure state is consistent
-      try {
-        resetDialogState();
-        setOpen(false);
-      } catch (e) { /* ignore */ }
+      console.error('Product Type update failed', err);
+      Toast.error(
+        err?.response?.data?.message ||
+        (err?.response?.status === 403
+          ? "You don't have permission to update Product Types"
+          : 'Failed to update Product Type')
+      );
     } finally {
       setUpdating(false);
     }
   };
   const createProductType = async () => {
     setSaving(true);
-    console.log('create :- ', form.categories, form.productType);
 
     try {
       const validCategories = form.categories.filter(Boolean);
@@ -253,30 +242,19 @@ export default function Finished() {
         name: form.name,
         productType: form.productType,
       }
-      console.log("payload :- ", form);
-      // return;
-      const res = await axiosInstance.post(`/api/product-type`, payload);
-      console.log("res :- ", res);
+      await axiosInstance.post('/api/product-type', payload);
       Toast.success('Product Type Is Created');
       resetDialogState();
       setOpen(false);
       fetchProductTypes();
     } catch (err) {
-      console.error('delete failed', err);
-      // restore removed item on error by refetching (simple approach)
-      if (err?.response?.statusText) {
-        if (err?.response?.statusText === 'Forbidden') {
-          Toast.error("You don't have permission to update Product Type");
-          return;
-        }
-        Toast.error(err?.response?.data?.message);
-      }
-      Toast.error('Failed to Create productType');
-      // quick refetch to ensure state is consistent
-      try {
-        resetDialogState();
-        setOpen(false);
-      } catch (e) { /* ignore */ }
+      console.error('Product Type creation failed', err);
+      Toast.error(
+        err?.response?.data?.message ||
+        (err?.response?.status === 403
+          ? "You don't have permission to create Product Types"
+          : 'Failed to create Product Type')
+      );
     } finally {
       setSaving(false);
     }
@@ -346,10 +324,11 @@ export default function Finished() {
             label={'Product Type'}
             name={'productType'}
             onChange={(e) => { setForm(prev => ({ ...prev, name: e.label.value, productType: e.target.value })) }}
-            apiget={"/api/product-type/options"}
+            options={PRODUCT_TYPE_OPTIONS}
             placeholder='Select Product Type'
             required
-            allowCustomValue={true}
+            allowCustomValue={false}
+            readOnly={mode === 'edit'}
           // autoFocus={mode === 'create' ? true : false} 
           />
           <span className='text-sm text-white-300 block pb-3'>Note : you can assign multiple categories to one product type so as per your requiremrnt you can update below </span>

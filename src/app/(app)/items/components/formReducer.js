@@ -1,53 +1,41 @@
-
-
-// src/app/items/components/formReducer.js
 import { productParameters } from '../../../../config/productConfig';
+
 export const formReducer = (state, action) => {
-  console.log('formReducer action:', action.type, action);
   switch (action.type) {
-    case 'SET_FIELD': {
-      let value = action.value;
-      if (typeof value === 'string' && value.trim() !== '' && !isNaN(Number(value))) {
-        value = Number(value);
+    case 'SET_FIELD':
+      return { ...state, [action.field]: action.value };
+
+    case 'SET_FIELDS':
+      return { ...state, ...(action.fields || {}) };
+
+    case 'CHANGE_PRODUCT_TYPE': {
+      const nextState = { ...state };
+      for (const field of ['dimension', 'density', 'temperature', 'packing']) {
+        delete nextState[field];
       }
-      return { ...state, [action.field]: value };
+      nextState.productType = action.value;
+      nextState.productType_label = action.label || '';
+      return nextState;
     }
 
     case 'TOGGLE_PARAMETER': {
-      const param = productParameters.find(p => p.key === action.key);
-      if (!param) return state;
-
-      const fields = Array.isArray(param.fields) ? param.fields : [];
-      const getName = (f) => (typeof f === 'string' ? f : f?.name);
+      const parameter = productParameters.find(item => item.key === action.key);
+      if (!parameter) return state;
 
       if (action.enabled) {
-        const newFields = {};
-        if (fields.length > 0) {
-          fields.forEach(f => {
-            const name = getName(f);
-            if (name) newFields[name] = '';
-          });
-        } else if (param.key) {
-          // If no fields defined, use the top-level key as a single value holder
-          newFields[param.key] = '';
-        }
-        return { ...state, ...newFields };
-      } else {
-        const newState = { ...state };
-        if (fields.length > 0) {
-          fields.forEach(f => {
-            const name = getName(f);
-            if (name) delete newState[name];
-          });
-        }
-        // Also clean up the top-level key if it was used
-        if (param.key) delete newState[param.key];
-        return newState;
+        return {
+          ...state,
+          [parameter.key]: state[parameter.key] ?? '',
+        };
       }
+
+      const nextState = { ...state };
+      delete nextState[parameter.key];
+      return nextState;
     }
 
     case 'RESET_FORM':
-      return action.initialState || action.payload || {};
+      return action.initialState || {};
 
     default:
       return state;

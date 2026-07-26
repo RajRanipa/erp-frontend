@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance';
-import SelectInput from '@/Components/inputs/SelectInput';
 import { Toast } from '@/Components/toast';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import Loading from '@/Components/Loading';
+
+const EMPTY_PARAMS = Object.freeze({});
 
 /**
  * ItemSelect
@@ -29,7 +30,7 @@ export default function ItemSelect({
   required = false,
   disabled = false,
   status = 'active',
-  apiparams = {},
+  apiparams = EMPTY_PARAMS,
   onFocus,
   readOnly = false,
 }) {
@@ -82,16 +83,13 @@ export default function ItemSelect({
     };
     fetchItems();
     return () => { ignore = true; };
-  }, []);
+  }, [mergedParams, status]);
 
   const options = useMemo(() => {
-    setLoading(true);
-    const shorted = (items || []).map((it) => ({
+    return (items || []).map((it) => ({
       value: it._id || it.id,
       label: formateLabel(it),
     }));
-    setLoading(false);
-    return shorted;
   }, [items]);
 
   // `

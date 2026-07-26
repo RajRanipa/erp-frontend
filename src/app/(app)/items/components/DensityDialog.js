@@ -81,6 +81,7 @@ export default function DensityDialog({
     const hasValue = raw.value !== undefined && raw.value !== null && String(raw.value).trim() !== '';
     if (!hasValue) return { ok: false, message: 'Value is required for density.' };
     if (!raw.unit || String(raw.unit).trim() === '') return { ok: false, message: 'Unit is required.' };
+    if (!raw.productType) return { ok: false, message: 'Product type is required.' };
     return { ok: true };
   };
 

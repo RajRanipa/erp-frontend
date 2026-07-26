@@ -85,6 +85,7 @@ export default function Finished() {
     const qLower = (dq || '').toString().trim().toLowerCase();
     return items.filter(it => {
       // productType filter (productType is populated on backend)
+      console.log(it)
       if (productTypeFilter) {
         if (!it.productType || it.productType._id !== productTypeFilter) return false;
       }
@@ -92,6 +93,7 @@ export default function Finished() {
       if (qLower) {
         const hay = [
           it.name,
+          it.categoryKey?? '-',
           it.packing?.name+' '+it.packing?.brandType+' '+it.packing?.productColor,
           it.density?.value,
           it.temperature?.value,
@@ -110,21 +112,22 @@ export default function Finished() {
   };
 
   const onDelete = async (name, id, triggerEl) => {
-    console.log('delete', name, id);
     try {
-      const ok = await Toast.promise(`Delete ${name} product? This will permanently delete the item. Are you sure?`, {
-        confirmText: 'Delete',
+      const ok = await Toast.promise(`Archive ${name}? It will remain in historical inventory and production records.`, {
+        confirmText: 'Archive',
         cancelText: 'Cancel',
       });
       if (!ok) return;
-      // optimistic UI: remove from list first
-      setItems(prev => prev.filter(p => p._id !== id));
-      await axiosInstance.delete(`/api/items/${id}`, { withCredentials: true });
-      Toast.success('Item deleted');
+      const response = await axiosInstance.delete(`/api/items/${id}`, { withCredentials: true });
+      const archived = response.data?.data || response.data?.item;
+      setItems(prev => prev.map(item =>
+        item._id === id ? { ...item, ...(archived || {}), status: 'archived' } : item
+      ));
+      Toast.success('Item archived');
     } catch (err) {
       console.error('delete failed', err);
       // restore removed item on error by refetching (simple approach)
-      Toast.error('Failed to delete item');
+      Toast.error(err?.response?.data?.message || 'Failed to archive Item');
       // quick refetch to ensure state is consistent
       try {
         const resp = await axiosInstance.get('/api/items/finished');
@@ -187,6 +190,20 @@ export default function Finished() {
               render: (r) => <div className="font-semibold">{r.name}</div>,
             },
             {
+              key: 'catagory',
+              header: 'Catagory',
+              sortable: true,
+              render: (r) => (r?.category?.name ?? '—'),
+              groupCollapsed: true, 
+            },
+            {
+              key: 'productType',
+              header: 'Product Type',
+              sortable: true,
+              render: (r) => (r?.productType?.name ?? '—'),
+              groupCollapsed: true, 
+            },
+            {
               key: 'temperature',
               header: 'Temperature',
               sortable: true,
@@ -230,7 +247,18 @@ export default function Finished() {
               render: (r) => r.UOM || '\u2014',
               align: 'center',
             },
-            { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
+            {
+              key: 'status',
+              header: 'Status',
+              render: r => (
+                <StatusActions
+                  item={r}
+                  onStatusChange={updated => setItems(current =>
+                    current.map(item => item._id === updated._id ? { ...item, ...updated } : item)
+                  )}
+                />
+              ),
+            },
             {
               key: 'updated',
               header: 'Updated',
@@ -264,8 +292,12 @@ export default function Finished() {
               header: 'Actions',
               render: (r) => (
                 <div className="flex items-center justify-end gap-2">
-                  <EditButton onClick={() => onEdit(r)} itemName={r.name} requiredPermissions='items:update' />
-                  <DeleteButton onClick={(e) => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} requiredPermissions='items:delete' />
+                  {r.status !== 'archived' && (
+                    <>
+                      <EditButton onClick={() => onEdit(r)} itemName={r.name} requiredPermissions="items:update" />
+                      <DeleteButton onClick={(e) => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} requiredPermissions="items:delete" />
+                    </>
+                  )}
                 </div>
               ),
               align: 'right',

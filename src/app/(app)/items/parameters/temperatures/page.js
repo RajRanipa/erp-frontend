@@ -71,7 +71,6 @@ export default function Finished() {
       setTemperature(temperatureData);
     } catch (err) {
       console.error('fetch error', err);
-      setError(err?.message || 'Failed to load');
       Toast.error('Failed to fetch Temperatures', { duration: 4000 });
     } finally {
       setLoading(false);
@@ -83,8 +82,7 @@ export default function Finished() {
   }, [fetchTemperature]);
 
   // Table Configuration
-  const columns = useMemo(
-    () => [
+  const columns = [
       {
         key: 'temperature',
         header: 'Temperature Value',
@@ -120,9 +118,7 @@ export default function Finished() {
           </div>
         )
       }
-    ],
-    []
-  );
+  ];
 
   // Dialog Helpers
   const resetDialogState = () => {
@@ -141,7 +137,7 @@ export default function Finished() {
 
   const openDialog = (data) => {
     const editForm = {
-      category: data?.productType?.categoryID?._id ?? '',
+      category: data?.productType?.categories?.[0]?._id ?? '',
       productType: data?.productType?._id ?? '',
       temperature: data?.value ?? '',
       temperatureId: data?._id ?? '',
@@ -158,20 +154,20 @@ export default function Finished() {
   const onDelete = async (name, id, triggerEl) => {
     // console.log('delete', name, id);
     try {
-      const ok = await Toast.promise(`Delete "${name}" product type? This will permanently delete the item. Are you sure?`, {
+      const ok = await Toast.promise(`Delete temperature "${name}"?`, {
         confirmText: 'Delete',
         cancelText: 'Cancel',
       });
       if (!ok) return;
       // optimistic UI: remove from list first
-      await axiosInstance.delete(`/api/product-type/${id}`, { withCredentials: true });
-      setTemperature(prev => prev.filter(p => p.value !== id));
+      await axiosInstance.delete(`/api/temperatures/${id}`, { withCredentials: true });
+      setTemperature(prev => prev.filter(p => p._id !== id));
       Toast.success('Temperature deleted');
       fetchTemperature();
     } catch (err) {
       console.error('delete failed', err);
       // restore removed item on error by refetching (simple approach)
-      Toast.error('Failed to delete item');
+      Toast.error(err?.response?.data?.message || 'Failed to delete temperature');
       // quick refetch to ensure state is consistent
       try {
         fetchTemperature();
@@ -179,7 +175,6 @@ export default function Finished() {
     }
   };
   const handleSave = async () => {
-    console.log('update', form.temperature, form.temperatureId);
     setUpdating(true);
     try {
       const ok = await Toast.promise(`Update "${form.temperature}" temperature? This will permanently Update the temperature. Are you sure?`, {
@@ -200,7 +195,6 @@ export default function Finished() {
         category: form.category,
       }
       const res = await axiosInstance.put(`/api/temperatures/${form.temperatureId}`, payload);
-      console.log("res :- ", res);
       Toast.success('Temperature Updated');
       setOriginalForm(form);
       resetDialogState();
@@ -228,10 +222,9 @@ export default function Finished() {
   };
   const createTemperature = async () => {
     setSaving(true);
-    console.log('create :- ', form.productType, form.temperature);
 
     try {
-      if (!form.productType || !form.temperature, !form.unit || !form.category) {
+      if (!form.productType || !form.temperature || !form.unit || !form.category) {
         Toast.error('Please fill all the fields');
         return
       }
@@ -243,7 +236,6 @@ export default function Finished() {
         unit: form.unit,
       }
       const res = await axiosInstance.post(`/api/temperatures`, payload);
-      console.log("res :- ", res);
       Toast.success('Temperature Is Created');
       resetDialogState();
       setOpen(false);

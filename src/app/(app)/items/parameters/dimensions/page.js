@@ -81,7 +81,6 @@ export default function Finished() {
       setDimension(dimensionData);
     } catch (err) {
       console.error('fetch error', err);
-      setError(err?.message || 'Failed to load');
       Toast.error('Failed to fetch Dimensions', { duration: 4000 });
     } finally {
       setLoading(false);
@@ -93,8 +92,7 @@ export default function Finished() {
   }, [fetchDimension]);
 
   // Table Configuration
-  const columns = useMemo(
-    () => [
+  const columns = [
       {
         key: 'dimension',
         header: 'Dimension Value',
@@ -130,9 +128,7 @@ export default function Finished() {
           </div>
         )
       }
-    ],
-    []
-  );
+  ];
 
   // Dialog Helpers
   const resetDialogState = () => {
@@ -172,20 +168,20 @@ export default function Finished() {
   const onDelete = async (name, id, triggerEl) => {
     // console.log('delete', name, id);
     try {
-      const ok = await Toast.promise(`Delete "${name}" product type? This will permanently delete the item. Are you sure?`, {
+      const ok = await Toast.promise(`Delete dimension "${name}"?`, {
         confirmText: 'Delete',
         cancelText: 'Cancel',
       });
       if (!ok) return;
       // optimistic UI: remove from list first
-      await axiosInstance.delete(`/api/product-type/${id}`, { withCredentials: true });
-      setDimension(prev => prev.filter(p => p.value !== id));
+      await axiosInstance.delete(`/api/dimensions/${id}`, { withCredentials: true });
+      setDimension(prev => prev.filter(p => p._id !== id));
       Toast.success('Dimension deleted');
       fetchDimension();
     } catch (err) {
       console.error('delete failed', err);
       // restore removed item on error by refetching (simple approach)
-      Toast.error('Failed to delete item');
+      Toast.error(err?.response?.data?.message || 'Failed to delete dimension');
       // quick refetch to ensure state is consistent
       try {
         fetchDimension();
@@ -193,7 +189,6 @@ export default function Finished() {
     }
   };
   const handleSave = async () => {
-    console.log('update', form.dimension, form.dimensionId);
     setUpdating(true);
     try {
       const ok = await Toast.promise(`Update "${form.length +" x "+ form.width +" x "+ form.thickness}" dimension? This will permanently Update the dimension. Are you sure?`, {
@@ -212,7 +207,6 @@ export default function Finished() {
         productType: form.productType,
       }
       const res = await axiosInstance.put(`/api/dimensions`, payload);
-      console.log("res :- ", res);
       Toast.success('Dimension Updated');
       setOriginalForm(form);
       resetDialogState();
@@ -240,7 +234,6 @@ export default function Finished() {
   };
   const createDimension = async () => {
     setSaving(true);
-    console.log('create :- ', form.productType, form.dimension);
 
     try {
       if (!form.productType || !form.length || !form.width || !form.thickness || !form.unit || !form.category) {
@@ -257,7 +250,6 @@ export default function Finished() {
         unit: form.unit
       }
       const res = await axiosInstance.post(`/api/dimensions`, payload);
-      console.log("res :- ", res);
       Toast.success('Dimension Is Created');
       resetDialogState();
       setOpen(false);

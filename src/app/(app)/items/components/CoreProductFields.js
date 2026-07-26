@@ -7,9 +7,7 @@ import TextArea from '@/Components/inputs/TextArea';
 import { coreProductFields } from '@/config/productConfig';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 
-const CoreProductFields = ({ formData, onChange, errors }) => {
-  // console.log('coreProductFields', "formData", formData.category_label);
-  let options =''
+const CoreProductFields = ({ formData, onChange, errors, identityLocked = false }) => {
   return (
     // <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 col-span-3">
       <>
@@ -18,6 +16,7 @@ const CoreProductFields = ({ formData, onChange, errors }) => {
           const error = errors?.[field.name];
           const value = formData[field.name];
           const className = field.colSpan ? `md:col-span-${field.colSpan}` : undefined;
+          const readOnly = identityLocked && !['minimumStock', 'description'].includes(field.name);
 
           if (field.type === 'select') {
             return (
@@ -30,13 +29,22 @@ const CoreProductFields = ({ formData, onChange, errors }) => {
                   label={field.label}
                   placeholder={field.placeholder}
                   options={field.options}
+                  err={error || ''}
+                  disabled={readOnly}
                 />
               </div>
             );
           }
 
           if (field.type === 'selecttype') {
-            field?.options ? (options = field.options) : formData.category_label.includes('raw') ? (options = field.raw) : formData.category_label.includes('packing') ? (options = field.packing) : (options = field.finished);
+            const categoryLabel = String(formData.category_label || '').toLowerCase();
+            const options = field.options || (
+              categoryLabel.includes('raw')
+                ? field.raw
+                : categoryLabel.includes('packing')
+                  ? field.packing
+                  : field.finished
+            );
             return (
               <div key={field.name} className={className}>
                 <SelectTypeInput
@@ -49,8 +57,10 @@ const CoreProductFields = ({ formData, onChange, errors }) => {
                   options={options}
                   apiget={field?.apiget}
                   apipost={field?.apipost}
-                  allowCustomValue={field?.allowCustomValue || false}
+                  allowCustomValue={field?.allowCustomValue ?? false}
                   apiparams={field?.apiparams ? field.apiparams(formData) : null}
+                  err={error || ''}
+                  readOnly={readOnly}
                 />
               </div>
             );
@@ -65,7 +75,9 @@ const CoreProductFields = ({ formData, onChange, errors }) => {
                   placeholder={field.placeholder}
                   value={value ?? ''}
                   onChange={onChange}
-                  className={'h-[38px]'}
+                className={'h-[38px]'}
+                err={error || ''}
+                readOnly={readOnly}
                 />
               </div>
             );
@@ -82,7 +94,8 @@ const CoreProductFields = ({ formData, onChange, errors }) => {
                 value={value ?? ''}
                 onChange={onChange}
                 required={field.required}
-                readOnly={field.readOnly}
+                readOnly={readOnly || field.readOnly}
+                err={error || ''}
               />
             </div>
           );

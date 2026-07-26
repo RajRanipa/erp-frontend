@@ -8,7 +8,6 @@ import EditButton from '@/Components/buttons/EditButton';
 import DeleteButton from '@/Components/buttons/DeleteButton';
 import { useRouter } from 'next/navigation';
 import Table from '@/Components/layout/Table';
-import useAuthz from '@/hooks/useAuthz';
 import StatusActions from '../components/StatusActions';
 import NavLink from '@/Components/NavLink';
 import Loading from '@/Components/Loading';
@@ -17,8 +16,6 @@ import { formatDateDMY } from '@/utils/date';
 
 export default function Raw() {
 
-  const { can } = useAuthz();
-  // const confirmToast = useConfirmToast();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -68,20 +65,22 @@ export default function Raw() {
 
   const onDelete = async (name, id, triggerEl) => {
     try {
-      const ok = await Toast.promise(`Delete ${name} ? This will permanently delete the item. Are you sure?`, {
-        confirmText: 'Delete',
+      const ok = await Toast.promise(`Archive ${name}? It will remain in historical inventory and production records.`, {
+        confirmText: 'Archive',
         cancelText: 'Cancel',
         focusTarget: triggerEl,
       });
       if (!ok) return;
 
-      // optimistic UI
-      setItems(prev => prev.filter(p => p._id !== id));
-      await axiosInstance.delete(`/api/items/${id}`, { withCredentials: true });
-      Toast.success('Item deleted');
+      const response = await axiosInstance.delete(`/api/items/${id}`, { withCredentials: true });
+      const archived = response.data?.data || response.data?.item;
+      setItems(prev => prev.map(item =>
+        item._id === id ? { ...item, ...(archived || {}), status: 'archived' } : item
+      ));
+      Toast.success('Item archived');
     } catch (err) {
       console.error('delete failed', err);
-      Toast.error('Failed to delete item');
+      Toast.error(err?.response?.data?.message || 'Failed to archive Item');
       // simple refetch to restore
       try {
         await fetchItems();
@@ -140,7 +139,18 @@ export default function Raw() {
                   { key: 'UOM', header: 'Unit', render: r => r.UOM || '\u2014' },
                   { key: 'minimumStock', header: 'Minimum Stock', render: r => r.minimumStock ?? '\u2014' },
                   { key: 'description', header: 'Description', render: r => r.description || '\u2014' },
-                  { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
+                  {
+                    key: 'status',
+                    header: 'Status',
+                    render: r => (
+                      <StatusActions
+                        item={r}
+                        onStatusChange={updated => setItems(current =>
+                          current.map(item => item._id === updated._id ? { ...item, ...updated } : item)
+                        )}
+                      />
+                    ),
+                  },
                   {
                     key: 'updated',
                     header: 'Updated',
@@ -174,8 +184,12 @@ export default function Raw() {
                     header: 'Actions',
                     render: r => (
                       <div className='flex gap-2 items-center justify-end'>
-                        <EditButton onClick={() => onEdit(r)} itemName={r.name} />
-                        <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} requiredPermissions='items:delete' />
+                        {r.status !== 'archived' && (
+                          <>
+                            <EditButton onClick={() => onEdit(r)} itemName={r.name} requiredPermissions="items:update" />
+                            <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} requiredPermissions="items:delete" />
+                          </>
+                        )}
                       </div>
                     ),
                     align: 'right',

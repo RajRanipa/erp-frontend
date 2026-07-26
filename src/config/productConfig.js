@@ -1,4 +1,3 @@
-import api from "../utils/api";
 // src/app/config/productConfig.js
 import { Density_uom_options, Temp_uom_options } from "./Uom";
 
@@ -43,28 +42,6 @@ const productParameters = [
         apiget: '/api/items/packings',
         conditional: false
     },
-    {
-        key: "weight",
-        label: "Weight",
-        fields: [
-            { name: "weight", placeholder: "Weight", type: "number" },
-        ],
-        unitName: "weightunit",
-        unitType: "Weight",
-        uniqueName: "weightunique",
-        conditional: false
-    },
-    {
-        key: "volume",
-        label: "Volume",
-        fields: [
-            { name: "volume", placeholder: "Volume", type: "number" },
-        ],
-        unitName: "volumeunit",
-        unitType: "Volume",
-        uniqueName: "volumeunique",
-        conditional: false
-    },
 ];
 
 const coreProductFields = [
@@ -74,7 +51,7 @@ const coreProductFields = [
         apiget: '/api/product-type', apiparams: (formData = {}) => { return formData?.category ? formData.category : null; },
         conditional: (formData = {}) => {
             const cat = String((formData.category_label ?? '')).trim().toLowerCase();
-            return cat.includes('finished') || cat.includes('packing') || cat.includes('non-');
+            return cat.includes('finished') || cat.includes('packing');
         },
     },
     {

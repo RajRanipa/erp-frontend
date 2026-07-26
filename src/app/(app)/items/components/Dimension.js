@@ -1,11 +1,11 @@
 'use client';
 // src/app/items/components/Dimension.js
-import React, { use, useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import DimensionDialog from './DimensionDialog';
 import { cn } from '../../../../utils/cn';
 
-export default function Dimension({ formData, onChange, className = '' }) {
+export default function Dimension({ formData, onChange, className = '', err = '' }) {
   const [open, setOpen] = useState(false);
   const dimenstionRef = useRef(null);
   const dparams = { category: formData?.category, productType: formData?.productType };
@@ -49,6 +49,7 @@ export default function Dimension({ formData, onChange, className = '' }) {
         params={dparams}
         callBack={handleOpen}
         required
+        err={err}
         inputRef={dimenstionRef}
       />}
 

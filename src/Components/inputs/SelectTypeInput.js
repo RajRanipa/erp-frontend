@@ -20,6 +20,7 @@ const normalizeOption = (item) => {
   if (typeof item === 'object') {
     if ('label' in item && 'value' in item) return { label: String(item.label), value: String(item.value) };
     if ('value' in item) return { label: String(item.value), value: String(item.value) };
+    if ('name' in item && '_id' in item) return { label: String(item.name), value: String(item._id) };
     if ('name' in item && 'id' in item) return { label: String(item.name), value: String(item.id) };
     // fallback: first string field
     const first = Object.values(item).find(
@@ -157,7 +158,6 @@ const SelectTypeInput = ({
     }
   }, [value, touched, required, label, name, placeholder]);
 
-  console.log('SelectInput err', err);
   const displayErr = (typeof err === 'string' && err.length) ? err : internalErr;
   const errorId = displayErr ? `${id || name}-error` : undefined;
 
@@ -176,7 +176,6 @@ const SelectTypeInput = ({
         if (searchValue) queryParams.search = searchValue;
 
         const base = (apiget || '').replace(/\/+$/, '');
-        console.log("apiparams", apiparams);
         const suffix = (apiparams || '').replace(/^\/+/, '');
         const url = suffix ? `${base}/${suffix}` : base;
 
@@ -249,17 +248,6 @@ const SelectTypeInput = ({
   }, [touched, required, inputValue, label, placeholder, name]);
 
   // ------------ 4) derived filtered options ------------
-  const filteredOptions_old = useMemo(() => {
-    // console.log("inputValue", inputValue)
-    if (fetching) return [];
-    if (!inputValue) return options;
-    const needle = inputValue.toLowerCase();
-    return options.filter((opt) =>
-      needle.split(' ').every((w) => opt.label.toLowerCase() == w || opt.label.toLowerCase().includes(w)) ||
-      htmlToPlainForSearch(opt.label).toLowerCase().includes(needle)
-    );
-  }, [options, inputValue, fetching]);
-
   const filteredOptions = useMemo(() => {
     if (fetching) return [];
     if (!inputValue) return options;
@@ -606,8 +594,7 @@ const SelectTypeInput = ({
                       handleSelect(option);
                     }}
                   >
-                    {/* Assuming you render the label here */}
-                    <span dangerouslySetInnerHTML={{ __html: option.label }} />
+                    <span>{htmlToPlainForSearch(option.label)}</span>
                   </li>
                 ))}
 

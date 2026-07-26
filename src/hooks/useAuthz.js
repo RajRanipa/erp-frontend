@@ -1,5 +1,6 @@
 // src/app/hook/useAuthz.js
 'use client';
+import { useCallback } from 'react';
 import { useUser } from '@/context/UserContext';
 
 // Helper to check wildcard implication
@@ -11,20 +12,20 @@ const impliesFull = (allowed, perm) => {
 };
 
 export default function useAuthz() {
-  const { role, permissions} = useUser() || {};
+  const { role, permissions = [] } = useUser() || {};
 
   const isOwner = role === 'owner';
 
   // Check if user can perform a permission
 //   console.log("useAuthz called", companyId, companyName, userId, role)
-  const can = (permOrPerms) => {
-    // if (isOwner) return true; // Owner full access
+  const can = useCallback((permOrPerms) => {
+    if (isOwner) return true;
     const required = Array.isArray(permOrPerms) ? permOrPerms : [permOrPerms];
     // console.log("required", required)
     // console.log("permissions", permissions)
     if (required.length === 0) return true;
     return required.every((p) => impliesFull(permissions, p));
-  };
+  }, [isOwner, permissions]);
 
   return {
     can,

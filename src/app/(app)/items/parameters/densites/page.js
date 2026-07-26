@@ -64,7 +64,6 @@ export default function Finished() {
     setLoading(true);
     try {
       const densityRes = await axiosInstance.get('/api/densities');
-      console.log("densityRes :- ", densityRes.data[0], densityRes.data[1]);
       const densityData = densityRes.data || [];
       setDensity(densityData);
     } catch (err) {
@@ -81,8 +80,7 @@ export default function Finished() {
   }, [fetchDensity]);
 
   // Table Configuration
-  const columns = useMemo(
-    () => [
+  const columns = [
       {
         key: 'density',
         header: 'Density',
@@ -118,9 +116,7 @@ export default function Finished() {
           </div>
         )
       }
-    ],
-    []
-  );
+  ];
 
   // Dialog Helpers
   const resetDialogState = () => {
@@ -140,7 +136,7 @@ export default function Finished() {
   const openDialog = (data) => {
     const editForm = {
       productType: data?.productType?._id ?? '',
-      category: data?.productType?.categoryID?._id ?? '',
+      category: data?.productType?.categories?.[0]?._id ?? '',
       density: data?.value ?? '',
       densityId: data?._id ?? '',
       unit: data?.unit ?? '',
@@ -156,20 +152,20 @@ export default function Finished() {
   const onDelete = async (name, id, triggerEl) => {
     // console.log('delete', name, id);
     try {
-      const ok = await Toast.promise(`Delete "${name}" product type? This will permanently delete the item. Are you sure?`, {
+      const ok = await Toast.promise(`Delete density "${name}"?`, {
         confirmText: 'Delete',
         cancelText: 'Cancel',
       });
       if (!ok) return;
       // optimistic UI: remove from list first
-      await axiosInstance.delete(`/api/product-type/${id}`, { withCredentials: true });
-      setDensity(prev => prev.filter(p => p.value !== id));
+      await axiosInstance.delete(`/api/densities/${id}`, { withCredentials: true });
+      setDensity(prev => prev.filter(p => p._id !== id));
       Toast.success('Density deleted');
       fetchDensity();
     } catch (err) {
       console.error('delete failed', err);
       // restore removed item on error by refetching (simple approach)
-      Toast.error('Failed to delete item');
+      Toast.error(err?.response?.data?.message || 'Failed to delete density');
       // quick refetch to ensure state is consistent
       try {
         fetchDensity();
@@ -177,7 +173,6 @@ export default function Finished() {
     }
   };
   const handleSave = async () => {
-    console.log('update', form.density, form.densityId);
     setUpdating(true);
     try {
       const ok = await Toast.promise(`Update "${form.density}" density? This will permanently Update the density. Are you sure?`, {
@@ -198,7 +193,6 @@ export default function Finished() {
         category: form.category,
       }
       const res = await axiosInstance.put(`/api/densities/${form.densityId}`, payload);
-      console.log("res :- ", res);
       Toast.success('Density Updated');
       setOriginalForm(form);
       resetDialogState();
@@ -241,7 +235,6 @@ export default function Finished() {
         unit: form.unit
       }
       const res = await axiosInstance.post(`/api/densities`, payload);
-      console.log("res :- ", res);
       Toast.success('Density Is Created');
       resetDialogState();
       setOpen(false);

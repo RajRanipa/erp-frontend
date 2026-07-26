@@ -1,7 +1,7 @@
 // src/app/config/productConfig.js
 
 const Temp_uom_options = [
-    { value: "˚C", label: "Celsius" },
+    { value: "°C", label: "Celsius" },
     { value: "f", label: "Fahrenheit" },
     { value: "k", label: "Kelvin" },
 ]

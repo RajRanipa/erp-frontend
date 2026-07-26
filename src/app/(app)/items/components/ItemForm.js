@@ -1,136 +1,193 @@
 'use client';
-// src/app/items/create/page.js
-import React, { use, useCallback, useEffect, useMemo, useState } from 'react';
+
+import React, { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Toast } from '@/Components/toast';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
-import CoreProductFieldsComponent from './CoreProductFields';
-import ProductParametersComponent from './ProductParameters';
-import ParameterToggleBarComponent from './ParameterToggleBar';
+import SubmitButton from '@/Components/buttons/SubmitButton';
+import CoreProductFields from './CoreProductFields';
+import ProductParameters from './ProductParameters';
+import ParameterToggleBar from './ParameterToggleBar';
 import useProductForm from '../hooks/useProductForm';
 import { productParameters } from '../../../../config/productConfig';
-import SubmitButton from '@/Components/buttons/SubmitButton';
-const ProductParameters = React.memo(ProductParametersComponent);
-const CoreProductFields = React.memo(CoreProductFieldsComponent);
-const ParameterToggleBar = React.memo(ParameterToggleBarComponent);
 
-export default function ItemForm({ mode = 'create', initialData = {}, onsubmit = () => {} }) {
-  // console.log('initialData', initialData);
+const EMPTY_INITIAL_DATA = Object.freeze({});
+
+const categoryKeyFromLabel = label => {
+  const normalized = String(label || '').trim().toLowerCase();
+  if (normalized === 'finished goods') return 'FG';
+  if (normalized === 'raw material') return 'RAW';
+  if (normalized === 'packing material') return 'PACKING';
+  if (normalized === 'non-conformance') return 'NC';
+  return '';
+};
+
+export default function ItemForm({
+  mode = 'create',
+  initialData = EMPTY_INITIAL_DATA,
+  onsubmit,
+}) {
   const router = useRouter();
   const {
     formData,
     dispatch,
     errors,
-    setErrors,
     enabledParameters,
+    requiredParameters,
     toggleParameter,
     handleChange,
+    resetForCategory,
     submit,
-    remove,
-    paramRequirements,
   } = useProductForm({ mode, initialData });
-  const [catagory, setCatagory] = useState(null);
-  const [loading, setLoading] = useState(false);
-  // console.log('formData', formData);
-  const handleLocalChange = useCallback((eOrName) => {
-  // console.log('handleLocalChange', eOrName);
+  const [saving, setSaving] = useState(false);
+  const categoryKey = categoryKeyFromLabel(formData.category_label);
+  
+  const identityLocked = (
+    mode === 'edit' &&
+    !['draft', 'rejected'].includes(formData.status)
+  );
+  console.log('formData', initialData, formData, formData.status, identityLocked);
 
-  if (eOrName && eOrName.target) {
-    const { name, value } = eOrName.target;
-    const labelValue = eOrName.label?.value ?? value;
-    // console.log('labelValue', labelValue, name, value);
-    // Update main formData via useProductForm handleChange
+  const availableParameters = useMemo(() => {
+    if (categoryKey === 'FG') return productParameters;
+    if (categoryKey === 'PACKING') {
+      return productParameters.filter(parameter => parameter.key === 'dimension');
+    }
+    return [];
+  }, [categoryKey]);
+
+  const handleLocalChange = useCallback((eventOrName, maybeValue) => {
+    const event = eventOrName?.target ? eventOrName : null;
+    const name = event?.target?.name || eventOrName;
+    const value = event?.target?.value ?? maybeValue;
+    const labelValue = eventOrName?.label?.value;
+
+    if (name === 'category' && value !== formData.category) {
+      const currentCategoryText = String(
+        formData.category_label || formData.category || '',
+      ).trim().toLowerCase();
+      const selectedCategoryText = String(labelValue || '').trim().toLowerCase();
+      if (currentCategoryText && currentCategoryText === selectedCategoryText) {
+        dispatch({
+          type: 'SET_FIELDS',
+          fields: {
+            category: value,
+            category_label: labelValue,
+          },
+        });
+        return;
+      }
+      resetForCategory(value, labelValue || '');
+      return;
+    }
+
+    if (name === 'productType' && value !== formData.productType) {
+      dispatch({
+        type: 'CHANGE_PRODUCT_TYPE',
+        value,
+        label: labelValue || '',
+      });
+      return;
+    }
+
     handleChange(name, value);
-
-    // Optionally keep a local label copy for conditional rendering
-    if (name === 'category') setCatagory(labelValue);
-
-    // If you need to store category_label in formData, you can dispatch SET_FIELD
-    if (name === 'category') {
-      dispatch({ type: 'SET_FIELD', field: `${name}_label`, value: labelValue });
+    if (labelValue !== undefined && ['category', 'productType'].includes(name)) {
+      dispatch({
+        type: 'SET_FIELD',
+        field: `${name}_label`,
+        value: labelValue,
+      });
     }
-  }
-}, [handleChange, dispatch]);
+  }, [
+    dispatch,
+    formData.category,
+    formData.category_label,
+    formData.productType,
+    handleChange,
+    resetForCategory,
+  ]);
 
-  const handleSubmit = useCallback(async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setLoading(true);
+  const handleSubmit = useCallback(async event => {
+    event.preventDefault();
+    if (saving) return;
+
+    setSaving(true);
     try {
-      const doc = await submit(mode);
-      // console.log('doc', doc);
-      // on success navigate or show toast (submit already shows toast)
-       if(onsubmit) {
-        onsubmit();
+      const savedItem = await submit();
+      if (onsubmit) {
+        onsubmit(savedItem);
+      } else {
+        router.back();
       }
-      if (mode === 'create' || mode === 'edit') {
-        // router.push('/items');
-        router.back()
-      }
-    } catch (err) {
-      // errors already handled in hook
+    } catch {
+      // Validation and API messages are handled by the form hook.
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
-  }, [submit, mode, router, onsubmit]);
+  }, [onsubmit, router, saving, submit]);
 
   return (
-    <div>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 grid-rows-[min-content]' >
-          {/* {(mode == 'create')&&  */}
-          <SelectTypeInput
-            label="Category"
-            placeholder="Category"
-            name="category"
-            value={formData.category}
-            onChange={handleLocalChange}
-            required
-            apiget='/api/category'
-            apipost={'/api/category'}
-            allowCustomValue={false}
-          />
-          {/* } */}
-          {/* {(mode !== 'create') && <SelectTypeInput
-            label="Category"
-            placeholder="Category"
-            name="category"
-            value={userSelectedValue}
-            onChange={handleLocalChange}
-            readOnly={true}
-            required
-            apiget='/api/category'
-            allowCustomValue={false}
-            userSelectedValue={userSelectedValue}
-          />} */}
-
-          {catagory && formData.category_label && <CoreProductFields formData={formData} onChange={handleLocalChange} errors={errors} />}
-
-          {catagory && (formData.category_label === 'raw material'|| formData.productType) && formData.name && formData.UOM && 
-          <div className='col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 bg-white-100 p-4 rounded-lg flex flex-col items-start justify-start gap-2 shadow-sm'>
-              <h2 className="text-lg font-bold flex-1/1">Product Parameters</h2>
-              <ParameterToggleBar
-                  productParameters={productParameters}
-                  enabledParameters={enabledParameters}
-                  onToggle={toggleParameter}
-              />
-              <p className='text-white-500'> *add parameters as per your requirement related to product</p>
-              <ProductParameters
-                  enabledParameters={enabledParameters}
-                  paramRequirements={paramRequirements}
-                  formData={formData}
-                  onChange={handleLocalChange}
-              />
-          </div>}
-        </div>
-        <SubmitButton 
-          loading={loading} 
-          label={mode === 'create' ? 'Save Product' : 'Update Product'} 
-          className='mt-4'
+    <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <SelectTypeInput
+          label="Category"
+          placeholder="Select category"
+          name="category"
+          value={formData.category}
+          onChange={handleLocalChange}
+          required
+          apiget="/api/category"
+          allowCustomValue={false}
+          readOnly={identityLocked}
+          err={errors.category || ''}
         />
 
-      </form>
-    </div>
+        {formData.category_label && (
+          <CoreProductFields
+            formData={formData}
+            onChange={handleLocalChange}
+            errors={errors}
+            identityLocked={identityLocked}
+          />
+        )}
+      </div>
+
+      {identityLocked && (
+        <div className="rounded border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm text-yellow-200">
+          Item specifications are locked after submission. Minimum stock and description can still be updated.
+        </div>
+      )}
+
+      {!identityLocked && availableParameters.length > 0 && formData.name && formData.UOM && (
+        <section className="rounded-lg bg-white-100 p-4 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold">Item specifications</h2>
+              <p className="text-sm text-white-500">
+                Required specifications stay enabled for this Item type.
+              </p>
+            </div>
+            <ParameterToggleBar
+              productParameters={availableParameters}
+              enabledParameters={enabledParameters}
+              requiredParameters={requiredParameters}
+              onToggle={toggleParameter}
+            />
+          </div>
+
+          <ProductParameters
+            enabledParameters={enabledParameters}
+            formData={formData}
+            onChange={handleLocalChange}
+            errors={errors}
+          />
+        </section>
+      )}
+
+      <SubmitButton
+        loading={saving}
+        label={mode === 'create' ? 'Create Item' : 'Update Item'}
+        className="mt-4"
+      />
+    </form>
   );
 }
-

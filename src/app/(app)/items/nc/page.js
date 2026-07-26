@@ -8,7 +8,6 @@ import EditButton from '@/Components/buttons/EditButton';
 import DeleteButton from '@/Components/buttons/DeleteButton';
 import { useRouter } from 'next/navigation';
 import Table from '@/Components/layout/Table';
-import useAuthz from '@/hooks/useAuthz';
 import StatusActions from '../components/StatusActions';
 import NavLink from '@/Components/NavLink';
 import Loading from '@/Components/Loading';
@@ -16,10 +15,7 @@ import { searchIcon } from '@/utils/SVG';
 import { formatDateDMY } from '@/utils/date';
 import { mapTemperature } from '@/utils/FGP';
 
-export default function Raw() {
-
-  const { can } = useAuthz();
-  // const confirmToast = useConfirmToast();
+export default function NonConformance() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,12 +28,11 @@ export default function Raw() {
     try {
       const response = await axiosInstance.get('/api/items/nc');
       setItems(response.data || []);
-      console.log('items', response.data);
       setError(null);
     } catch (err) {
-      console.error('Failed to fetch raw items', err);
+      console.error('Failed to fetch non-conformance Items', err);
       setError(err?.message || 'Failed to fetch items');
-      Toast.error('Failed to fetch raw items');
+      Toast.error('Failed to fetch non-conformance Items');
     } finally {
       setLoading(false);
     }
@@ -70,20 +65,22 @@ export default function Raw() {
 
   const onDelete = async (name, id, triggerEl) => {
     try {
-      const ok = await Toast.promise(`Delete ${name} ? This will permanently delete the item. Are you sure?`, {
-        confirmText: 'Delete',
+      const ok = await Toast.promise(`Archive ${name}? It will remain in historical inventory and production records.`, {
+        confirmText: 'Archive',
         cancelText: 'Cancel',
         focusTarget: triggerEl,
       });
       if (!ok) return;
 
-      // optimistic UI
-      setItems(prev => prev.filter(p => p._id !== id));
-      await axiosInstance.delete(`/api/items/${id}`, { withCredentials: true });
-      Toast.success('Item deleted');
+      const response = await axiosInstance.delete(`/api/items/${id}`, { withCredentials: true });
+      const archived = response.data?.data || response.data?.item;
+      setItems(prev => prev.map(item =>
+        item._id === id ? { ...item, ...(archived || {}), status: 'archived' } : item
+      ));
+      Toast.success('Item archived');
     } catch (err) {
       console.error('delete failed', err);
-      Toast.error('Failed to delete item');
+      Toast.error(err?.response?.data?.message || 'Failed to archive Item');
       // simple refetch to restore
       try {
         await fetchItems();
@@ -98,7 +95,7 @@ export default function Raw() {
       {
         <div className="Items-page h-full flex flex-col">
           <div className="flex items-center justify-between gap-2">
-            <h1 className="text-h2 font-semibold mb-5">Raw Materials</h1>
+            <h1 className="text-h2 font-semibold mb-5">Non-Conformance Items</h1>
             <div className="flex gap-2 items-center">
               {loading && <Loading variant='skeleton' className='h-9 min-w-[500px] mb-5' />}
               {
@@ -114,7 +111,7 @@ export default function Raw() {
                   </button>
                   <CustomInput
                     name="search_items"
-                    placeholder="Search name / grade / unit"
+                    placeholder="Search name / unit / description"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     icon={searchIcon()}
@@ -133,7 +130,7 @@ export default function Raw() {
             (items && items.length === 0) ?
               <div className='flex flex-col items-center justify-center w-full p-4 gap-3'>
                 <span className="text-secondary-text">No items found.</span>
-                <NavLink href={`/items/create`} type="button">Add New Raw Material</NavLink>
+                <NavLink href="/items/create" type="button">Add Non-Conformance Item</NavLink>
               </div> :
               <Table
                 columns={[
@@ -148,7 +145,18 @@ export default function Raw() {
                   { key: 'UOM', header: 'Unit', render: r => r.UOM || '\u2014' },
                   { key: 'minimumStock', header: 'Minimum Stock', render: r => r.minimumStock ?? '\u2014' },
                   { key: 'description', header: 'Description', render: r => r.description || '\u2014' },
-                  { key: 'status', header: 'Status', render: r => (<StatusActions item={r} />) || '\u2014' },
+                  {
+                    key: 'status',
+                    header: 'Status',
+                    render: r => (
+                      <StatusActions
+                        item={r}
+                        onStatusChange={updated => setItems(current =>
+                          current.map(item => item._id === updated._id ? { ...item, ...updated } : item)
+                        )}
+                      />
+                    ),
+                  },
                   {
                     key: 'updated',
                     header: 'Updated',
@@ -182,8 +190,12 @@ export default function Raw() {
                     header: 'Actions',
                     render: r => (
                       <div className='flex gap-2 items-center justify-end'>
-                        <EditButton onClick={() => onEdit(r)} itemName={r.name} />
-                        <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} requiredPermissions='items:delete' />
+                        {r.status !== 'archived' && (
+                          <>
+                            <EditButton onClick={() => onEdit(r)} itemName={r.name} requiredPermissions="items:update" />
+                            <DeleteButton onClick={e => onDelete(r.name, r._id, e.currentTarget)} itemName={r.name} requiredPermissions="items:delete" />
+                          </>
+                        )}
                       </div>
                     ),
                     align: 'right',

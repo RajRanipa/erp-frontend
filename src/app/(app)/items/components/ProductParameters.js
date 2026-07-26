@@ -1,6 +1,6 @@
 // src/app/items/components/ProductParameters.js
 'use client';
-import React, { useState } from 'react';
+import React from 'react';
 import Dimension from './Dimension';
 import Density from './Density';
 import Temperature from './Temperature';
@@ -8,9 +8,9 @@ import Packing from './Packing';
 
 export default function ProductParameters({
   enabledParameters,
-  paramRequirements,
   formData,
-  onChange
+  onChange,
+  errors,
 }) {
   return (
     <div className="h-fit w-full">
@@ -24,21 +24,25 @@ export default function ProductParameters({
             <Dimension
               formData={formData}
               onChange={onChange}
+              err={errors?.dimension}
             />}
           {enabledParameters["temperature"] &&
             <Temperature
               formData={formData}
               onChange={onChange}
+              err={errors?.temperature}
             />}
           {enabledParameters["density"] &&
             <Density
               formData={formData}
               onChange={onChange}
+              err={errors?.density}
             />}
           {enabledParameters["packing"] &&
             <Packing
               formData={formData}
               onChange={onChange}
+              err={errors?.packing}
             />}
         </div>
       }

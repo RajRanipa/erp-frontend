@@ -254,6 +254,7 @@ export default function RawMaterialsBatchPage() {
 
             try {
                 const response = await axiosInstance.get('/api/items/raw', {
+                    params: { status: 'active' },
                     signal: controller.signal,
                 });
                 const options = normalizeMaterialOptions(response?.data);

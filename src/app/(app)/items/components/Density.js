@@ -5,7 +5,7 @@ import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import DensityDialog from './DensityDialog';
 import { cn } from '@/utils/cn';
 
-export default function Density({ formData, onChange, className = '' }) {
+export default function Density({ formData, onChange, className = '', err = '' }) {
   const [open, setOpen] = useState(false);
   const [initialData, setInitialData] = useState({});
   const densitySelectRef = useRef(null);
@@ -15,7 +15,7 @@ export default function Density({ formData, onChange, className = '' }) {
   const handleOpen = useCallback((data) => {
     setInitialData({ productType: formData?.productType, value: data?.value, category: formData?.category });
     setOpen(true);
-  }, [formData?.productType]);
+  }, [formData?.category, formData?.productType]);
 
   const handleClose = useCallback(() => {
     setOpen(false);
@@ -51,6 +51,7 @@ export default function Density({ formData, onChange, className = '' }) {
         params={params}
         callBack={handleOpen}
         required
+        err={err}
       />}
 
       {/* {open &&  */}

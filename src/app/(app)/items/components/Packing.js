@@ -1,12 +1,12 @@
 'use client';
 // src/app/items/components/Packing.js
-import React, { use, useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import Dialog from '@/Components/Dialog';
 import ItemForm from './ItemForm';
 import { cn } from '../../../../utils/cn';
 
-export default function Packing({ formData, onChange, className = '' }) {
+export default function Packing({ formData, onChange, className = '', err = '' }) {
   const [open, setOpen] = useState(false);
   const [initialData, setInitialData] = useState({});
   const packingSelectRef = useRef(null);
@@ -67,6 +67,7 @@ export default function Packing({ formData, onChange, className = '' }) {
         params={params}
         callBack={handleOpen}
         required
+        err={err}
         dropdownHeight={"max-h-60"}
       />}
 
@@ -89,7 +90,7 @@ export default function Packing({ formData, onChange, className = '' }) {
         >
           <ItemForm
             initialData={initialData}
-            onsubmit={handleClose}
+            onsubmit={handleSaved}
           />
         </Dialog>
       {/* } */}

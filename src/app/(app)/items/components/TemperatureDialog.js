@@ -37,7 +37,7 @@ export default function TemperatureDialog({
 
   const initialDraft = useMemo(() => ({
     value: initialData.value ?? '',
-    unit: initialData.unit ?? '˚C',
+    unit: initialData.unit ?? '°C',
     productType: initialData.productType ?? '',
     category: initialData.category ?? '',
   }), [initialData]);
@@ -49,10 +49,9 @@ export default function TemperatureDialog({
   // Keep dialogData in sync with initialData when open or when initialData changes
   useEffect(() => {
     if (open) {
-      console.log("initialData :- ", initialData);
       setDialogData({
         value: initialData.value ?? '',
-        unit: initialData.unit ?? '˚C',
+        unit: initialData.unit ?? '°C',
         productType: initialData.productType ?? '',
         category: initialData.category ?? '',
       });
@@ -82,6 +81,7 @@ export default function TemperatureDialog({
     const hasValue = raw.value !== undefined && raw.value !== null && String(raw.value).trim() !== '';
     if (!hasValue) return { ok: false, message: 'Value is required for temperature.' };
     if (!raw.unit || String(raw.unit).trim() === '') return { ok: false, message: 'Unit is required.' };
+    if (!raw.productType) return { ok: false, message: 'Product type is required.' };
     return { ok: true };
   };
 

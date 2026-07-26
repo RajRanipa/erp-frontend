@@ -76,6 +76,8 @@ export default function DimensionDialog({
       .some(v => v !== undefined && v !== null && String(v).trim() !== '');
     if (!hasAny) return { ok: false, message: 'At least one of length, width or thickness is required.' };
     if (!raw.unit || String(raw.unit).trim() === '') return { ok: false, message: 'Unit is required.' };
+    if (!raw.category) return { ok: false, message: 'Category is required.' };
+    if (!raw.productType) return { ok: false, message: 'Product type is required.' };
     return { ok: true };
   };
 
