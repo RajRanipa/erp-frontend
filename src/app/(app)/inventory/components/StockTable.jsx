@@ -23,11 +23,12 @@ export default function StockTable({
   refrence = null,
 }) {
   const pt = filters.productType || '';
+  const categoryKey = filters.categoryKey || '';
   const q = filters.query || '';
   const stockTabelRef = useHighlight((filters?.query || '').toLowerCase().trim(), 'textHighlight');
   
   const filteredRows = useMemo(() => {
-    if (!q && !pt) return rows;
+    if (!q && !pt && !categoryKey) return rows;
     const needle = String(q).toLowerCase().trim();
     const str = (v) => (v == null ? '' : String(v)).toLowerCase();
 
@@ -35,6 +36,7 @@ export default function StockTable({
       const item = r.itemId || {};
       // console.log("item", item)
       const productTypeStr = r?.productType ? `${r.productType}` : '';
+      const rowCategory = item?.categoryKey || r?.categoryKey || '';
       const tempStr = item?.temperature
         ? `${item.temperature?.value ?? ''} ${item.temperature?.unit ?? ''}`
         : '';
@@ -54,16 +56,26 @@ export default function StockTable({
       const nameStr = item?.name || ''; // if we want to filter by name as well latter we can use this
       const gradeStr = item?.grade || '';
 
-      const haystack = [tempStr, denStr, dimStr, packStr, gradeStr]
+      const haystack = [
+        nameStr,
+        item?.sku,
+        rowCategory,
+        tempStr,
+        denStr,
+        dimStr,
+        packStr,
+        gradeStr,
+      ]
         .map(str)
         .join(' | ');
 
-      if (needle && pt) return needle.split(' ').every((w) => haystack.includes(w)) && productTypeStr.includes(pt);
-      if (pt) return productTypeStr.includes(pt);
-      if (needle) return needle.split(' ').every((w) => haystack.includes(w));
-      return true;
+      const matchesCategory = !categoryKey || rowCategory === categoryKey;
+      const matchesProductType = !pt || productTypeStr.includes(pt);
+      const matchesQuery =
+        !needle || needle.split(' ').every((word) => haystack.includes(word));
+      return matchesCategory && matchesProductType && matchesQuery;
     });
-  }, [rows, q, pt]);
+  }, [rows, q, pt, categoryKey]);
 
   const columns = useMemo(
     () => [
@@ -72,6 +84,12 @@ export default function StockTable({
         header: 'Item',
         sortable: true,
         render: (r) => r.itemId?.name || r.itemId || '—',
+      },
+      {
+        key: 'categoryKey',
+        header: 'Category',
+        sortable: true,
+        render: (r) => r.itemId?.categoryKey || r.categoryKey || '—',
       },
       {
         key: 'temperature',

@@ -1,5 +1,5 @@
 'use client';
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import StockFilters from '../components/StockFilters';
 import LedgerTable from '../components/LedgerTable';
 import { axiosInstance } from '@/lib/axiosInstance';
@@ -10,6 +10,7 @@ export default function InventoryMovement() {
   const defaultFilters = useMemo(
     () => ({
       itemId: '',
+      categoryKey: '',
       productType: '',
       txnType: 'all types',
       warehouseId: '',
@@ -21,6 +22,7 @@ export default function InventoryMovement() {
   );
 
   const [filters, setFilters] = useState(defaultFilters);
+  const filtersRef = useRef(defaultFilters);
   const [rows, setRows] = useState([]);
   const [limit, setLimit] = useState(200); // per-page server limit
   const [loading, setLoading] = useState(false);
@@ -48,6 +50,7 @@ export default function InventoryMovement() {
         params.from = defaultFrom;
 
         if (f.productType) params.productType = f.productType;
+        if (f.categoryKey) params.categoryKey = f.categoryKey;
         if (f.txnType && f.txnType !== 'all types') params.txnType = f.txnType;
 
         if (!reset && useCursor) params.cursor = useCursor;
@@ -71,10 +74,14 @@ export default function InventoryMovement() {
   );
 
   useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
+
+  useEffect(() => {
     setCursor(null);
     fetchLedger({
       reset: true,
-      useFilters: filters,
+      useFilters: filtersRef.current,
       useCursor: null,
     });
   }, [limit, filters.serverSearch, fetchLedger]);

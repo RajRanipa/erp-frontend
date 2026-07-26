@@ -32,6 +32,13 @@ const txnTypeOptions = [
   { label: 'REPACK', value: 'REPACK' },
 ];
 
+const categoryOptions = [
+  { label: 'Finished goods', value: 'FG' },
+  { label: 'Raw materials', value: 'RAW' },
+  { label: 'Packing materials', value: 'PACKING' },
+  { label: 'Non-conforming', value: 'NC' },
+];
+
 export default function StockFilters({
   title = '',
   value = {},
@@ -46,6 +53,7 @@ export default function StockFilters({
     itemId: value.itemId || '',
     warehouseId: value.warehouseId || '',
     batchNo: value.batchNo || '',
+    categoryKey: value.categoryKey || '',
     productType: value.productType || '',
     query: value.query || '',
     txnType: showTxnType ? (value.txnType || 'all types') : (value.txnType || ''),
@@ -82,6 +90,7 @@ export default function StockFilters({
       itemId: '',
       warehouseId: '',
       batchNo: '',
+      categoryKey: '',
       productType: '',
       query: '',
       txnType: showTxnType ? 'all types' : '',
@@ -93,16 +102,33 @@ export default function StockFilters({
     <div className={`flex flex-wrap items-center justify-between gap-3 ${className}`}>
       {title && <h3 className="text-lg font-semibold capitalize text-nowrap text-secondary-text mb-5">{title}</h3>}
       <div className="flex items-center gap-3 flex-0">
-        {/* Product Type */}
         <SelectTypeInput
-          name="productType"
-          id="productType"
-          placeholder="Product Type"
-          value={filters.productType}
-          onChange={handleProductTypeChange}
-          apiget="/api/product-type/options"
-          icon={filter1Icon()}
+          name="categoryKey"
+          id="categoryKey"
+          placeholder="Item category"
+          value={filters.categoryKey}
+          onChange={(event) =>
+            emit({
+              categoryKey: event?.target?.value ?? '',
+              productType: '',
+            })
+          }
+          options={categoryOptions}
+          className="min-w-[150px]"
         />
+
+        {/* Product Type */}
+        {(!filters.categoryKey || filters.categoryKey === 'FG') && (
+          <SelectTypeInput
+            name="productType"
+            id="productType"
+            placeholder="Product Type"
+            value={filters.productType}
+            onChange={handleProductTypeChange}
+            apiget="/api/product-type/options"
+            icon={filter1Icon()}
+          />
+        )}
 
         {/* Txn type (optional) */}
         {showTxnType && (
@@ -122,7 +148,7 @@ export default function StockFilters({
           type="search"
           parent_className="mb-5"
           className="min-w-[260px]"
-          placeholder="Search: temp / density / size / packing"
+          placeholder="Search item / grade / specification"
           value={filters.query}
           onChange={handleQueryChange}
           icon={searchIcon()}

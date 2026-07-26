@@ -1,13 +1,6 @@
 'use client';
 
-import { use, useEffect } from "react";
-
-
 export default function Batch(initial) {
-    useEffect(() => {
-        console.log('initial', initial.initial);
-        // initial = initial.initial
-    },[initial.initial])
   return (
       <div className="max-w-3xl">
           {Array.isArray(initial.initial) && initial.initial.map((item) => (
@@ -19,7 +12,9 @@ export default function Batch(initial) {
                 <strong>Raw Materials:</strong>
                 <div className="list-disc ml-6">
                   {item.rawMaterials?.map((rm, idx) => (
-                    <p key={idx}>{idx + 1}. {rm.rawMaterial}</p>
+                    <p key={rm._id || idx}>
+                      {idx + 1}. {rm.itemId?.name || 'Unknown item'} — {rm.weight} {rm.unit}
+                    </p>
                   ))}
                 </div>
               </div>

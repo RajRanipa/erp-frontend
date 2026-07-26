@@ -1,7 +1,6 @@
 'use client';
 // src/app/(app)/inventory/stock/page.js
-import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import Inventory from '../page';
+import React, { useEffect, useState, useCallback } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
 import StockFilters from '../components/StockFilters';
@@ -15,6 +14,7 @@ export default function InventoryStock() {
     itemId: '',
     warehouseId: '',
     batchNo: '',
+    categoryKey: '',
     productType: '',
     query: '',
   });

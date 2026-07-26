@@ -45,12 +45,23 @@ export default function LedgerTable({
 
     let result = rows;
 
+    const categoryKey = filters?.categoryKey;
+    if (categoryKey) {
+      result = result.filter(
+        (row) =>
+          (row.itemId?.categoryKey || row.categoryKey) === categoryKey
+      );
+    }
+
     // 1) Always apply productType filter if provided
     const pt = filters?.productType;
     if (pt) {
       result = result.filter((r) => {
         const item = r.itemId || {};
-        return item.productType === pt || r.productType === pt;
+        return (
+          String(item.productType || '') === String(pt) ||
+          String(r.productType || '') === String(pt)
+        );
       });
     }
 
@@ -94,13 +105,23 @@ export default function LedgerTable({
         const uomStr = r?.uom || '';
 
 
-        const haystack = [tempStr, denStr, dimStr, packStr, batchStr, uomStr ]
+        const haystack = [
+          nameStr,
+          item?.sku,
+          item?.grade,
+          item?.categoryKey || r?.categoryKey,
+          tempStr,
+          denStr,
+          dimStr,
+          packStr,
+          batchStr,
+          uomStr,
+        ]
           .map(str)
           .join(' | ');
         // console.log('haystack', haystack);
       
-        return needle.split(' ').every((w) => haystack.includes(w))
-        return haystack.includes(needle);
+        return needle.split(' ').every((w) => haystack.includes(w));
       });
     }
 
@@ -129,6 +150,12 @@ export default function LedgerTable({
         key: 'item',
         header: 'Item',
         render: (r) => r.itemId?.name || r.itemId || '—',
+      },
+      {
+        key: 'categoryKey',
+        header: 'Category',
+        sortable: true,
+        render: (r) => r.itemId?.categoryKey || r.categoryKey || '—',
       },
       {
         key: 'temperature',

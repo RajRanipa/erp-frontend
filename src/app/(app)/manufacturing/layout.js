@@ -34,6 +34,7 @@ function ManufacturingBar() {
         <DisplayBar title="manufacturing" href="/manufacturing" className="overflow-visible">
             <div className="flex relative gap-4">
                 <NavLink href="/manufacturing/production">Production</NavLink>
+                <NavLink href="/manufacturing/batches">Batches</NavLink>
 
                 {activeCampaign && (
                     <div className="flex items-center gap-4">
