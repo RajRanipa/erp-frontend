@@ -1,5 +1,5 @@
 'use client';
-import React, { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import BaseDatePicker from './BaseDatePicker';
 import PresetDropdown from './PresetDropdown';
 import RangePicker from './RangePicker';
@@ -86,11 +86,12 @@ const DateInput = ({
   // NEW STATE: Track the selected preset and the specific date if "today" is chosen
   const [selectedPreset, setSelectedPreset] = useState('');
   const [specificDate, setSpecificDate] = useState('');
+  const rangeStart = rangeValues?.start || '';
+  const rangeEnd = rangeValues?.end || '';
 
   useEffect(() => {
-    // console.log('rangeValues', rangeValues)
-    rangeValues && rangeValues.start === rangeValues.end ? setSpecificDate(rangeValues.start) : setSpecificDate('')
-  },[rangeValues.start])
+    setSpecificDate(rangeStart && rangeStart === rangeEnd ? rangeStart : '');
+  }, [rangeStart, rangeEnd]);
   const dropdownOptions =
     mode === 'range'
       ? [...BASE_PRESETS, { label: 'Custom Range', value: 'custom_range' }]

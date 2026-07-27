@@ -17,6 +17,128 @@ let isRefreshing = false;
 let failedQueue = [];
 let refreshTimeoutId = null;
 let accessTokenExpireAt = null; // absolute epoch ms when token expires (UTC ms)
+let activeRequestCount = 0;
+
+const API_ACTIVITY_EVENT = 'api:activity';
+
+const isApiEnvelope = (value) =>
+  Boolean(
+    value
+    && typeof value === 'object'
+    && typeof value.success === 'boolean'
+    && Object.prototype.hasOwnProperty.call(value, 'data')
+    && value.apiVersion
+  );
+
+const emitApiActivity = () => {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(API_ACTIVITY_EVENT, {
+    detail: { count: activeRequestCount, active: activeRequestCount > 0 },
+  }));
+};
+
+const beginApiActivity = (config = {}) => {
+  if (config.skipGlobalLoading || config._activityStarted) return config;
+  config._activityStarted = true;
+  activeRequestCount += 1;
+  emitApiActivity();
+  return config;
+};
+
+const endApiActivity = (config = {}) => {
+  if (!config._activityStarted) return;
+  config._activityStarted = false;
+  activeRequestCount = Math.max(0, activeRequestCount - 1);
+  emitApiActivity();
+};
+
+const createRequestId = () => {
+  try {
+    return globalThis.crypto?.randomUUID?.();
+  } catch {
+    return null;
+  }
+};
+
+const legacyPayloadFromEnvelope = (envelope) => {
+  if (!envelope.success) {
+    const details = envelope.error?.details ?? null;
+    return {
+      success: false,
+      status: false,
+      statusCode: envelope.statusCode,
+      status_code: envelope.statusCode,
+      message: envelope.message,
+      code: envelope.error?.code || 'REQUEST_ERROR',
+      details,
+      errors: details,
+      error: envelope.error,
+      requestId: envelope.requestId,
+    };
+  }
+
+  const data = envelope.data;
+  if (Array.isArray(data)) {
+    // Arrays remain arrays for legacy list screens, while `.data` also works for
+    // newer screens that previously consumed `{ data: [...] }`.
+    const metaProperties = Object.fromEntries(
+      Object.entries(envelope.meta || {})
+        .filter(([key]) => !['data', 'length'].includes(key))
+        .map(([key, value]) => [key, { value, configurable: true }])
+    );
+    Object.defineProperties(data, {
+      data: { value: data, configurable: true },
+      success: { value: true, configurable: true },
+      status: { value: true, configurable: true },
+      message: { value: envelope.message, configurable: true },
+      meta: { value: envelope.meta, configurable: true },
+      ...metaProperties,
+    });
+    return data;
+  }
+
+  if (data && typeof data === 'object') {
+    return {
+      ...data,
+      ...(envelope.meta || {}),
+      success: true,
+      status: true,
+      statusCode: envelope.statusCode,
+      message: envelope.message,
+      data,
+      meta: envelope.meta,
+      requestId: envelope.requestId,
+    };
+  }
+
+  return {
+    success: true,
+    status: true,
+    statusCode: envelope.statusCode,
+    message: envelope.message,
+    data,
+    meta: envelope.meta,
+    requestId: envelope.requestId,
+  };
+};
+
+const normalizeAxiosResponse = (response) => {
+  endApiActivity(response?.config);
+  if (!isApiEnvelope(response?.data)) return response;
+
+  response.api = response.data;
+  response.data = legacyPayloadFromEnvelope(response.api);
+  return response;
+};
+
+const normalizeAxiosError = (error) => {
+  endApiActivity(error?.config);
+  if (isApiEnvelope(error?.response?.data)) {
+    error.api = error.response.data;
+    error.response.data = legacyPayloadFromEnvelope(error.api);
+  }
+  return error;
+};
 
 // Debug logger (no noise in production)
 const dbg = (...args) => {
@@ -209,10 +331,25 @@ if (typeof window !== 'undefined') {
   activityEvents.forEach((event) => window.addEventListener(event, onUserActivity));
 }
 
+api.interceptors.request.use((config) => {
+  const requestId = createRequestId();
+  if (requestId && !config.headers?.['X-Request-ID']) {
+    config.headers = config.headers || {};
+    config.headers['X-Request-ID'] = requestId;
+  }
+  return beginApiActivity(config);
+});
+
+refreshApi.interceptors.response.use(
+  normalizeAxiosResponse,
+  (error) => Promise.reject(normalizeAxiosError(error))
+);
+
 // --- Axios interceptor ----------------------------------------------------
 api.interceptors.response.use(
-  (response) => response,
+  normalizeAxiosResponse,
   async (error) => {
+    normalizeAxiosError(error);
     const originalRequest = error.config;
 
     // if no response or not 401, just reject
@@ -262,5 +399,58 @@ api.interceptors.response.use(
     }
   }
 );
+
+export const getActiveRequestCount = () => activeRequestCount;
+
+export const getApiEnvelope = (responseOrError) =>
+  responseOrError?.api
+  || responseOrError?.response?.api
+  || (isApiEnvelope(responseOrError?.data) ? responseOrError.data : null)
+  || null;
+
+export const getApiData = (response, fallback = null) => {
+  const envelope = getApiEnvelope(response);
+  if (envelope) return envelope.data ?? fallback;
+  return response?.data?.data ?? response?.data ?? fallback;
+};
+
+export const getApiMessage = (response, fallback = '') =>
+  getApiEnvelope(response)?.message
+  || response?.data?.message
+  || fallback;
+
+export const getApiErrorMessage = (error, fallback = 'Something went wrong. Please try again.') =>
+  getApiEnvelope(error)?.message
+  || error?.response?.data?.message
+  || (error?.code === 'ERR_CANCELED' ? 'Request cancelled.' : '')
+  || (error?.request && !error?.response ? 'Unable to connect to the server. Check your connection.' : '')
+  || fallback;
+
+export const getApiErrorDetails = (error) =>
+  getApiEnvelope(error)?.error?.details
+  ?? error?.response?.data?.details
+  ?? error?.response?.data?.errors
+  ?? null;
+
+export const apiRequest = async (config) => {
+  const response = await api(config);
+  const envelope = getApiEnvelope(response);
+  return {
+    data: envelope?.data ?? response?.data?.data ?? response?.data ?? null,
+    message: envelope?.message ?? response?.data?.message ?? null,
+    meta: envelope?.meta ?? response?.data?.meta ?? null,
+    statusCode: envelope?.statusCode ?? response.status,
+    requestId: envelope?.requestId ?? response.headers?.['x-request-id'] ?? null,
+    response,
+  };
+};
+
+export const apiClient = {
+  get: (url, config) => apiRequest({ ...config, method: 'get', url }),
+  delete: (url, config) => apiRequest({ ...config, method: 'delete', url }),
+  post: (url, data, config) => apiRequest({ ...config, method: 'post', url, data }),
+  put: (url, data, config) => apiRequest({ ...config, method: 'put', url, data }),
+  patch: (url, data, config) => apiRequest({ ...config, method: 'patch', url, data }),
+};
 
 export const axiosInstance = api;

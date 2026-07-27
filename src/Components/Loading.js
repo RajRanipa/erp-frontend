@@ -40,12 +40,12 @@ export function Skeleton({
   const h = typeof height === 'number' ? `${height}px` : height;
   const w = typeof width === 'number' ? `${width}px` : width;
   return (
-    <div className={cn('space-y-2', className)} aria-hidden>
+    <div className={cn('space-y-2', className)} aria-hidden="true">
       {Array.from({ length: lines }).map((_, i) => (
         <div
           key={i}
           className="relative overflow-hidden bg-white-loading/5 rounded-lg h-full min-h-[16px]"
-          style={{ width: w}}
+          style={{ width: w, height: h }}
         >
           <div className="shimmer" />
         </div>
@@ -67,17 +67,6 @@ export function Skeleton({
   );
 }
 
-/**
- * background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.08) 50%, rgba(255,255,255,0) 100%);
- * Loading – one component to cover spinner, overlay, and skeleton states.
- *
- * Props:
- *  - variant: 'spinner' | 'overlay' | 'skeleton'
- *  - text: optional label
- *  - fullscreen: for overlay variant
- *  - size: spinner size ('sm'|'md'|'lg'|'xl')
- *  - children: for skeleton variant, render as structure hints (ignored while loading)
- */
 export default function Loading({
   variant = 'spinner',
   text = 'Loading…',
@@ -90,9 +79,9 @@ export default function Loading({
     return (
       <div
         className={cn(
-          'pointer-events-none fixed inset-0 z-50 flex items-center justify-center',
+          'pointer-events-none inset-0 z-50 flex items-center justify-center',
           'bg-black/40 backdrop-blur-sm',
-          fullscreen ? '' : '',
+          fullscreen ? 'fixed' : 'absolute',
           className
         )}
         role="status"
@@ -110,11 +99,7 @@ export default function Loading({
     return (
       <div className={cn('w-full', className)}>
         {children || (
-          <>
-            <Skeleton height={18} className='mb-2 h-full'/>
-            {/* <Skeleton height={14} width="80%" /> */}
-            {/* <Skeleton height={14} width="60%" /> */}
-          </>
+          <Skeleton height={18} className="mb-2" />
         )}
       </div>
     );

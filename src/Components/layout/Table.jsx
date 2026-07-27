@@ -1,5 +1,6 @@
 import { cn } from '@/utils/cn';
 import React, { useMemo, useState, useRef, useEffect } from 'react';
+import Loading from '../Loading';
 export default function Table(
   {
     columns,
@@ -154,7 +155,15 @@ export default function Table(
     }
   };
 
-  if (loading) return <div className="p-4">Loading…</div>;
+  if (loading) {
+    return (
+      <div className="space-y-2 p-4" role="status" aria-label="Loading table data">
+        <Loading variant="skeleton" className="h-10" />
+        <Loading variant="skeleton" className="h-10" />
+        <Loading variant="skeleton" className="h-10" />
+      </div>
+    );
+  }
   // if (!sorted || sorted.length === 0) return <div className="p-4 text-sm text-muted">{emptyMessage}</div>;
 
   return (

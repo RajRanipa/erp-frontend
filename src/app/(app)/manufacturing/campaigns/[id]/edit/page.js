@@ -20,7 +20,6 @@ export default function EditCampaignPage() {
         // return 
         const res = await axiosInstance.get(`/api/campaigns/${id}`);
         setInitial(res.data ?? {});
-        console.log('res', res.data, res.data?.name, initial);
       } catch (e) {
         Toast.error( 'Failed to load campaign');
       } finally {

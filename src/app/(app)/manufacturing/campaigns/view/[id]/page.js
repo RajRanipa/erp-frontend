@@ -36,11 +36,9 @@ export default function CampaignDetailsPage() {
         setLoading(true);
         if (!hasCampaign) return;
         // Fresh read from API to avoid stale context values
-        console.log('campaignId', campaignId);
         const res = await axiosInstance.get(`/api/campaigns/${campaignId}`);
         if (!mounted) return;
         setCampaign(res?.data?.data || res?.data || null);
-        console.log('res', res.data, res.data?.name);
       } catch (e) {
         if (!mounted) return;
         Toast.error(e?.response?.data?.message || 'Failed to load campaign');

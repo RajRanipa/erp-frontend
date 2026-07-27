@@ -9,25 +9,19 @@ import { removeHighlights, applyHighlights } from '@/utils/highlightDOM'; // You
 export const useHighlight = (searchTerm, ClassName) => {
   const containerRef = useRef(null);
   useEffect(() => {
-    // 1. Clean up existing highlights
-    // console.log('useHighlight called ', searchTerm, containerRef.current, ClassName);
-    if (containerRef.current) {
-      removeHighlights(containerRef.current, ClassName);
+    const container = containerRef.current;
+    if (container) {
+      removeHighlights(container, ClassName);
     }
-    
-    // 2. Apply new highlights if a search term exists
-    if (searchTerm && containerRef.current) {
-      applyHighlights(containerRef.current, searchTerm, ClassName);
+
+    if (searchTerm && container) {
+      applyHighlights(container, searchTerm, ClassName);
     }
-    
-    // 3. Cleanup function to reset highlights when the component unmounts 
-    // or dependencies change (searchTerm changes to empty)
+
     return () => {
-      if (containerRef.current) {
-        removeHighlights(containerRef.current);
-      }
+      if (container) removeHighlights(container, ClassName);
     };
-  }, [searchTerm]);
+  }, [searchTerm, ClassName]);
 
   return containerRef;
 };

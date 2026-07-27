@@ -1,8 +1,6 @@
 'use client';
-import { Toast } from '@/Components/toast';
-import React, { useEffect, useMemo, useState } from 'react'
-import { useDateRange } from '../layout';
-import { axiosInstance } from '@/lib/axiosInstance';
+import React, { useEffect, useState } from 'react'
+import { apiClient, getApiErrorMessage } from '@/lib/axiosInstance';
 import Loading from '@/Components/Loading';
 import ProductionTable from './components/ProductionTable';
 import DateInput from '@/Components/inputs/DateInput';
@@ -10,6 +8,12 @@ import ProductionTableSpecific from './components/ProductionTableSpecific';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import { filter1Icon } from '@/utils/SVG';
 import SelectInput from '@/Components/inputs/SelectInput';
+
+const localDateString = () => {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60_000;
+  return new Date(now.getTime() - offset).toISOString().slice(0, 10);
+};
 
 export default function Production() {
   const [loading, setLoading] = useState(true);
@@ -23,64 +27,44 @@ export default function Production() {
     status: '',
   });
 
-  const [dateRange, setDateRange] = useState({
-    start: '2026-07-17',
-    end: '2026-07-17',
+  const [dateRange, setDateRange] = useState(() => {
+    const today = localDateString();
+    return { start: today, end: today };
   });
-
-  const apiparams = {};
-  const mergedParams = useMemo(() => {
-    if (Array.isArray(apiparams)) {
-      // Merge array of param objects left-to-right
-      return Object.assign({}, ...apiparams);
-    }
-    return apiparams || {};
-  }, [apiparams]);
-
-  useEffect(() => {
-    console.log('filters', filters);
-  }, [filters]);
 
   useEffect(() => {
     let ignore = false;
     const fetchItems = async () => {
       setLoading(true);
+      setError(false);
       try {
         const params = new URLSearchParams();
         const startDate = dateRange?.start || '';
         const endDate = dateRange?.end || '';
-        // status from prop unless caller already passed it in mergedParams
         if (startDate && endDate) params.set('startDate', startDate);
         if (startDate && endDate) params.set('endDate', endDate);
 
-        // add all keys from mergedParams, skipping empty/undefined/null
-        Object.entries(mergedParams).forEach(([key, val]) => {
-          if (val === undefined || val === null || val === '') return;
-          params.set(key, String(val));
-        });
-
         const qs = params.toString();
-        // console.log('qs', qs);
         const url = `/api/production${qs ? `?${qs}` : ''}`;
-        const res = await axiosInstance.get(url);
+        const result = await apiClient.get(url);
 
         if (ignore) return;
 
-        const list = Array.isArray(res?.data?.data) ? res.data.data : [];
-        const specificList = Array.isArray(res?.data?.specificData) ? res.data.specificData : [];
+        const list = Array.isArray(result.data) ? result.data : [];
+        const specificList = Array.isArray(result.meta?.specificData)
+          ? result.meta.specificData
+          : [];
         setProductions(list);
         setSpecificProductions(specificList);
       } catch (err) {
-        // if (!ignore) Toast.error('Failed to load productions');
-        console.error("error in fetching production", err);
-        setError(err);
+        if (!ignore) setError(getApiErrorMessage(err, 'Failed to load production.'));
       } finally {
         if (!ignore) setLoading(false);
       }
     };
     (dateRange?.start && dateRange?.end) ? fetchItems() : (setLoading(false), setMsg("select date range for seeing production"));
     return () => { ignore = true; };
-  }, [dateRange]);
+  }, [dateRange?.start, dateRange?.end]);
 
   return (
     <div className='w-full'>

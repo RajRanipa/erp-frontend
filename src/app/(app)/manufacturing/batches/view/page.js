@@ -1,7 +1,7 @@
 // src/app/manufacturing/batches/view/page.js
 'use client';
 import { useEffect, useState } from 'react';
-import { axiosInstance } from '@/lib/axiosInstance';
+import { axiosInstance, getApiErrorMessage } from '@/lib/axiosInstance';
 import { formatDateDMY } from '@/utils/date';
 import NavLink from '@/Components/NavLink';
 import { Toast } from '@/Components/toast';
@@ -26,7 +26,7 @@ export default function BatchesViews() {
       const { data } = await axiosInstance.get('/api/campaigns');
       setActiveCampaign(data[0]);
     } catch (e) {
-      console.log(e);
+      Toast.error(getApiErrorMessage(e, 'Failed to load campaigns.'));
     }
   }
 
@@ -42,7 +42,6 @@ export default function BatchesViews() {
         const res = await axiosInstance.get('/api/batches', { params: { campaign: campaignId } });
         if (!mounted) return;
         const data = res?.data?.data ?? res?.data ?? [];
-        console.log('batches', data);
         setBatches(Array.isArray(data) ? data : []);
       } catch (e) {
         if (!mounted) return;

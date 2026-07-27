@@ -6,7 +6,7 @@ import CustomInput from '@/Components/inputs/CustomInput';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import NavLink from '@/Components/NavLink';
 import { Toast } from '@/Components/toast';
-import { axiosInstance } from '@/lib/axiosInstance';
+import { axiosInstance, getApiErrorMessage } from '@/lib/axiosInstance';
 import { useWarehouses } from '@/hooks/useWarehouses';
 // import Manufacturing from '../page';
 import WarehouseSelect from '@/app/(app)/inventory/components/WarehouseSelect';
@@ -125,8 +125,6 @@ function MaterialRow({
     onRemove,
     canRemove,
 }) {
-    console.log('MaterialRow error', error?.materialId);
-    console.log('MaterialRow touched', touched?.materialId);
     return (
         <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto]">
             <SelectTypeInput
@@ -237,7 +235,7 @@ export default function RawMaterialsBatchPage() {
             const { data } = await axiosInstance.get('/api/campaigns/active');
             setActiveCampaign(data[0]);
         } catch (e) {
-            console.log(e);
+            Toast.error(getApiErrorMessage(e, 'Failed to load the active campaign.'));
         }
     }
 

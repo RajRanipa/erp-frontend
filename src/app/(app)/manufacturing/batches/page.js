@@ -1,16 +1,13 @@
 // src/app/manufacturing/batches/view/page.js
 'use client';
 import { useEffect, useState } from 'react';
-import Manufacturing from '../page';
-import { axiosInstance } from '@/lib/axiosInstance';
+import { axiosInstance, getApiErrorMessage } from '@/lib/axiosInstance';
 import { formatDateDMY } from '@/utils/date';
 import NavLink from '@/Components/NavLink';
-import { useNavList } from '../NavListContext';
 import { Toast } from '@/Components/toast';
 
 export default function BatchesMain() {
   // const { activeCampaign } = useActiveCampaign();
-  const { addLink, removeLink } = useNavList();
   const [activeCampaign, setActiveCampaign] = useState({
     _id: null,
     name: null,
@@ -29,7 +26,7 @@ export default function BatchesMain() {
       const { data } = await axiosInstance.get('/api/campaigns/active');
       setActiveCampaign(data[0]);
     } catch (e) {
-      console.log(e);
+      Toast.error(getApiErrorMessage(e, 'Failed to load the active campaign.'));
     }
   }
 
@@ -45,7 +42,6 @@ export default function BatchesMain() {
         const res = await axiosInstance.get('/api/batches', { params: { campaign: campaignId } });
         if (!mounted) return;
         const data = res?.data?.data ?? res?.data ?? [];
-        console.log('batches', data);
         setBatches(Array.isArray(data) ? data : []);
       } catch (e) {
         if (!mounted) return;

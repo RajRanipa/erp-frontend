@@ -1,5 +1,5 @@
 // src/app/(app)/parties/lib/partyApi.js
-import { axiosInstance } from "@/lib/axiosInstance";
+import { apiClient, axiosInstance } from "@/lib/axiosInstance";
 
 function buildQuery(params = {}) {
   const sp = new URLSearchParams();
@@ -38,69 +38,58 @@ export async function apiListParties(
     sortBy,
     sortOrder,
   });
-  const res = await axiosInstance.get(`/api/parties${qs}`, { signal });
-  return res.data;
+  return apiClient.get(`/api/parties${qs}`, { signal });
 }
 
 export async function apiPartySummary({ signal } = {}) {
-  const res = await axiosInstance.get('/api/parties/summary', { signal });
-  return res.data;
+  return apiClient.get('/api/parties/summary', { signal });
 }
 
 export async function apiCheckPartyDuplicates(payload, { signal } = {}) {
-  const res = await axiosInstance.post('/api/parties/check-duplicates', payload, { signal });
-  return res.data;
+  return apiClient.post('/api/parties/check-duplicates', payload, { signal });
 }
 
 export async function apiPartyOptions({ role = '', q = '', limit = 30 } = {}, { signal } = {}) {
   const qs = buildQuery({ role, q, limit });
-  const res = await axiosInstance.get(`/api/parties/options${qs}`, { signal });
-  return res.data;
+  return apiClient.get(`/api/parties/options${qs}`, { signal });
 }
 
 export async function apiPartyAccountOwners({ q = '' } = {}, { signal } = {}) {
   const qs = buildQuery({ q });
-  const res = await axiosInstance.get(`/api/parties/account-owners${qs}`, { signal });
-  return res.data;
+  return apiClient.get(`/api/parties/account-owners${qs}`, { signal });
 }
 
 export async function apiGetParty(id, { signal } = {}) {
   if (!id) throw new Error('Missing party id');
-  const res = await axiosInstance.get(`/api/parties/${encodeURIComponent(id)}`, { signal });
-  return res.data;
+  return apiClient.get(`/api/parties/${encodeURIComponent(id)}`, { signal });
 }
 
 export async function apiCreateParty(payload, { signal } = {}) {
-  const res = await axiosInstance.post('/api/parties', payload, { signal });
-  return res.data;
+  return apiClient.post('/api/parties', payload, { signal });
 }
 
 export async function apiUpdateParty(id, payload, { signal } = {}) {
   if (!id) throw new Error('Missing party id');
-  const res = await axiosInstance.patch(`/api/parties/${encodeURIComponent(id)}`, payload, { signal });
-  return res.data;
+  return apiClient.patch(`/api/parties/${encodeURIComponent(id)}`, payload, { signal });
 }
 
 export async function apiUpdatePartyStatus(id, to, { signal } = {}) {
   if (!id) throw new Error('Missing party id');
-  const res = await axiosInstance.patch(`/api/parties/${encodeURIComponent(id)}/status`, { to }, { signal });
-  return res.data;
+  return apiClient.patch(`/api/parties/${encodeURIComponent(id)}/status`, { to }, { signal });
 }
 
 export async function apiDeleteParty(id, { signal } = {}) {
   if (!id) throw new Error('Missing party id');
-  const res = await axiosInstance.delete(`/api/parties/${encodeURIComponent(id)}`, { signal });
-  return res.data;
+  return apiClient.delete(`/api/parties/${encodeURIComponent(id)}`, { signal });
 }
 
 export async function apiRestoreParty(id, { signal } = {}) {
   if (!id) throw new Error('Missing party id');
-  const res = await axiosInstance.post(
+  return apiClient.post(
     `/api/parties/${encodeURIComponent(id)}/restore`,
     {},
     { signal },
   );
-  return res.data;
 }
 
 export async function apiExportPartiesXlsx(
@@ -129,12 +118,10 @@ export async function apiImportPartiesXlsx(file, { signal } = {}) {
   const fd = new FormData();
   fd.append('file', file);
 
-  const res = await axiosInstance.post('/api/parties/import/xlsx', fd, {
+  return apiClient.post('/api/parties/import/xlsx', fd, {
     headers: { 'Content-Type': 'multipart/form-data' },
     signal,
   });
-
-  return res.data;
 }
 
 export function downloadBlob(blob, filename = `business_partners_${Date.now()}.xlsx`) {

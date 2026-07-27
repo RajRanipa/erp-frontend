@@ -11,6 +11,7 @@ import {
   apiRestoreParty,
 } from '../lib/partyApi';
 import { Toast } from '@/Components/toast';
+import { getApiErrorMessage } from '@/lib/axiosInstance';
 
 /**
  * usePartyMutations
@@ -44,12 +45,12 @@ export function usePartyMutations() {
     try {
       const data = await fn(ctrl.signal);
 
-      if (toastSuccess) Toast.success(toastSuccess);
+      Toast.success(toastSuccess || data?.message || 'Saved successfully.');
       return data;
     } catch (err) {
       if (!ctrl.signal.aborted && err?.code !== 'ERR_CANCELED') {
         setError(err);
-        Toast.error(err?.response?.data?.message || err?.message || 'Something went wrong');
+        Toast.error(getApiErrorMessage(err));
       }
       throw err;
     } finally {
@@ -58,7 +59,7 @@ export function usePartyMutations() {
   }, [cancel]);
 
   const createParty = useCallback(
-    async (payload, { toast = 'Party created' } = {}) => {
+    async (payload, { toast = '' } = {}) => {
       const response = await run(
         (signal) => apiCreateParty(payload, { signal }),
         { toastSuccess: toast },
@@ -69,7 +70,7 @@ export function usePartyMutations() {
   );
 
   const updateParty = useCallback(
-    async (id, payload, { toast = 'Party updated' } = {}) => {
+    async (id, payload, { toast = '' } = {}) => {
       if (!id) throw new Error('Missing party id');
       const response = await run(
         (signal) => apiUpdateParty(id, payload, { signal }),
@@ -81,7 +82,7 @@ export function usePartyMutations() {
   );
 
   const setPartyStatus = useCallback(
-    async (id, to, { toast = 'Status updated' } = {}) => {
+    async (id, to, { toast = '' } = {}) => {
       if (!id) throw new Error('Missing party id');
       if (!to) throw new Error('Missing target status');
       const response = await run(
@@ -94,7 +95,7 @@ export function usePartyMutations() {
   );
 
   const deleteParty = useCallback(
-    async (id, { toast = 'Business partner archived' } = {}) => {
+    async (id, { toast = '' } = {}) => {
       if (!id) throw new Error('Missing party id');
       const response = await run(
         (signal) => apiDeleteParty(id, { signal }),
@@ -106,7 +107,7 @@ export function usePartyMutations() {
   );
 
   const restoreParty = useCallback(
-    async (id, { toast = 'Business partner restored' } = {}) => {
+    async (id, { toast = '' } = {}) => {
       if (!id) throw new Error('Missing party id');
       const response = await run(
         (signal) => apiRestoreParty(id, { signal }),

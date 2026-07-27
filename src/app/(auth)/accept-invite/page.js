@@ -106,7 +106,6 @@ export default function AcceptInvitePage() {
       </div>
     );
   }
-  console.log('meta', meta)
   return (
     <div className="min-h-screen flex items-center justify-center bg-primary p-4">
       <form onSubmit={accept} className="w-full max-w-md bg-most p-8 shadow-md rounded-lg flex flex-col items-center gap-2">

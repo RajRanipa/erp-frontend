@@ -77,7 +77,6 @@ const Dialog = memo(function Dialog({
     const stack = window.__dialogStack || [];
     // console.log('stack', stack, stack[stack.length - 1] !== dialogIdRef.current)
     // if (stack.length && stack[stack.length - 1] !== dialogIdRef.current) return;
-    console.log('focus error');
     let target = null;
     try {
       if (typeof getBackFocus === 'function') target = getBackFocus();
@@ -87,7 +86,7 @@ const Dialog = memo(function Dialog({
     // console.log('target', target)
     if (!target) target = savedActiveElementRef.current;
     if (target && document.contains(target)) {
-      try { target.focus({ preventScroll: true }); } catch { console.log('focus error'); }
+      try { target.focus({ preventScroll: true }); } catch {}
     }
     savedActiveElementRef.current = null;
   }, [open, getBackFocus, mounted]);

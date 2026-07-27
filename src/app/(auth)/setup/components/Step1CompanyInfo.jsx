@@ -46,7 +46,6 @@ export default function Step1CompanyInfo({ values = {}, saving, onValidityChange
       (form.phone || '') !== (values.phone || '')
     );
     onDirtyChange?.(dirty);
-    console.log('form', form);
     onPartialChange?.({
       companyName: form.companyName.trim(),
       industry: form.industry.trim(),

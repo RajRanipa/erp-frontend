@@ -2,7 +2,7 @@
 
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { axiosInstance } from '@/lib/axiosInstance';
+import { apiClient, getApiErrorMessage } from '@/lib/axiosInstance';
 
 export function useWarehouses({ minimal = true } = {}) {
   const [state, setState] = useState({ loading: true, list: [], error: null });
@@ -13,17 +13,19 @@ export function useWarehouses({ minimal = true } = {}) {
       const params = new URLSearchParams();
       if (minimal) params.set('select', '_id,name');
       params.set('limit', '100'); // or smaller
-      const res = await axiosInstance.get(`/api/warehouses?${params.toString()}`);
-      const data = Array.isArray(res?.data?.data)
-        ? res.data.data
-        : Array.isArray(res?.data?.warehouses)
-        ? res.data.warehouses
-        : Array.isArray(res?.data)
-        ? res.data
+      const result = await apiClient.get(`/api/warehouses?${params.toString()}`);
+      const data = Array.isArray(result.data)
+        ? result.data
+        : Array.isArray(result.data?.warehouses)
+        ? result.data.warehouses
         : [];
       setState({ loading: false, list: data, error: null });
     } catch (err) {
-      setState({ loading: false, list: [], error: err });
+      setState({
+        loading: false,
+        list: [],
+        error: { cause: err, message: getApiErrorMessage(err, 'Failed to load warehouses.') },
+      });
     }
   }, [minimal]);
 

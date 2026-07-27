@@ -45,7 +45,6 @@ export default function ItemForm({
     mode === 'edit' &&
     !['draft', 'rejected'].includes(formData.status)
   );
-  console.log('formData', initialData, formData, formData.status, identityLocked);
 
   const availableParameters = useMemo(() => {
     if (categoryKey === 'FG') return productParameters;

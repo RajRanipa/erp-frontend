@@ -85,7 +85,6 @@ export default function Finished() {
     const qLower = (dq || '').toString().trim().toLowerCase();
     return items.filter(it => {
       // productType filter (productType is populated on backend)
-      console.log(it)
       if (productTypeFilter) {
         if (!it.productType || it.productType._id !== productTypeFilter) return false;
       }

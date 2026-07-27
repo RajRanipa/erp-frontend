@@ -27,35 +27,27 @@ export default function CampaignForm({
     onSubmit,                   // async (values) => void
     submitting = false,
 }) {
-    // console.log('initialValues ', initialValues)
-    const [formData, setFormData] = useState({
-        ...initialValues,
-        startDate: normalizeDate(initialValues.startDate),
-    });
+    const normalizedInitialValues = useMemo(() => ({
+        name: initialValues?.name || '',
+        startDate: normalizeDate(initialValues?.startDate),
+        status: initialValues?.status || 'PLANNED',
+        remarks: initialValues?.remarks || '',
+    }), [
+        initialValues?.name,
+        initialValues?.startDate,
+        initialValues?.status,
+        initialValues?.remarks,
+    ]);
+    const [formData, setFormData] = useState(normalizedInitialValues);
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({});
     const [resetKey, setResetKey] = useState(0);
 
-    const initKey = useMemo(() => [
-        initialValues?.name ?? '',
-        normalizeDate(initialValues?.startDate),
-        initialValues?.status ?? '',
-        initialValues?.remarks ?? ''
-    ].join('|'), [
-        initialValues?.name,
-        initialValues?.startDate,
-        initialValues?.status,
-        initialValues?.remarks
-    ]);
-
     useEffect(() => {
-        setFormData({
-            ...initialValues,
-            startDate: normalizeDate(initialValues?.startDate),
-        });
+        setFormData(normalizedInitialValues);
         setErrors({});
         setTouched({});
-    }, [initKey]);
+    }, [normalizedInitialValues]);
 
     const validate = (values) => {
         const e = {};
@@ -108,11 +100,9 @@ export default function CampaignForm({
     const submit = async (e) => {
         e.preventDefault();
         const nextErrors = validate(formData);
-        console.log('nextErrors', nextErrors);
         setErrors(nextErrors);
         setTouched({ name: true, startDate: true, status: true, remarks: !!formData.remarks });
         if (Object.keys(nextErrors).length) return;
-        console.log('submitting', formData);    
         await onSubmit({
             name: formData.name.trim(),
             startDate: formData.startDate,

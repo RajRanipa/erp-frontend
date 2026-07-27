@@ -14,7 +14,6 @@ import React from 'react';
  */
 export default function Step7Review({ values = {}, saving, onBack }) {
   const v = values || {};
-  console.log('v', v)
   const address = v.address || {};
   const tax = v.taxInfo || {};
 
@@ -42,7 +41,6 @@ export default function Step7Review({ values = {}, saving, onBack }) {
   };
 
   const logoSrc = normalizeLogoUrl(v.logoUrl);
-  console.log('logoSrc', logoSrc) // logoSrc https://drive.google.com/uc?export=view&id=1Ipkvmza_DTmAHwKdfNUnrc9I78L0muiz
   const rows = [
     { label: 'Company Name', value: v.companyName || '—' },
     { label: 'Industry', value: v.industry || '—' },

@@ -29,7 +29,6 @@ export default function Step2Address({ values = {}, saving, onValidityChange, on
 
   useEffect(() => {
     const a = values?.address || {};
-    console.log('address', a);
     setAddr({
       street: a.street || '',
       city: a.city || '',

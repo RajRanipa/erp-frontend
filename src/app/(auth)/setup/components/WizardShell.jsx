@@ -85,7 +85,6 @@ export default function WizardShell({ formData, setupProgress = {}, serverProgre
       const payload = (partial && Object.keys(partial).length > 0)
         ? partial
         : (drafts[activeStep.key] || {});
-      console.log("payload: ", payload, partial)
       const ok = await onSave(activeStep.key, payload);
       return ok !== false;
     } catch (e) {
