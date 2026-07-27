@@ -6,7 +6,7 @@ const JWT_SECRET = process.env.JWT_ACCESS_SECRET;
 
 // ---------- Public & Static ----------
 const PUBLIC_PATHS = [
-  '/', '/login', '/signup', '/api', '/favicon.ico', '/_next',
+  '/', '/login', '/signup', '/forgot-password', '/api', '/favicon.ico', '/_next',
   '/accept-invite', '/403',
 ];
 
@@ -42,18 +42,17 @@ const ROUTE_PERM = [
   { route: '/crm', perm: 'crm:read' },
   { route: '/warehouse', perm: 'warehouse:read' },
   { route: '/users', perm: 'users:read' },
-  { route: '/users/manage', perm: ['users:invite:read', 'users:invite:resend','users:invite:revoke', 'users:remove'] },
+  { route: '/users/invite', perm: ['users:invite:read', 'users:invite:create'] },
   { route: '/settings', perm: 'settings:read' },
+  { route: '/settings/myaccount', perm: null },
   { route: '/settings/role&permisstions', perm: [
     'roles:read',
-    'users:permissions:read',
-    'users:permissions:create',
-    'users:permissions:update',
-    'users:permissions:delete',
+    'permissions:read',
   ] },
 ];
 
-function hasPermission(perm, perms = []) {
+function hasPermission(perm, perms = [], isOwner = false) {
+  if (isOwner) return true;
   if (!perm) return false;
   const allowedSet = new Set(perms);
 
@@ -99,9 +98,9 @@ function requiredPermFor(pathname) {
   return match ? match.perm : null;
 }
 
-function firstAllowedRoute(perms = []) {
+function firstAllowedRoute(perms = [], isOwner = false) {
   for (const { route, perm } of ROUTE_PERM) {
-    if (hasPermission(perm, perms)) {
+    if (perm && hasPermission(perm, perms, isOwner)) {
       return route;
     }
   }
@@ -128,7 +127,7 @@ export async function middleware(request) {
       const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
       const isSetupCompleted = !!payload.isSetupCompleted;
       const perms = Array.isArray(payload.permissions) ? payload.permissions : [];
-      const target = isSetupCompleted ? firstAllowedRoute(perms) : '/setup';
+      const target = isSetupCompleted ? firstAllowedRoute(perms, Boolean(payload.isOwner)) : '/setup';
       return NextResponse.redirect(new URL(target, request.url));
     } catch {
       // invalid/expired token - allow them to see login/signup
@@ -165,7 +164,7 @@ export async function middleware(request) {
 
     if (isSetupCompleted && isSetupRoute) {
       const perms = Array.isArray(payload.permissions) ? payload.permissions : [];
-      const target = firstAllowedRoute(perms);
+      const target = firstAllowedRoute(perms, Boolean(payload.isOwner));
       return NextResponse.redirect(new URL(target, request.url));
     }
 
@@ -175,7 +174,7 @@ export async function middleware(request) {
 
     if (need) {
       const perms = Array.isArray(payload.permissions) ? payload.permissions : [];
-      const allowed = hasPermission(need, perms);
+      const allowed = hasPermission(need, perms, Boolean(payload.isOwner));
 
       // console.log('PATH:', pathname);
       // console.log('NEED:', need);
@@ -201,7 +200,7 @@ export async function middleware(request) {
 
     // Attach lightweight headers for downstream SSR (optional)
     const response = NextResponse.next();
-    if (payload.id) response.headers.set('x-user-id', String(payload.id));
+    if (payload.userId) response.headers.set('x-user-id', String(payload.userId));
     if (payload.companyId) response.headers.set('x-company-id', String(payload.companyId));
     if (payload.role) response.headers.set('x-role', String(payload.role));
 

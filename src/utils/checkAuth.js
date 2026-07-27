@@ -28,9 +28,14 @@ export function useCheckAuth() {
           userId: res.data.user.userId,
           companyId: res.data.user.companyId,
           role: res.data.user.role,
+          roleId: res.data.user.roleId || null,
+          roleName: res.data.user.roleName || res.data.user.role,
+          roleRank: res.data.user.roleRank || 0,
+          isOwner: !!res.data.user.isOwner,
           companyName: res.data.user.companyName || '',
           userName: res.data.user.userName || '',
           permissions: res.data.user.permissions || [],
+          enabledModules: res.data.user.enabledModules || [],
         });
 
         // Redirect based on setup

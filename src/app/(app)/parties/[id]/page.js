@@ -21,7 +21,7 @@ function Field({ label, value }) {
 function Section({ title, description, children, right }) {
   return (
     <section className="card p-4 space-y-3">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3 py-1">
         <div>
           <h2 className="font-semibold">{title}</h2>
           {description && <p className="text-xs text-secondary-text/70">{description}</p>}
@@ -110,7 +110,7 @@ export default function PartyViewPage() {
   const archived = party.status === PARTY_STATUS.ARCHIVED;
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3 p-4 bg-white-100 rounded-xl">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-xl font-semibold">{party.name}</h1>
@@ -247,7 +247,7 @@ export default function PartyViewPage() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {addresses.map((address, index) => (
-              <div key={address._id || index} className="rounded border border-white-100 p-3">
+              <div key={address._id || index} className="rounded-xl border border-white-100 p-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium text-sm">
                     {index === 0 ? 'Primary · ' : ''}{address.label || 'Address'}
@@ -326,7 +326,7 @@ export default function PartyViewPage() {
       </Section>
 
       <Section title="Data quality and audit">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 bg-white-100 p-4 rounded-xl">
           <Field label="Completeness" value={`${party.dataQuality?.score || 0}%`} />
           <Field label="Missing information" value={(party.dataQuality?.missing || []).join(', ')} />
           <Field label="Created by" value={party.createdBy?.fullName} />

@@ -1,15 +1,51 @@
 // src/components/layout/Topbar.jsx
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useUser } from "@/context/UserContext";
 import { cn } from '@/utils/cn';
 import { logoutIcon } from '@/utils/SVG';
 import Loading from '../Loading';
 import LogOutBtn from '../buttons/LogOutBtn';
+import { axiosInstance, setAccessTokenExpireAt } from '@/lib/axiosInstance';
+import { Toast } from '@/Components/toast';
+import {  useRouter } from 'next/navigation';
 
 const Topbar = ({ setOpen = () => { }, open }) => {
   const { userName, companyName } = useUser() || {};
+  const [companies, setCompanies] = useState([]);
+  const [switching, setSwitching] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    let active = true;
+    axiosInstance.get('/auth/companies')
+      .then((response) => {
+        if (active) setCompanies(response?.data?.data || []);
+      })
+      .catch(() => {
+        if (active) setCompanies([]);
+      });
+    return () => { active = false; };
+  }, []);
+
+  const switchCompany = async (event) => {
+    const companyId = event.target.value;
+    const selected = companies.find((company) => company.companyId === companyId);
+    if (!selected || selected.current) return;
+    setSwitching(true);
+    try {
+      const response = await axiosInstance.post('/auth/switch-company', { companyId });
+      if (response?.data?.accessTokenExpireAt) {
+        setAccessTokenExpireAt(response.data.accessTokenExpireAt);
+      }
+      window.location.replace('/dashboard');
+    } catch (error) {
+      Toast.error(error?.response?.data?.message || 'Failed to switch company.');
+    } finally {
+      setSwitching(false);
+    }
+  };
 
   const userlogo = useMemo(() => {
     if (!userName) return '';
@@ -49,9 +85,23 @@ const Topbar = ({ setOpen = () => { }, open }) => {
               />
             </svg>
           </button>
-          <h1 className="text-lg font-medium text-primary-text hover:bg-actionHover capitalize">
-            {cName}
-          </h1>
+          {companies.length > 1 ? (
+            <select
+              aria-label="Current company"
+              className="rounded-lg border border-white-100 bg-transparent px-2 py-1 text-sm font-medium"
+              value={companies.find((company) => company.current)?.companyId || ''}
+              onChange={switchCompany}
+              disabled={switching}
+            >
+              {companies.map((company) => (
+                <option key={company.companyId} value={company.companyId}>{company.companyName}</option>
+              ))}
+            </select>
+          ) : (
+            <h1 className="text-lg font-medium text-primary-text hover:bg-actionHover capitalize">
+              {cName}
+            </h1>
+          )}
         </div>
         <div className="flex items-center gap-4">
           <button
@@ -64,6 +114,7 @@ const Topbar = ({ setOpen = () => { }, open }) => {
           <button
             className="btn-ghost flex items-center justify-center"
             aria-label={`Account for ${userName || 'user'}`}
+            onClick={() => {router.push('/settings/myaccount')}} 
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white">
               {userlogo || 'U'}

@@ -118,8 +118,9 @@ const LoginContent = () => {
     }
   };
 
-  const handleOtpLoginSuccess = () => {
+  const handleOtpLoginSuccess = (data) => {
     // Backend has already set cookies; just hydrate user context
+    if (data?.accessTokenExpireAt) setAccessTokenExpireAt(data.accessTokenExpireAt);
     checkAuth(setUserContext);
   };
 
@@ -200,6 +201,9 @@ const LoginContent = () => {
             >
               {loading ? 'Logging in...' : 'Login'}
             </SubmitButton>
+            <a href="/forgot-password" className="self-end text-sm text-action hover:underline">
+              Forgot password?
+            </a>
           </form>
         )}
 

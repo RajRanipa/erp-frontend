@@ -2,7 +2,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Toast } from '@/Components/toast';
-import { axiosInstance } from '@/lib/axiosInstance';
+import { axiosInstance, clearAccessTokenTimer } from '@/lib/axiosInstance';
 import { cn } from '@/utils/cn';
 import { logoutIcon } from '@/utils/SVG';
 import { useUser } from '@/context/UserContext';
@@ -21,15 +21,11 @@ export default function LogOutBtn({ variant = 'icon', className = '' }) {
 
         try {
             const res = await axiosInstance.post('/auth/logout');
-            console.log('res', res);
             if (res?.data?.status === true) {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('user');
-                sessionStorage.clear();
+                clearAccessTokenTimer();
                 clearUserContext();
                 Toast.info('You have been logged out.');
-                router.push('/login');
+                router.replace('/login');
             } else {
                 Toast.error(res?.data?.message || 'Logout failed. Please try again.');
             }

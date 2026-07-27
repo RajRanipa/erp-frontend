@@ -10,6 +10,10 @@ const defaultUserState = {
   userId: null,
   companyId: null,
   role: null,
+  roleId: null,
+  roleName: null,
+  roleRank: 0,
+  isOwner: false,
   companyName: null,
   userName: null,
   enabledModules: [],
@@ -88,6 +92,18 @@ export const UserProvider = ({ children }) => {
     }
   }, []);
 
+  useEffect(() => {
+    if (!isMounted) return undefined;
+    const handleForcedLogout = () => {
+      clearUserContext();
+      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+        window.location.replace('/login?reason=session-expired');
+      }
+    };
+    window.addEventListener('auth:logout', handleForcedLogout);
+    return () => window.removeEventListener('auth:logout', handleForcedLogout);
+  }, [clearUserContext, isMounted]);
+
   const markPermissionsForRefresh = useCallback(() => {
     setPermissionsNeedsRefresh(true);
   }, []);
@@ -102,15 +118,12 @@ export const UserProvider = ({ children }) => {
     const loadPermissions = async () => {
       try {
         // Fetch role permissions
-        console.log('Fetching role permissions...');
         const res = await axiosInstance.get('/api/permissions/by-role');
-        console.log('Role permissions:', res);
         if (!res?.data?.status) {
           throw new Error('Failed to load role permissions');
         }
         // const json = await res.json();
         const keys = res.data?.permissions || [];
-        console.log('Role permissions cancelled:', cancelled);
         if (!cancelled) {
           setPermissions(keys);
         }

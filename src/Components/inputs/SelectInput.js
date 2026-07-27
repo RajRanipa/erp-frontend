@@ -60,10 +60,10 @@ const SelectInput = ({
   const clearSelection = useCallback((e) => {
     onChange(e);
     if (required) inputRef.current.focus();
-  }, [required, inputRef]);
+  }, [onChange, required, inputRef]);
 
   return (
-    <div className={cn(`mb-5 w-full relative ${parent_className}`)}>
+    <div className={cn('relative mb-5 w-full', parent_className)}>
       {label && (
         <label
           htmlFor={name}

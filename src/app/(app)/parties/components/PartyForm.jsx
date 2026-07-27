@@ -213,7 +213,7 @@ export default function PartyForm({
                             return (
                                 <div
                                     key={s.key}
-                                    className={`text-xs px-2 py-1 rounded border ${active ? 'border-action bg-white-200' : done ? 'border-white-200 bg-white-100' : 'border-white-200 bg-transparent'} ${active ? 'font-semibold' : ''}`}
+                                    className={`text-xs px-2 py-1 rounded border ${active ? 'border-action bg-action/10 text-action' : done ? 'border-white-200 bg-white-100' : 'border-white-200 bg-transparent'} ${active ? 'font-semibold' : ''}`}
                                 >
                                     {idx + 1}. {s.label}
                                 </div>

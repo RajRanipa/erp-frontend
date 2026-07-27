@@ -1,87 +1,80 @@
-// src/app/(app)/users/page.js
 'use client';
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import DisplayBar from '@/Components/layout/DisplayBar';
-import DisplayMain from '@/Components/layout/DisplayMain';
+
+import React, { useCallback, useEffect, useState } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
 import useAuthz from '@/hooks/useAuthz';
 import InviteForm from '../components/InviteForm';
 import PendingInvites from '../components/PendingInvites';
 
-export default function UsersPage() {
-  const { can } = useAuthz();
-  const [loading, setLoading] = useState(false);
+export default function UserInvitationsPage() {
+  const { can, isOwner } = useAuthz();
+  const [loading, setLoading] = useState(true);
+  const [actionId, setActionId] = useState('');
   const [invites, setInvites] = useState([]);
-
-  const canInvite = can('users:invite') || can('users:manage') || can('company:manage');
+  const canRead = isOwner || can('users:invite:read');
+  const canInvite = isOwner || can('users:invite:create');
 
   const fetchInvites = useCallback(async () => {
-    // you can expose a GET /api/users/invite?status=pending or reuse /api/users/invite list route
-    // If you haven't created a list endpoint yet, temporarily store invites client-side after actions.
+    if (!canRead) return;
+    setLoading(true);
     try {
-      setLoading(true);
-      const res = await axiosInstance.get('/api/users/invite?status=pending'); // implement this list on backend or adjust path
-      setInvites(Array.isArray(res?.data?.data) ? res.data.data : []);
-    } catch (e) {
-      // optional: silently ignore if list route not implemented
-      setInvites([]);
+      const response = await axiosInstance.get('/api/users/invite', {
+        params: { status: 'pending', limit: 100 },
+      });
+      setInvites(response?.data?.data || []);
+    } catch (error) {
+      Toast.error(error?.response?.data?.message || 'Failed to load invitations.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [canRead]);
 
-  useEffect(() => { fetchInvites(); }, [fetchInvites]);
+  useEffect(() => {
+    fetchInvites();
+  }, [fetchInvites]);
 
-  const handleInvited = (created) => {
-    Toast.success('Invite sent');
-    setInvites((prev) => [created, ...prev]); // optimistic (or re-fetch)
-    // fetchInvites();
-  };
-
-  const handleResend = async (id) => {
+  const runAction = async (id, action) => {
+    setActionId(id);
     try {
-      setLoading(true);
-      await axiosInstance.post(`/api/users/invite/${id}/resend`);
-      Toast.info('Invite re-sent');
-    } catch (e) {
-      Toast.error(e?.response?.data?.message || 'Failed to re-send invite');
-      return;
-    }finally {
-      setLoading(false);
+      await axiosInstance.post(`/api/users/invite/${id}/${action}`);
+      Toast.success(action === 'resend' ? 'Invitation resent.' : 'Invitation revoked.');
+      await fetchInvites();
+    } catch (error) {
+      Toast.error(error?.response?.data?.message || `Failed to ${action} invitation.`);
+    } finally {
+      setActionId('');
     }
   };
 
-  const handleRevoke = async (id) => {
-    try {
-      setLoading(true);
-      await axiosInstance.post(`/api/users/invite/${id}/revoke`);
-      Toast.warning('Invite revoked');
-      setInvites((prev) => prev.filter(i => i._id !== id));
-    } catch (e) {
-      Toast.error(e?.response?.data?.message || 'Failed to revoke invite');
-    }finally {
-      setLoading(false);
-    }
-  };
+  if (!canRead && !canInvite) {
+    return (
+      <div className="rounded-xl border border-white-100 bg-white-50 p-8 text-center text-white-500">
+        You do not have permission to manage invitations.
+      </div>
+    );
+  }
 
-  console.log("invites", invites);
   return (
-    <div>
-      {canInvite && <InviteForm onInvited={handleInvited} />}
-        <div className="space-y-6 mt-5">
-          {canInvite ? (
-            <PendingInvites
-              rows={invites}
-              loading={loading}
-              onResend={handleResend}
-              onRevoke={handleRevoke}
-              // onRemove={handleRemove}
-            />
-          ) : (
-            <div className="text-white-500">You don’t have permission to invite users.</div>
-          )}
-        </div>
+    <div className="space-y-4">
+      {canInvite && <InviteForm onInvited={() => fetchInvites()} />}
+      {canRead && (
+        <section className="rounded-xl mt-4">
+          <div className="mb-4">
+            <h2 className="font-semibold">Pending invitations</h2>
+            <p className="text-sm text-white-500">Links expire automatically after seven days.</p>
+          </div>
+          <PendingInvites
+            rows={invites}
+            loading={loading}
+            actionId={actionId}
+            canResend={isOwner || can('users:invite:resend')}
+            canRevoke={isOwner || can('users:invite:revoke')}
+            onResend={(id) => runAction(id, 'resend')}
+            onRevoke={(id) => runAction(id, 'revoke')}
+          />
+        </section>
+      )}
     </div>
   );
 }

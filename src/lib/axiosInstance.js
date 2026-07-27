@@ -7,6 +7,10 @@ const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_PORT,
   withCredentials: true,
 });
+const refreshApi = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_PORT,
+  withCredentials: true,
+});
 
 // Internal state
 let isRefreshing = false;
@@ -65,7 +69,7 @@ const processQueue = (error) => {
 export const refreshAccessToken = async () => {
   dbg('refreshAccessToken called');
   try {
-    const res = await api.post('/auth/refresh-token', null, { withCredentials: true });
+    const res = await refreshApi.post('/auth/refresh-token', null, { withCredentials: true });
     dbg('refresh token response', res?.data);
 
     // Server should return accessTokenExpireAt (absolute epoch ms) or expiry info
@@ -139,6 +143,13 @@ export const setAccessTokenExpireAt = (expiry) => {
   }
 };
 
+export const clearAccessTokenTimer = () => {
+  accessTokenExpireAt = null;
+  if (refreshTimeoutId) clearTimeout(refreshTimeoutId);
+  refreshTimeoutId = null;
+  if (typeof window !== 'undefined') localStorage.removeItem('accessTokenExpireAt');
+};
+
 // Start timer from stored localStorage value (call on app init)
 export const startAccessTokenTimer = () => {
   // dbg('startAccessTokenTimer: called');
@@ -206,6 +217,11 @@ api.interceptors.response.use(
 
     // if no response or not 401, just reject
     if (!error.response || error.response.status !== 401) {
+      return Promise.reject(error);
+    }
+
+    if (String(originalRequest?.url || '').includes('/auth/refresh-token')) {
+      emitLogout();
       return Promise.reject(error);
     }
 

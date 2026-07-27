@@ -15,7 +15,7 @@ function formatDateTime(v) {
   }
 }
 
-function actionButtons(row, { onResend, onRevoke }, loading) {
+function actionButtons(row, { onResend, onRevoke, canResend, canRevoke }, actionId) {
   const status = row?.status;
   if (!status) return '—';
 
@@ -31,22 +31,23 @@ function actionButtons(row, { onResend, onRevoke }, loading) {
           >
             Resend
           </button> */}
-          <SubmitButton
+          {canResend && <SubmitButton
             type="button"
             onClick={() => onResend?.(row._id)}
             title="Resend invite"
-            loading={loading}
+            loading={actionId === row._id}
           >
             Resend
-          </SubmitButton>
-          <SubmitButton
+          </SubmitButton>}
+          {canRevoke && <SubmitButton
             type="button"
             className="bg-yellow-600 text-white hover:bg-yellow-700"
             onClick={() => onRevoke?.(row._id)}
             title="Revoke invite"
+            disabled={Boolean(actionId)}
           >
             Revoke
-          </SubmitButton>
+          </SubmitButton>}
         </div>
       );
     }
@@ -59,7 +60,16 @@ function actionButtons(row, { onResend, onRevoke }, loading) {
 
 
 
-export default function PendingInvites({ rows = [], loading = false, onResend, onRevoke, pageSize = 10 }) {
+export default function PendingInvites({
+  rows = [],
+  loading = false,
+  actionId = '',
+  onResend,
+  onRevoke,
+  canResend = false,
+  canRevoke = false,
+  pageSize = 10,
+}) {
   const columns = useMemo(() => ([
     {
       key: 'email',
@@ -71,7 +81,7 @@ export default function PendingInvites({ rows = [], loading = false, onResend, o
       key: 'role',
       header: 'Role',
       sortable: true,
-      render: (r) => (r.role?.toUpperCase?.() || r.role || '—'),
+      render: (r) => r.roleName || r.roleKey || '—',
       // className: 'text-center',
     },
     {
@@ -98,9 +108,9 @@ export default function PendingInvites({ rows = [], loading = false, onResend, o
       key: 'actions',
       header: '',
       align: 'right',
-      render: (r) => actionButtons(r, { onResend, onRevoke }, loading),
+      render: (r) => actionButtons(r, { onResend, onRevoke, canResend, canRevoke }, actionId),
     },
-  ]), [onResend, onRevoke]);
+  ]), [actionId, canResend, canRevoke, onResend, onRevoke]);
 
   return (
     <Table

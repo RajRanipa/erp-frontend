@@ -1,347 +1,335 @@
 'use client';
-import React, { useEffect, useMemo, useState } from 'react';
-import { axiosInstance } from '@/lib/axiosInstance'
-import SelectInput from '@/Components/inputs/SelectInput';
+
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { axiosInstance } from '@/lib/axiosInstance';
 import CustomInput from '@/Components/inputs/CustomInput';
-import RoleSelect from '@/Components/role/RoleSelect';
 import CheckBox from '@/Components/inputs/CheckBox';
-import { Toast } from '@/Components/toast';
-import NewPermission from '../component/NewPermission';
-import DeleteButton from '@/Components/buttons/DeleteButton';
+import Dialog from '@/Components/Dialog';
 import SubmitButton from '@/Components/buttons/SubmitButton';
-import { useHighlight } from '@/hooks/useHighlight';
-import { useUser } from '@/context/UserContext';
+import { Toast } from '@/Components/toast';
 import useAuthz from '@/hooks/useAuthz';
-import Loading from '@/Components/Loading';
+import { useUser } from '@/context/UserContext';
+
+const emptyRole = { name: '', key: '', description: '', rank: 20 };
 
 export default function RolePermissionsPage() {
+  const { can, isOwner } = useAuthz();
+  const currentUser = useUser();
+  const [roles, setRoles] = useState([]);
+  const [permissions, setPermissions] = useState([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [assigned, setAssigned] = useState(new Set());
+  const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [roles, setRoles] = useState([]);
-  const [selectedRole, setSelectedRole] = useState('');
-  const [allPerms, setAllPerms] = useState([]); // [{key,label,roles:[]}, ...]
-  const [assigned, setAssigned] = useState(new Set()); // Set<key>
-  const [q, setQ] = useState('');
-  const [error, setError] = useState('');
-  const [openNew, setOpenNew] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newRole, setNewRole] = useState(emptyRole);
   const { markPermissionsForRefresh } = useUser();
-  const [rolesRead, setRolesRead] = useState(false);
-  const [read, setRead] = useState(false);
-  const [create, setCreate] = useState(false);
-  const [update, setUpdate] = useState(false);
-  const [deletePer, setDeletePer] = useState(false);
-  const contentRef = useHighlight(q);
-  const { can } = useAuthz();
 
-  useEffect(() => {
+  const canRead = isOwner || (can('roles:read') && can('permissions:read'));
+  const canCreate = isOwner || can('roles:create');
+  const canUpdate = isOwner || can('roles:permissions:update');
+  const canDelete = isOwner || can('roles:delete');
+
+  const load = useCallback(async () => {
+    if (!canRead) return;
     setLoading(true);
-    if (can('roles:read')) setRolesRead(true);
-    if (can('users:permissions:create')) setCreate(true);
-    if (can('users:permissions:update')) setUpdate(true);
-    if (can('users:permissions:read')) setRead(true);
-    if (can('users:permissions:delete')) setDeletePer(true);
-    setLoading(false);
-  }, [can]);
+    try {
+      const [roleResponse, permissionResponse] = await Promise.all([
+        axiosInstance.get('/api/permissions/roles'),
+        axiosInstance.get('/api/permissions'),
+      ]);
+      const nextRoles = roleResponse?.data?.roles || [];
+      setRoles(nextRoles);
+      setPermissions(permissionResponse?.data?.permissions || []);
+      setSelectedId((current) => (
+        nextRoles.some((role) => String(role.id) === String(current))
+          ? current
+          : String(nextRoles.find((role) => !role.isOwner)?.id || nextRoles[0]?.id || '')
+      ));
+    } catch (error) {
+      Toast.error(error?.response?.data?.message || 'Failed to load roles and permissions.');
+    } finally {
+      setLoading(false);
+    }
+  }, [canRead]);
 
-  // Initial load: roles + permissions list
   useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        const [rolesRes, permsRes] = await Promise.all([
-          axiosInstance.get('/api/permissions/roles'),
-          axiosInstance.get('/api/permissions'), // all permissions
-        ]);
-        // console.log('rolesRes', rolesRes, rolesRes.data?.roles);
-        // console.log('permsRes', permsRes, permsRes.data?.permissions);
+    load();
+  }, [load]);
 
-        if (!rolesRes?.data?.status) throw new Error('Failed to load roles');
-        if (!permsRes?.data?.status) throw new Error('Failed to load permissions');
+  const selectedRole = useMemo(
+    () => roles.find((role) => String(role.id) === String(selectedId)) || null,
+    [roles, selectedId],
+  );
 
-        setRoles(rolesRes.data?.roles || []);
-        setAllPerms(permsRes.data?.permissions || []);
-
-        // default select first non-owner role (to avoid bypass confusion)
-        const firstRole = (rolesRes.data?.roles || []).find(r => r !== 'owner') || (rolesRes.data?.roles || [])[0] || '';
-        // console.log('firstRole', firstRole);
-        if (firstRole) setSelectedRole(firstRole);
-      } catch (e) {
-        setError(e.message || 'Failed to load');
-        Toast.error(`Load error: ${e.message}`, 'error');
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
-  // When role changes, load its assigned keys
   useEffect(() => {
-    if (!selectedRole) return;
-    (async () => {
-      try {
-        setLoading(true);
-        const roleRes = await axiosInstance.get(
-          `/api/permissions/role/${encodeURIComponent(selectedRole)}`
-        );
-        const keys = roleRes.data?.permissions || [];
-        setAssigned(new Set(keys));
-      } catch (e) {
-        setError(e.message || 'Failed to load role permissions');
-        Toast.error(`Role load error: ${e.message}`, 'error');
-      } finally {
-        setLoading(false);
-      }
-    })();
+    setAssigned(new Set(selectedRole?.permissions || []));
   }, [selectedRole]);
 
-  // Filter for search
-  const filteredPerms = useMemo(() => {
-    if (!q) return allPerms;
-    const r = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-    // console.log('r', r); // whatever r match with text i want to select them by green color 
-    const filtered = allPerms.filter(p => r.test(p.key) || r.test(p.label || ''));
-    return filtered;
-  }, [q, allPerms]);
-
-  // Group filtered permissions by module prefix (before first ":")
-  const groupedPerms = useMemo(() => {
-    const map = new Map(); // module -> array of perms
-    for (const p of filteredPerms) {
-      const key = typeof p?.key === 'string' ? p.key : '';
-      const group = key.includes(':') ? key.split(':')[0] : 'other';
-      if (!map.has(group)) map.set(group, []);
-      map.get(group).push(p);
-    }
-    // sort groups alphabetically and each group's items by key
-    const entries = Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-    entries.forEach(([, arr]) => arr.sort((x, y) => String(x.key).localeCompare(String(y.key))));
-    return entries; // [ [group, perms[]], ... ]
-  }, [filteredPerms]);
-
-  const toggleKey = (key) => {
-    setAssigned(prev => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
-      return next;
-    });
-  };
-
-  const setAllVisible = (checked) => {
-    const keys = filteredPerms.map(p => p.key);
-    setAssigned(prev => {
-      const next = new Set(prev);
-      if (checked) keys.forEach(k => next.add(k)); else keys.forEach(k => next.delete(k));
-      return next;
-    });
-  };
-
-  const save = async () => {
-    if (!selectedRole) return;
-    try {
-      setSaving(true);
-      const body = { role: selectedRole, keys: Array.from(assigned) };
-      const res = await axiosInstance.post('/api/permissions/role/set', body);
-      Toast.success('Permissions saved');
-      // refresh assignment from server response to stay in sync
-      // console.log('res', res, res.data?.assigned);
-      const newKeys = res.data?.assigned || [];
-      setAssigned(new Set(newKeys));
-
-      // 🔥 Tell UserContext to reload permissions
-      markPermissionsForRefresh();
-    } catch (e) {
-      Toast.error(`Save failed: ${e.message}`, 'error');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const deletePermission = async (key) => {
-    if (!key) return;
-    const ok = await Toast.promise(`Delete permission \"${key}\"? This cannot be undone.`);
-    if (!ok) return;
-    try {
-      setSaving(true);
-      await axiosInstance.delete(`/api/permissions/${encodeURIComponent(key)}`);
-      // Remove from master list
-      setAllPerms((prev) => prev.filter((p) => p.key !== key));
-      // Also unassign from current role locally
-      setAssigned((prev) => {
-        const next = new Set(prev);
-        next.delete(key);
-        return next;
+  const groupedPermissions = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    const groups = new Map();
+    permissions
+      .filter((permission) => !normalizedQuery
+        || `${permission.key} ${permission.label}`.toLowerCase().includes(normalizedQuery))
+      .forEach((permission) => {
+        if (!groups.has(permission.module)) groups.set(permission.module, []);
+        groups.get(permission.module).push(permission);
       });
-      Toast.success('Permission deleted');
+    return [...groups.entries()].sort(([left], [right]) => left.localeCompare(right));
+  }, [permissions, query]);
+
+  const togglePermission = (key) => {
+    if (!canUpdate || selectedRole?.isOwner) return;
+    setAssigned((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const toggleGroup = (keys, checked) => {
+    if (!canUpdate || selectedRole?.isOwner) return;
+    setAssigned((current) => {
+      const next = new Set(current);
+      keys.forEach((key) => (checked ? next.add(key) : next.delete(key)));
+      return next;
+    });
+  };
+
+  const savePermissions = async () => {
+    if (!selectedRole || selectedRole.isOwner) return;
+    setSaving(true);
+    try {
+      const response = await axiosInstance.put(
+        `/api/permissions/roles/${selectedRole.id}/permissions`,
+        { permissions: [...assigned] },
+      );
+      const updatedRole = response?.data?.role;
+      setRoles((current) => current.map((role) => (
+        String(role.id) === String(updatedRole.id) ? updatedRole : role
+      )));
       markPermissionsForRefresh();
-    } catch (e) {
-      const msg = e?.response?.data?.message || e?.message || 'Delete failed';
-      Toast.error(msg, 'error');
+      Toast.success('Role permissions updated.');
+    } catch (error) {
+      Toast.error(error?.response?.data?.message || 'Failed to update permissions.');
     } finally {
       setSaving(false);
     }
   };
+
+  const createRole = async () => {
+    setSaving(true);
+    try {
+      const response = await axiosInstance.post('/api/permissions/roles', {
+        ...newRole,
+        rank: Number(newRole.rank),
+        permissions: [],
+      });
+      const created = response?.data?.data;
+      setRoles((current) => [...current, created].sort((a, b) => b.rank - a.rank));
+      setSelectedId(String(created.id));
+      setCreateOpen(false);
+      setNewRole(emptyRole);
+      Toast.success('Custom role created.');
+    } catch (error) {
+      Toast.error(error?.response?.data?.message || 'Failed to create role.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const archiveRole = async () => {
+    if (!selectedRole || selectedRole.isSystem) return;
+    const confirmed = await Toast.promise(`Archive the ${selectedRole.name} role?`, {
+      title: 'Archive role',
+      confirmLabel: 'Archive',
+      cancelLabel: 'Cancel',
+    });
+    if (!confirmed) return;
+    try {
+      await axiosInstance.delete(`/api/permissions/roles/${selectedRole.id}`);
+      Toast.success('Role archived.');
+      await load();
+    } catch (error) {
+      Toast.error(error?.response?.data?.message || 'Failed to archive role.');
+    }
+  };
+
+  if (!canRead) {
+    return (
+      <div className="rounded-xl border border-white-100 bg-white-50 p-8 text-center text-white-500">
+        You do not have permission to manage company roles.
+      </div>
+    );
+  }
 
   return (
-    <div className='flex flex-col gap-1 h-full'>
-      <h1 className="text-xl font-semibold mb-4">Roles &amp; Permissions</h1>
+    <div className="flex h-full min-h-0 flex-col gap-4">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">Company roles &amp; permissions</h1>
+          <p className="text-sm text-white-500">
+            Permission definitions are protected by the application. Your company controls how they are assigned.
+          </p>
+        </div>
+        {canCreate && (
+          <button type="button" className="btn-secondary px-4 py-2" onClick={() => setCreateOpen(true)}>
+            New custom role
+          </button>
+        )}
+      </header>
 
-      {error ? (
-        <div className="mb-3 rounded-md bg-red-50 text-red-700 p-3 text-sm">{error}</div>
-      ) : null}
-
-      {(loading && !rolesRead) && (
-        <div className="space-y-4 flex flex-col gap-4 h-full">
-          <Loading variant="skeleton" className="h-[100px]" />
-          <Loading variant="skeleton" className="flex-1" />
-        </div>
-      )}
-      {!loading && <div className="flex flex-col md:flex-row gap-3 md:items-end mb-4 bg-white-100/50 px-3 py-2 rounded-lg">
-        <div className="flex-1">
-          {rolesRead &&
-            <RoleSelect
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e?.target?.value)}
-              label="Role"
-              placeholder="Pick or create a role…"
-            />
-          }
-        </div>
-        <div className="flex-1">
-          <CustomInput
-            type='text'
-            name="search"
-            label={"Search permissions"}
-            placeholder="items:read, inventory:issue, ..."
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-2">
-          {update && <>
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[280px_1fr]">
+        <aside className="min-h-0 overflow-auto rounded-xl border border-white-100 bg-white-100 p-2">
+          {loading ? <div className="p-4 text-white-500">Loading roles…</div> : roles.map((role) => (
             <button
-              className="btn-secondary mb-5"
-              onClick={() => setAllVisible(true)}
-              disabled={loading}
               type="button"
-            >Select all (visible)</button>
-            <button
-              className="btn-secondary mb-5"
-              onClick={() => setAllVisible(false)}
-              disabled={loading}
-              type="button"
-            >Clear (visible)</button>
-            <SubmitButton
-              label="Save"
-              type="button"
-              onClick={save}
-              loading={loading}
-              disabled={saving || loading || !selectedRole}
-            />
-          </>
-          }
-          {
-            create &&
-            <NewPermission
-              open={openNew}
-              setOpen={setOpenNew}
-              selectedRole={selectedRole}
-              onCreated={async (created) => {
-                // Merge the new permission into the list if not present
-                setAllPerms((prev) => {
-                  const exists = prev.some(p => p.key === created?.key);
-                  const next = exists ? prev : [...prev, created];
-                  return next.sort((a, b) => String(a.key).localeCompare(String(b.key)));
-                });
-                // Refresh assigned for the current role (in case we checked "assign now")
-                if (selectedRole) {
-                  try {
-                    const roleRes = await axiosInstance.get(`/api/permissions/role/${encodeURIComponent(selectedRole)}`);
-                    const keys = roleRes.data?.permissions || [];
-                    setAssigned(new Set(keys));
-                  } catch (err) {
-                    // non-fatal; user can still see new key in list
-                  }
-                }
-              }}
-            />
-          }
-        </div>
-      </div>}
+              key={role.id}
+              onClick={() => setSelectedId(String(role.id))}
+              className={`mb-1 w-full rounded-lg border p-3 text-left transition ${String(selectedId) === String(role.id)
+                  ? 'border-blue-500 bg-blue-500/10'
+                  : 'border-transparent hover:bg-white-100'
+                }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium">{role.name}</span>
+                <span className="text-xs text-white-500">{role.memberCount} members</span>
+              </div>
+              <div className="mt-1 flex items-center gap-2 text-xs text-white-500">
+                <span>Rank {role.rank}</span>
+                {role.isSystem && <span>System</span>}
+                {role.isOwner && <span className="text-amber-400">Protected</span>}
+              </div>
+            </button>
+          ))}
+        </aside>
 
-      {(selectedRole && read && !loading) && <div ref={contentRef} className="w-full bg-white-100/0 rounded-lg p-0 flex-1 ">
-        <div className="w-full flex max-w-full overflow-y-auto overflow-x-hidden gap-4 p-2 flex-wrap">
-          {groupedPerms.map(([group, perms]) => {
-            const groupKeys = perms.map(p => p.key);
-            const selectedCount = groupKeys.filter(k => assigned.has(k)).length;
-            const allSelected = selectedCount === groupKeys.length && groupKeys.length > 0;
-            const someSelected = selectedCount > 0 && !allSelected;
-
-            const toggleGroup = (check) => {
-              setAssigned(prev => {
-                const next = new Set(prev);
-                groupKeys.forEach(k => check ? next.add(k) : next.delete(k));
-                return next;
-              });
-            };
-
-            return (
-              <div key={group}
-                className="min-w-fit flex-1 rounded-lg overflow-clip outline-0 p-1 transition-all duration-300
-                hover:outline-4 outline-white-100 backdrop-blur-2xl
-                shadow-md hover:shadow-green-200  hover:shadow-2xl dark:hover:shadow-green-500/30
-                bg-black-300 hover:bg-black-200">
-                <div className="w-auto max-w-full px-2 py-2 bg-white-50 font-semibold uppercase tracking-wide text-xs text-white-400 flex items-center justify-between">
-                  <span className='flex-2 flex gap-2'>
-                    <span>{group}</span>
-                    <span className="text-white-500">({selectedCount}/{groupKeys.length})</span>
-                  </span>
-                  <div className="flex-0 flex gap-2">
-                    <button className="btn-secondary py-1 px-2 text-nowrap w-full cursor-pointer no-highlight" type="button" onClick={() => toggleGroup(true)}>Select All</button>
-                    <button className="btn-secondary py-1 px-2 text-nowrap w-full cursor-pointer no-highlight" type="button" onClick={() => toggleGroup(false)}>Clear</button>
-                  </div>
+        <section className="flex min-h-0 flex-col rounded-xl border border-white-100 bg-white-50 overflow-clip bg-white-100">
+          {selectedRole ? (
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white-100 p-4 bg-white-100">
+                <div>
+                  <h2 className="font-semibold">{selectedRole.name}</h2>
+                  <p className="text-sm text-white-500">{selectedRole.description || 'No description provided.'}</p>
                 </div>
-                <div className='flex gap-2 flex-3 max-w-full flex-wrap'>
-                  {perms.map((p) => {
-                    const checked = assigned.has(p.key);
+                <div className="flex gap-2">
+                  {canDelete && !selectedRole.isSystem && (
+                    <button type="button" className="btn-danger px-3 py-1.5" onClick={archiveRole}>Archive role</button>
+                  )}
+                  {canUpdate && !selectedRole.isOwner && (
+                    <SubmitButton type="button" loading={saving} onClick={savePermissions}>Save permissions</SubmitButton>
+                  )}
+                </div>
+              </div>
+              <div className="p-4">
+                <CustomInput
+                  type="search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search permission name or key"
+                  parent_className="mb-0"
+                />
+              </div>
+              <div className="min-h-0 flex-1 overflow-auto p-4 pt-0">
+                <div className="grid gap-3 xl:grid-cols-2">
+                  {groupedPermissions.map(([module, items]) => {
+                    const keys = items.map((permission) => permission.key);
+                    const selectedCount = keys.filter((key) => assigned.has(key)).length;
                     return (
-                      <div key={p.key} className="max-w-full flex-1 flex items-center gap-2 p-2">
-                        <div className="flex items-start gap-2 flex-1 min-w-0">
-                          <CheckBox
-                            name={p.key}
-                            value={p.key}
-                            checked={checked}
-                            onChange={() => toggleKey(p.key)}
-                            parent_className='m-0'
-                            className='cursor-pointer rounded-inherit'
-                            readOnly={!update}
-                          />
-                          {/* <div className="flex flex-col truncate">
-                            <div className="font-mono text-sm truncate">{p.key}</div>
-                            {p.label ? <div className="text-xs text-gray-600 mt-0.5 truncate">{p.label}</div> : null}
-                          </div> */}
+                      <div key={module} className="rounded-xl border border-white-100 bg-black-300 p-3">
+                        <div className="mb-3 flex items-center justify-between gap-2">
+                          <div>
+                            <h3 className="font-medium capitalize">{module}</h3>
+                            <p className="text-xs text-white-500">{selectedCount} of {items.length} enabled</p>
+                          </div>
+                          {canUpdate && !selectedRole.isOwner && (
+                            <div className="flex gap-1">
+                              <button className="btn-secondary px-2 py-1 text-xs" type="button" onClick={() => toggleGroup(keys, true)}>All</button>
+                              <button className="btn-secondary px-2 py-1 text-xs" type="button" onClick={() => toggleGroup(keys, false)}>None</button>
+                            </div>
+                          )}
                         </div>
-                        {deletePer && <DeleteButton
-                          onClick={() => deletePermission(p.key)}
-                          label="Delete Permission"
-                        />}
+                        <div className="space-y-2">
+                          {items.map((permission) => (
+                            <label key={permission.key} className="flex cursor-pointer items-start gap-3 rounded-lg p-2 hover:bg-white-50">
+                              <CheckBox
+                                name={permission.key}
+                                checked={selectedRole.isOwner || assigned.has(permission.key)}
+                                onChange={() => togglePermission(permission.key)}
+                                readOnly={!canUpdate || selectedRole.isOwner}
+                                parent_className="m-0"
+                                className="cursor-pointer rounded-inherit w-fit"
+                                value={permission.key}
+                                label={permission.label}
+                              />
+                            </label>
+                          ))}
+                        </div>
                       </div>
                     );
                   })}
                 </div>
               </div>
-            );
-          })}
-          {groupedPerms.length === 0 && (
-            <div className="p-4 text-sm text-white-500">No permissions match your search.</div>
+            </>
+          ) : (
+            <div className="m-auto text-white-500">Select a role to review its permissions.</div>
           )}
+        </section>
+      </div>
+
+      <Dialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        title="Create custom role"
+        size="sm"
+        side="center"
+        actions={(
+          <>
+            <button type="button" className="btn" onClick={() => setCreateOpen(false)}>Cancel</button>
+            <SubmitButton
+              type="button"
+              loading={saving}
+              disabled={newRole.name.trim().length < 2}
+              onClick={createRole}
+            >
+              Create role
+            </SubmitButton>
+          </>
+        )}
+      >
+        <div className="space-y-2 p-2">
+          <CustomInput
+            label="Role name"
+            value={newRole.name}
+            onChange={(event) => setNewRole((value) => ({ ...value, name: event.target.value }))}
+            placeholder="Example: Purchase Supervisor"
+            required
+          />
+          <CustomInput
+            label="Role key"
+            value={newRole.key}
+            onChange={(event) => setNewRole((value) => ({ ...value, key: event.target.value }))}
+            placeholder="Generated from name if empty"
+          />
+          <CustomInput
+            label="Description"
+            value={newRole.description}
+            onChange={(event) => setNewRole((value) => ({ ...value, description: event.target.value }))}
+          />
+          <CustomInput
+            label="Authority rank"
+            type="number"
+            min="1"
+            max={currentUser.isOwner ? 99 : Math.max(Number(currentUser.roleRank) - 1, 1)}
+            value={newRole.rank}
+            onChange={(event) => setNewRole((value) => ({ ...value, rank: event.target.value }))}
+            info="Higher ranks can manage lower-ranked roles."
+          />
         </div>
-      </div>}
-      {
-        (!selectedRole && !loading) &&
-        <div className="bg-white-100/30 rounded-lg w-full flex items-center justify-center flex-1 gap-2 p-4">
-          <span className='capitalize text-white-400'>please select a role</span>
-        </div>
-      }
+      </Dialog>
     </div>
   );
 }

@@ -117,6 +117,10 @@ const Signup = () => {
       setError("Passwords don't match");
       return;
     }
+    if (form.password.length < 10 || !/[a-z]/.test(form.password) || !/[A-Z]/.test(form.password) || !/\d/.test(form.password)) {
+      setError('Password must be at least 10 characters and include uppercase, lowercase, and a number.');
+      return;
+    }
 
     setLoading(true);
     try {

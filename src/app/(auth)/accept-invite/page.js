@@ -52,7 +52,10 @@ export default function AcceptInvitePage() {
 
   const accept = async (e) => {
     e.preventDefault();
-    if (!name || !password) return Toast.error('Name and password are required');
+    if ((!meta?.existingAccount && !name) || !password) {
+      return Toast.error(meta?.existingAccount ? 'Password is required' : 'Name and password are required');
+    }
+    if (password.length < 10) return Toast.error('Password must be at least 10 characters');
     try {
       setBusy(true);
       await axiosInstance.post('/auth/accept-invite', { token, name, password });
@@ -112,8 +115,13 @@ export default function AcceptInvitePage() {
         You’re joining as <b>{meta.role}</b> using email <b>{meta.email}</b>.
       </p>
 
-        <CustomInput name={'name'} label="Your name" value={name} onChange={(e)=>setName(e.target.value)} />
+        {!meta.existingAccount && <CustomInput name={'name'} label="Your name" value={name} onChange={(e)=>setName(e.target.value)} />}
         <CustomInput name={'password'} label="Password" type="password" value={password} onChange={(e)=>setPassword(e.target.value)} />
+        <p className="w-full text-xs text-white-500">
+          {meta.existingAccount
+            ? 'This email already has an ERP identity. Enter its password to add this company membership.'
+            : 'Use at least 10 characters with uppercase, lowercase, and a number.'}
+        </p>
         <div className='flex gap-2 w-full items-center justify-between'>
         <SubmitButton type="submit" label='Create Account' loading={busy} />
         <SubmitButton type="button" label='Decline invitation' loading={busy} className="bg-red-800 hover:bg-red-900" onClick={decline}/>
