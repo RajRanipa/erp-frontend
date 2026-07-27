@@ -1,200 +1,233 @@
-// src/app/(app)/parties/lib/partyMappers.js
-// Pure mapping helpers between API Party shape and UI/form shape.
-// Keep this file React-free.
-
 import {
   DEFAULT_COUNTRY,
   DEFAULT_CURRENCY,
-  PAYMENT_TERM_TYPES,
+  PARTY_LIFECYCLE,
+  PARTY_PRIORITY,
   PARTY_STATUS,
+  PARTY_TYPES,
+  PAYMENT_TERM_TYPES,
+  PREFERRED_CHANNELS,
+  TAX_ID_TYPES,
   normalizePartyRoles,
 } from './partyConstants';
+import {
+  emptyAddress,
+  emptyContact,
+  ensureOnePrimaryContact,
+  trimStr,
+} from './partySchema';
 
-// -----------------------------
-// Basic helpers
-// -----------------------------
-
-export function toStr(v, fallback = '') {
-  if (v === undefined || v === null) return fallback;
-  return String(v);
+function idValue(value) {
+  if (!value) return null;
+  return typeof value === 'object' ? value._id || value.id || null : value;
 }
 
-export function toTrimmedOrNull(v) {
-  const s = toStr(v, '').trim();
-  return s ? s : null;
-}
-
-export function toNumberOrNull(v) {
-  if (v === '' || v === undefined || v === null) return null;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
-}
-
-export function toBool(v) {
-  return !!v;
-}
-
-// -----------------------------
-// Address/contact normalizers
-// -----------------------------
-
-export function normalizeAddress(a = {}) {
+function normalizeAddress(address = {}) {
   return {
-    label: toStr(a.label || 'Office'),
-    line1: toStr(a.line1),
-    line2: toStr(a.line2),
-    city: toStr(a.city),
-    state: toStr(a.state),
-    country: toStr(a.country || DEFAULT_COUNTRY),
-    pincode: toStr(a.pincode),
-    isDefaultBilling: toBool(a.isDefaultBilling),
-    isDefaultShipping: toBool(a.isDefaultShipping),
+    ...(address._id ? { _id: address._id } : {}),
+    ...emptyAddress(),
+    ...address,
+    purposes: [...new Set(
+      (Array.isArray(address.purposes) ? address.purposes : [])
+        .map(value => String(value).trim().toLowerCase())
+        .filter(Boolean),
+    )],
+    country: trimStr(address.country) || DEFAULT_COUNTRY,
+    isActive: address.isActive !== false,
   };
 }
 
-export function normalizeContact(c = {}) {
+export function normalizeAddresses(value) {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return {
+      primaryAddress: normalizeAddress(value.primaryAddress || {}),
+      additionalAddresses: (
+        Array.isArray(value.additionalAddresses) ? value.additionalAddresses : []
+      ).map(normalizeAddress),
+    };
+  }
+
+  if (Array.isArray(value)) {
+    const [primary = {}, ...additional] = value;
+    return {
+      primaryAddress: normalizeAddress({
+        ...primary,
+        purposes: [
+          ...(primary.purposes || []),
+          ...(primary.isDefaultBilling ? ['billing'] : []),
+          ...(primary.isDefaultShipping ? ['shipping'] : []),
+        ],
+      }),
+      additionalAddresses: additional.map(address => normalizeAddress({
+        ...address,
+        purposes: [
+          ...(address.purposes || []),
+          ...(address.isDefaultBilling ? ['billing'] : []),
+          ...(address.isDefaultShipping ? ['shipping'] : []),
+        ],
+      })),
+    };
+  }
   return {
-    name: toStr(c.name),
-    designation: toStr(c.designation),
-    phone: toStr(c.phone),
-    email: toStr(c.email),
-    isPrimary: toBool(c.isPrimary),
+    primaryAddress: emptyAddress({ purposes: ['registered'] }),
+    additionalAddresses: [],
   };
 }
 
-export function ensureSinglePrimaryContact(contacts = []) {
-  const list = (contacts || []).map(normalizeContact);
-  const firstPrimaryIdx = list.findIndex((x) => x.isPrimary);
-  if (firstPrimaryIdx === -1) return list;
-  return list.map((c, i) => ({ ...c, isPrimary: i === firstPrimaryIdx }));
+function normalizeContact(contact = {}) {
+  return {
+    ...(contact._id ? { _id: contact._id } : {}),
+    ...emptyContact(),
+    ...contact,
+    email: trimStr(contact.email).toLowerCase(),
+    isActive: contact.isActive !== false,
+  };
 }
 
-export function ensureSingleDefaultAddress(addresses = [], key = 'billing') {
-  const list = (addresses || []).map(normalizeAddress);
-  const flag = key === 'shipping' ? 'isDefaultShipping' : 'isDefaultBilling';
-  const firstIdx = list.findIndex((a) => a[flag]);
-  if (firstIdx === -1) return list;
-  return list.map((a, i) => ({ ...a, [flag]: i === firstIdx }));
+function normalizeBankAccount(account = {}) {
+  return {
+    ...(account._id ? { _id: account._id } : {}),
+    accountHolderName: trimStr(account.accountHolderName),
+    bankName: trimStr(account.bankName),
+    accountNumber: trimStr(account.accountNumber),
+    ifscCode: trimStr(account.ifscCode).toUpperCase(),
+    swiftCode: trimStr(account.swiftCode).toUpperCase(),
+    branch: trimStr(account.branch),
+    accountType: account.accountType || 'CURRENT',
+    currency: trimStr(account.currency || DEFAULT_CURRENCY).toUpperCase(),
+    isPrimary: Boolean(account.isPrimary),
+    isActive: account.isActive !== false,
+    verifiedAt: account.verifiedAt || null,
+  };
 }
 
-// -----------------------------
-// UI form mapping
-// -----------------------------
-
-/**
- * API Party -> UI Form Party
- * Produces a UI-safe object for PartyForm initialValues.
- */
 export function apiPartyToForm(party = {}) {
-  const p = party || {};
-
-  const roles = normalizePartyRoles(p.roles);
-
-  const addresses = (Array.isArray(p.addresses) ? p.addresses : []).map(normalizeAddress);
-  const contacts = (Array.isArray(p.contacts) ? p.contacts : []).map(normalizeContact);
-
+  const roles = normalizePartyRoles(party.roles);
   return {
-    _id: p._id,
-
-    name: toStr(p.name),
-    legalName: toStr(p.legalName),
-
+    _id: party._id || null,
+    version: party.__v,
+    code: trimStr(party.code),
+    name: trimStr(party.name),
+    legalName: trimStr(party.legalName),
+    partyType: party.partyType || PARTY_TYPES.BUSINESS,
     roles: roles.length ? roles : ['SUPPLIER'],
-    status: toStr(p.status || PARTY_STATUS.ACTIVE),
-
-    phone: toStr(p.phone),
-    email: toStr(p.email),
-    website: toStr(p.website),
-
+    status: party.status === PARTY_STATUS.ARCHIVED
+      ? PARTY_STATUS.INACTIVE
+      : party.status || PARTY_STATUS.ACTIVE,
+    lifecycleStage: party.lifecycleStage || PARTY_LIFECYCLE.ACTIVE,
+    priority: party.priority || PARTY_PRIORITY.NORMAL,
+    accountOwner: idValue(party.accountOwner),
+    leadSource: trimStr(party.leadSource),
+    industry: trimStr(party.industry),
+    phone: trimStr(party.phone),
+    alternatePhone: trimStr(party.alternatePhone),
+    email: trimStr(party.email),
+    website: trimStr(party.website),
+    communicationPreferences: {
+      preferredChannel:
+        party.communicationPreferences?.preferredChannel || PREFERRED_CHANNELS.EMAIL,
+      doNotContact: Boolean(party.communicationPreferences?.doNotContact),
+      marketingOptIn: Boolean(party.communicationPreferences?.marketingOptIn),
+      whatsappOptIn: Boolean(party.communicationPreferences?.whatsappOptIn),
+    },
+    tags: Array.isArray(party.tags) ? party.tags : [],
     taxProfile: {
-      isTaxRegistered: toBool(p?.taxProfile?.isTaxRegistered),
-      taxId: toStr(p?.taxProfile?.taxId),
-      pan: toStr(p?.taxProfile?.pan),
-      placeOfSupply: toStr(p?.taxProfile?.placeOfSupply),
+      isTaxRegistered: Boolean(party.taxProfile?.isTaxRegistered),
+      taxIdType: party.taxProfile?.taxIdType || TAX_ID_TYPES.GSTIN,
+      taxId: trimStr(party.taxProfile?.taxId),
+      pan: trimStr(party.taxProfile?.pan),
+      gstRegistrationType: party.taxProfile?.gstRegistrationType || 'UNREGISTERED',
+      registrationNumber: trimStr(party.taxProfile?.registrationNumber),
+      cin: trimStr(party.taxProfile?.cin),
+      msmeNumber: trimStr(party.taxProfile?.msmeNumber),
+      placeOfSupply: trimStr(party.taxProfile?.placeOfSupply),
     },
-
-    addresses: ensureSingleDefaultAddress(ensureSingleDefaultAddress(addresses, 'billing'), 'shipping'),
-    contacts: ensureSinglePrimaryContact(contacts),
-
+    addresses: normalizeAddresses(party.addresses),
+    contacts: ensureOnePrimaryContact(
+      (Array.isArray(party.contacts) ? party.contacts : []).map(normalizeContact),
+    ),
     paymentTerms: {
-      type: toStr(p?.paymentTerms?.type || PAYMENT_TERM_TYPES.NET_DAYS),
-      netDays: Number.isFinite(Number(p?.paymentTerms?.netDays)) ? Number(p.paymentTerms.netDays) : 30,
-      note: toStr(p?.paymentTerms?.note),
+      type: party.paymentTerms?.type || PAYMENT_TERM_TYPES.NET_DAYS,
+      netDays: Number.isFinite(Number(party.paymentTerms?.netDays))
+        ? Number(party.paymentTerms.netDays)
+        : 30,
+      note: trimStr(party.paymentTerms?.note),
     },
-
-    currency: toStr(p.currency || DEFAULT_CURRENCY),
-    creditLimit: p.creditLimit === undefined || p.creditLimit === null ? '' : Number(p.creditLimit),
-
-    notes: toStr(p.notes),
+    currency: trimStr(party.currency || DEFAULT_CURRENCY).toUpperCase(),
+    creditLimit: party.creditLimit == null ? '' : Number(party.creditLimit),
+    bankAccounts: (Array.isArray(party.bankAccounts) ? party.bankAccounts : [])
+      .map(normalizeBankAccount),
+    notes: trimStr(party.notes),
+    meta: party.meta || {},
+    customFields: party.customFields || {},
   };
 }
 
-/**
- * UI Form Party -> API payload
- * Produces a backend-ready payload.
- */
 export function formToApiPartyPayload(form = {}) {
-  const f = form || {};
-
-  const roles = normalizePartyRoles(f.roles);
-
-  const addresses = ensureSingleDefaultAddress(
-    ensureSingleDefaultAddress((Array.isArray(f.addresses) ? f.addresses : []).map(normalizeAddress), 'billing'),
-    'shipping'
-  );
-
-  const contacts = ensureSinglePrimaryContact((Array.isArray(f.contacts) ? f.contacts : []).map(normalizeContact));
-
+  const roles = normalizePartyRoles(form.roles);
   return {
-    name: toStr(f.name).trim(),
-    legalName: toTrimmedOrNull(f.legalName),
-
+    ...(form.version !== undefined ? { version: form.version } : {}),
+    code: trimStr(form.code).toUpperCase(),
+    name: trimStr(form.name),
+    legalName: trimStr(form.legalName),
+    partyType: form.partyType || PARTY_TYPES.BUSINESS,
     roles: roles.length ? roles : ['SUPPLIER'],
-    status: toStr(f.status || PARTY_STATUS.ACTIVE),
-
-    phone: toTrimmedOrNull(f.phone),
-    email: toTrimmedOrNull(f.email),
-    website: toTrimmedOrNull(f.website),
-
+    status: form.status || PARTY_STATUS.ACTIVE,
+    lifecycleStage: form.lifecycleStage || PARTY_LIFECYCLE.ACTIVE,
+    priority: form.priority || PARTY_PRIORITY.NORMAL,
+    accountOwner: idValue(form.accountOwner),
+    leadSource: trimStr(form.leadSource),
+    industry: trimStr(form.industry),
+    phone: trimStr(form.phone),
+    alternatePhone: trimStr(form.alternatePhone),
+    email: trimStr(form.email).toLowerCase(),
+    website: trimStr(form.website),
+    communicationPreferences: {
+      preferredChannel:
+        form.communicationPreferences?.preferredChannel || PREFERRED_CHANNELS.EMAIL,
+      doNotContact: Boolean(form.communicationPreferences?.doNotContact),
+      marketingOptIn: Boolean(form.communicationPreferences?.marketingOptIn),
+      whatsappOptIn: Boolean(form.communicationPreferences?.whatsappOptIn),
+    },
+    tags: (Array.isArray(form.tags) ? form.tags : [])
+      .map(value => trimStr(value).toLowerCase())
+      .filter(Boolean),
     taxProfile: {
-      isTaxRegistered: toBool(f?.taxProfile?.isTaxRegistered),
-      taxId: toTrimmedOrNull(f?.taxProfile?.taxId),
-      pan: toTrimmedOrNull(f?.taxProfile?.pan),
-      placeOfSupply: toStr(f?.taxProfile?.placeOfSupply || '').trim() || '',
+      isTaxRegistered: Boolean(form.taxProfile?.isTaxRegistered),
+      taxIdType: form.taxProfile?.taxIdType || TAX_ID_TYPES.GSTIN,
+      taxId: trimStr(form.taxProfile?.taxId).toUpperCase(),
+      pan: trimStr(form.taxProfile?.pan).toUpperCase(),
+      gstRegistrationType:
+        form.taxProfile?.gstRegistrationType
+        || (form.taxProfile?.isTaxRegistered ? 'REGULAR' : 'UNREGISTERED'),
+      registrationNumber: trimStr(form.taxProfile?.registrationNumber),
+      cin: trimStr(form.taxProfile?.cin).toUpperCase(),
+      msmeNumber: trimStr(form.taxProfile?.msmeNumber).toUpperCase(),
+      placeOfSupply: trimStr(form.taxProfile?.placeOfSupply),
     },
-
-    addresses,
-    contacts,
-
+    addresses: normalizeAddresses(form.addresses),
+    contacts: ensureOnePrimaryContact(
+      (Array.isArray(form.contacts) ? form.contacts : []).map(normalizeContact),
+    ),
     paymentTerms: {
-      type: toStr(f?.paymentTerms?.type || PAYMENT_TERM_TYPES.NET_DAYS),
-      netDays: Number(f?.paymentTerms?.netDays ?? 0),
-      note: toTrimmedOrNull(f?.paymentTerms?.note),
+      type: form.paymentTerms?.type || PAYMENT_TERM_TYPES.NET_DAYS,
+      netDays: Number(form.paymentTerms?.netDays ?? 0),
+      note: trimStr(form.paymentTerms?.note),
     },
-
-    currency: toStr(f.currency || DEFAULT_CURRENCY).trim() || DEFAULT_CURRENCY,
-    creditLimit: toNumberOrNull(f.creditLimit),
-
-    notes: toTrimmedOrNull(f.notes),
+    currency: trimStr(form.currency || DEFAULT_CURRENCY).toUpperCase(),
+    creditLimit: form.creditLimit === '' ? 0 : Number(form.creditLimit || 0),
+    bankAccounts: (Array.isArray(form.bankAccounts) ? form.bankAccounts : [])
+      .map(normalizeBankAccount),
+    notes: trimStr(form.notes),
+    meta: form.meta || {},
+    customFields: form.customFields || {},
   };
 }
 
-// -----------------------------
-// Options mapping
-// -----------------------------
-
-/**
- * Party row -> dropdown option
- * { value, label, raw }
- */
-export function partyToOption(p = {}) {
-  const name = toStr(p?.name || p?.legalName || 'Unnamed');
-  const taxId = p?.taxProfile?.taxId ? ` • ${p.taxProfile.taxId}` : '';
-  const phone = p?.phone ? ` • ${p.phone}` : '';
-
+export function partyToOption(party = {}) {
   return {
-    value: p._id,
-    label: `${name}${taxId}${phone}`,
-    raw: p,
+    value: party.value || party._id,
+    label: party.label || `${party.code ? `${party.code} · ` : ''}${party.name || 'Unnamed'}`,
+    raw: party,
   };
 }

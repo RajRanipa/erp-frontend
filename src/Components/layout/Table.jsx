@@ -16,6 +16,7 @@ export default function Table(
     className = '',
     getFooter,
     pageSize: propPageSize, // <-- added prop
+    pagination = true,
     tableRef = null,
   }) {
   /** @type {{key: string, direction: 'asc'|'desc'} | null} */
@@ -38,10 +39,10 @@ export default function Table(
   }, [data, sort, columns]);
 
   const paginatedRows = useMemo(() => {
-    if (!pageSize) return sorted;
+    if (!pagination || !pageSize) return sorted;
     const start = (currentPage - 1) * pageSize;
     return sorted.slice(start, start + pageSize);
-  }, [sorted, currentPage, pageSize]);
+  }, [sorted, currentPage, pageSize, pagination]);
 
   // Column groups & visibility (for grouped/collapsible columns)
   const [collapsedGroups, setCollapsedGroups] = useState({});
@@ -324,6 +325,7 @@ export default function Table(
           </tfoot>
         )}
       </table>
+      {pagination && (
       <div className="flex items-center gap-8 justify-between px-2 py-1 text-sm text-secondary-text bg-white-100 border-t border-white-100 sticky bottom-0 backdrop-blur-xl rounded-bl-lg overflow-auto min-w-max">
         {/* Rows per page selector */}
         <div className="flex items-center gap-2">
@@ -363,6 +365,7 @@ export default function Table(
           </button>
         </div>
       </div>
+      )}
     </div>
   );
 }

@@ -30,6 +30,12 @@ export default function PartyStatusBadge({ status, className = '' }) {
         cls: 'bg-gray-500/15 text-gray-200 border-gray-500/30',
       };
     }
+    if (s === 'blocked') {
+      return {
+        label: 'Blocked',
+        cls: 'bg-red-500/15 text-red-300 border-red-500/30',
+      };
+    }
 
     return {
       label: status ? String(status) : '—',

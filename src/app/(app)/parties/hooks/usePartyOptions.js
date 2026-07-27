@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiPartyOptions } from '../lib/partyApi';
+import { partyToOption } from '../lib/partyMappers';
 
 function stableKey(obj) {
   try {
@@ -54,11 +55,13 @@ export function usePartyOptions(params = {}) {
       setRows(list);
     } catch (e) {
       if (!mountedRef.current) return;
-      if (e?.name === 'AbortError' || e?.code === 'ERR_CANCELED') return;
+      if (ctrl.signal.aborted || e?.name === 'AbortError' || e?.code === 'ERR_CANCELED') {
+        return;
+      }
       setError(e);
       setRows([]);
     } finally {
-      if (mountedRef.current) setLoading(false);
+      if (mountedRef.current && abortRef.current === ctrl) setLoading(false);
     }
   }, [params]);
 
@@ -80,16 +83,7 @@ export function usePartyOptions(params = {}) {
   }, [key]);
 
   const options = useMemo(() => {
-    return (rows || []).map((p) => {
-      const name = p?.name || p?.legalName || 'Unnamed';
-      const taxId = p?.taxProfile?.taxId ? ` • ${p.taxProfile.taxId}` : '';
-      const phone = p?.phone ? ` • ${p.phone}` : '';
-      return {
-        value: p._id,
-        label: `${name}${taxId}${phone}`,
-        raw: p,
-      };
-    });
+    return (rows || []).map(partyToOption);
   }, [rows]);
 
   return {

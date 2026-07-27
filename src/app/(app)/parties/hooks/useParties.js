@@ -27,6 +27,7 @@ export function useParties(params) {
 
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
+  const [meta, setMeta] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -58,15 +59,18 @@ export function useParties(params) {
 
       setRows(list);
       setTotal(tot);
+      setMeta(res?.meta || {});
     } catch (e) {
       if (!mountedRef.current) return;
-      // Ignore abort errors
-      if (e?.name === 'AbortError') return;
+      if (ctrl.signal.aborted || e?.name === 'AbortError' || e?.code === 'ERR_CANCELED') {
+        return;
+      }
       setError(e);
       setRows([]);
       setTotal(0);
+      setMeta({});
     } finally {
-      if (mountedRef.current) setLoading(false);
+      if (mountedRef.current && abortRef.current === ctrl) setLoading(false);
     }
   }, [params]);
 
@@ -90,6 +94,7 @@ export function useParties(params) {
   return {
     rows,
     total,
+    meta,
     loading,
     error,
     refetch: fetchNow,

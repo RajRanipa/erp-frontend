@@ -61,7 +61,7 @@ export default function ImportPartiesModal({ open, onClose, onImported }) {
         <div className="fixed inset-0 z-[999]">
             {/* modal */}
             <Dialog open={open} onClose={onClose} closeOnOverlay={false} closeOnEsc={false}
-                title="Import Parties"
+                title="Import Business Partners"
                 side="center"
                 actions={
                     <>
@@ -84,7 +84,7 @@ export default function ImportPartiesModal({ open, onClose, onImported }) {
             >
                 <div className="p-2 space-y-3">
                     <p className="text-sm text-secondary-text/70 mb-2">
-                        Upload an Excel file to bulk create/update parties.
+                        Upload an Excel file to bulk create or update business partners.
                     </p>
                     <input
                         ref={fileRef}
@@ -117,7 +117,8 @@ export default function ImportPartiesModal({ open, onClose, onImported }) {
                         Notes:
                         <ul className="list-disc pl-5 mt-1 space-y-1">
                             <li>Use .xlsx format for best results.</li>
-                            <li>If a GSTIN already exists, backend will prevent duplicates.</li>
+                            <li>Export the current list first to get the supported column template.</li>
+                            <li>Partner code and GSTIN are used as safe update keys.</li>
                         </ul>
                     </div>
                 </div>

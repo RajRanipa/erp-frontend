@@ -11,12 +11,12 @@ export default function NewPartyPage() {
   const { createParty, loading } = usePartyMutations();
 
   const handleSubmit = async (payload) => {
-    const created = await createParty(payload, { toast: 'Party created' });
+    const created = await createParty(payload, { toast: 'Business partner created' });
 
     // If backend returns created party, navigate to edit/view.
     const id = created?._id || created?.id;
     if (id) {
-      router.push(`/parties/${id}/edit`);
+      router.push(`/parties/${id}`);
       return;
     }
 
@@ -26,8 +26,10 @@ export default function NewPartyPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-semibold">New Party</h1>
-        <p className="text-secondary-text/70 text-sm">Create a customer, supplier, transporter, or any business party.</p>
+        <h1 className="text-xl font-semibold">New Business Partner</h1>
+        <p className="text-secondary-text/70 text-sm">
+          Create a reusable customer, supplier, service provider, or prospect record.
+        </p>
       </div>
 
       <div className="card">

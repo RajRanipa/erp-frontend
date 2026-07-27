@@ -4,8 +4,9 @@
 
 import React, { useCallback } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
-import { addIcon } from '@/utils/SVG';
+import SelectInput from '@/Components/inputs/SelectInput';
 import AddButton from '@/Components/buttons/AddButton';
+import { PREFERRED_CHANNEL_OPTIONS, PREFERRED_CHANNELS } from '../lib/partyConstants';
 
 // Contact persons for a Party.
 // Parent owns state: contacts[]
@@ -18,9 +19,17 @@ function emptyContact() {
   return {
     name: '',
     designation: '',
+    department: '',
     phone: '',
+    alternatePhone: '',
     email: '',
+    preferredChannel: PREFERRED_CHANNELS.EMAIL,
     isPrimary: false,
+    isDecisionMaker: false,
+    receivesInvoices: false,
+    receivesOrders: false,
+    isActive: true,
+    notes: '',
   };
 }
 
@@ -111,9 +120,25 @@ export default function PartyContacts({
                   />
 
                   <CustomInput
+                    label="Department"
+                    value={c.department || ''}
+                    onChange={(e) => setAt(idx, { department: e.target.value })}
+                    placeholder="Sales / Accounts"
+                    disabled={disabled}
+                  />
+
+                  <CustomInput
                     label="Phone"
                     value={c.phone || ''}
                     onChange={(e) => setAt(idx, { phone: e.target.value })}
+                    placeholder="+91..."
+                    disabled={disabled}
+                  />
+
+                  <CustomInput
+                    label="Alternate Phone"
+                    value={c.alternatePhone || ''}
+                    onChange={(e) => setAt(idx, { alternatePhone: e.target.value })}
                     placeholder="+91..."
                     disabled={disabled}
                   />
@@ -125,17 +150,51 @@ export default function PartyContacts({
                     placeholder="name@example.com"
                     disabled={disabled}
                   />
-                </div>
 
-                <div className="flex items-center gap-2 mt-3">
-                  <input
-                    type="radio"
-                    name={`primaryContact_${title}`}
-                    checked={!!c.isPrimary}
-                    onChange={() => setPrimary(idx)}
+                  <SelectInput
+                    label="Preferred Channel"
+                    value={c.preferredChannel || PREFERRED_CHANNELS.EMAIL}
+                    options={PREFERRED_CHANNEL_OPTIONS}
+                    onChange={(e) => setAt(idx, { preferredChannel: e.target.value })}
                     disabled={disabled}
                   />
-                  <span className="text-sm">Primary Contact</span>
+
+                  <CustomInput
+                    label="Contact Notes"
+                    value={c.notes || ''}
+                    onChange={(e) => setAt(idx, { notes: e.target.value })}
+                    placeholder="Responsibilities or availability"
+                    disabled={disabled}
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-4 mt-3 text-sm">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name={`primaryContact_${title}`}
+                      checked={Boolean(c.isPrimary)}
+                      onChange={() => setPrimary(idx)}
+                      disabled={disabled}
+                    />
+                    Primary Contact
+                  </label>
+                  {[
+                    ['isDecisionMaker', 'Decision Maker'],
+                    ['receivesInvoices', 'Receives Invoices'],
+                    ['receivesOrders', 'Receives Orders'],
+                    ['isActive', 'Active'],
+                  ].map(([field, label]) => (
+                    <label key={field} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={c[field] !== false && (field === 'isActive' || Boolean(c[field]))}
+                        onChange={(e) => setAt(idx, { [field]: e.target.checked })}
+                        disabled={disabled}
+                      />
+                      {label}
+                    </label>
+                  ))}
                 </div>
               </div>
             );

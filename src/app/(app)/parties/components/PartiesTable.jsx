@@ -4,12 +4,27 @@ import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
 import Table from '@/Components/layout/Table';
+import useAuthz from '@/hooks/useAuthz';
 
-export default function PartiesTable({ rows = [], loading = false, emptyMessage = 'No parties found.' }) {
+export default function PartiesTable({
+  rows = [],
+  loading = false,
+  emptyMessage = 'No business partners found.',
+  sort,
+  onSortChange,
+}) {
   const router = useRouter();
+  const { can } = useAuthz();
+  const canWrite = can('parties:write');
 
   const columns = useMemo(() => {
     return [
+      {
+        key: 'code',
+        header: 'Code',
+        sortable: true,
+        render: row => row.code || '-',
+      },
       {
         key: 'name',
         header: 'Name',
@@ -23,6 +38,20 @@ export default function PartiesTable({ rows = [], loading = false, emptyMessage 
             {row.name || row.legalName || '-'}
           </button>
         ),
+      },
+      {
+        key: 'lifecycleStage',
+        header: 'Lifecycle',
+        sortable: true,
+        className: 'capitalize',
+        render: row => String(row.lifecycleStage || '-').toLowerCase(),
+      },
+      {
+        key: 'priority',
+        header: 'Priority',
+        sortable: true,
+        className: 'capitalize',
+        render: row => String(row.priority || '-').toLowerCase(),
       },
       {
         key: 'roles',
@@ -68,14 +97,14 @@ export default function PartiesTable({ rows = [], loading = false, emptyMessage 
           <button
             type="button"
             className="text-secondary-text/80 underline cursor-pointer"
-            onClick={() => router.push(`/parties/${row._id}/edit`)}
+            onClick={() => router.push(canWrite ? `/parties/${row._id}/edit` : `/parties/${row._id}`)}
           >
-            Edit
+            {canWrite ? 'Edit' : 'View'}
           </button>
         ),
       },
     ];
-  }, [router]);
+  }, [router, canWrite]);
 
   return (
     <Table
@@ -84,9 +113,11 @@ export default function PartiesTable({ rows = [], loading = false, emptyMessage 
       rowKey={(r) => r._id}
       selectable="none"
       sortable={true}
+      sortBy={sort}
+      onSortChange={onSortChange}
       loading={loading}
       emptyMessage={emptyMessage}
-      pageSize={10}
+      pagination={false}
     />
   );
 }

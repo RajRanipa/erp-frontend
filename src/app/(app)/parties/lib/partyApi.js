@@ -1,8 +1,4 @@
 // src/app/(app)/parties/lib/partyApi.js
-// Party API client (axiosInstance)
-// - Uses your existing axiosInstance which already has baseURL, withCredentials cookies,
-//   refresh handling, and centralized error handling.
-
 import { axiosInstance } from "@/lib/axiosInstance";
 
 function buildQuery(params = {}) {
@@ -17,76 +13,116 @@ function buildQuery(params = {}) {
   return qs ? `?${qs}` : '';
 }
 
-// -----------------------------
-// Public API (matches backend routes, via Next proxy prefix /api)
-// NOTE: your example uses `/api/parties`, so we keep that.
-// -----------------------------
-
-// GET /api/parties
 export async function apiListParties(
-  { role = '', status = 'active', q = '', page = 1, limit = 50 } = {},
+  {
+    role = '',
+    status = 'active',
+    lifecycleStage = '',
+    priority = '',
+    q = '',
+    page = 1,
+    limit = 25,
+    sortBy = 'name',
+    sortOrder = 'asc',
+  } = {},
   { signal } = {}
 ) {
-  const qs = buildQuery({ role, status, q, page, limit });
+  const qs = buildQuery({
+    role,
+    status,
+    lifecycleStage,
+    priority,
+    q,
+    page,
+    limit,
+    sortBy,
+    sortOrder,
+  });
   const res = await axiosInstance.get(`/api/parties${qs}`, { signal });
   return res.data;
 }
 
-// GET /api/parties/options
+export async function apiPartySummary({ signal } = {}) {
+  const res = await axiosInstance.get('/api/parties/summary', { signal });
+  return res.data;
+}
+
+export async function apiCheckPartyDuplicates(payload, { signal } = {}) {
+  const res = await axiosInstance.post('/api/parties/check-duplicates', payload, { signal });
+  return res.data;
+}
+
 export async function apiPartyOptions({ role = '', q = '', limit = 30 } = {}, { signal } = {}) {
   const qs = buildQuery({ role, q, limit });
   const res = await axiosInstance.get(`/api/parties/options${qs}`, { signal });
   return res.data;
 }
 
-// GET /api/parties/:id
+export async function apiPartyAccountOwners({ q = '' } = {}, { signal } = {}) {
+  const qs = buildQuery({ q });
+  const res = await axiosInstance.get(`/api/parties/account-owners${qs}`, { signal });
+  return res.data;
+}
+
 export async function apiGetParty(id, { signal } = {}) {
   if (!id) throw new Error('Missing party id');
   const res = await axiosInstance.get(`/api/parties/${encodeURIComponent(id)}`, { signal });
   return res.data;
 }
 
-// POST /api/parties
 export async function apiCreateParty(payload, { signal } = {}) {
   const res = await axiosInstance.post('/api/parties', payload, { signal });
   return res.data;
 }
 
-// PATCH /api/parties/:id
 export async function apiUpdateParty(id, payload, { signal } = {}) {
   if (!id) throw new Error('Missing party id');
   const res = await axiosInstance.patch(`/api/parties/${encodeURIComponent(id)}`, payload, { signal });
   return res.data;
 }
 
-// PATCH /api/parties/:id/status  body: { to }
 export async function apiUpdatePartyStatus(id, to, { signal } = {}) {
   if (!id) throw new Error('Missing party id');
   const res = await axiosInstance.patch(`/api/parties/${encodeURIComponent(id)}/status`, { to }, { signal });
   return res.data;
 }
 
-// DELETE /api/parties/:id
 export async function apiDeleteParty(id, { signal } = {}) {
   if (!id) throw new Error('Missing party id');
   const res = await axiosInstance.delete(`/api/parties/${encodeURIComponent(id)}`, { signal });
   return res.data;
 }
 
-// GET /api/parties/export/xlsx (blob)
-export async function apiExportPartiesXlsx({ role = '', status = 'all', q = '' } = {}, { signal } = {}) {
-  const qs = buildQuery({ role, status, q });
+export async function apiRestoreParty(id, { signal } = {}) {
+  if (!id) throw new Error('Missing party id');
+  const res = await axiosInstance.post(
+    `/api/parties/${encodeURIComponent(id)}/restore`,
+    {},
+    { signal },
+  );
+  return res.data;
+}
+
+export async function apiExportPartiesXlsx(
+  {
+    role = '',
+    status = 'all',
+    lifecycleStage = '',
+    priority = '',
+    q = '',
+  } = {},
+  { signal } = {},
+) {
+  const qs = buildQuery({ role, status, lifecycleStage, priority, q });
   const res = await axiosInstance.get(`/api/parties/export/xlsx${qs}`,
     {
       responseType: 'blob',
       signal,
     }
   );
-  // axios returns Blob in res.data
   return res.data;
 }
 
-// POST /api/parties/import/xlsx (multipart)
 export async function apiImportPartiesXlsx(file, { signal } = {}) {
   if (!file) throw new Error('Missing file');
 
@@ -101,8 +137,7 @@ export async function apiImportPartiesXlsx(file, { signal } = {}) {
   return res.data;
 }
 
-// Helper: download a blob as a file (call from UI)
-export function downloadBlob(blob, filename = `parties_${Date.now()}.xlsx`) {
+export function downloadBlob(blob, filename = `business_partners_${Date.now()}.xlsx`) {
   if (typeof window === 'undefined') return;
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');

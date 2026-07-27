@@ -4,21 +4,11 @@
 import React from 'react';
 import { usePartyImportExport } from '../hooks/usePartyImportExport';
 
-/**
- * ExportPartiesButton
- * Downloads parties as XLSX.
- *
- * Props:
- *  - role?: string ('' | 'SUPPLIER' | 'CUSTOMER' ...)
- *  - status?: string ('all'|'active'|'inactive')
- *  - q?: string
- *  - filename?: string
- *  - className?: string
- *  - children?: ReactNode
- */
 export default function ExportPartiesButton({
   role = '',
   status = 'all',
+  lifecycleStage = '',
+  priority = '',
   q = '',
   filename,
   className = 'btn-secondary',
@@ -31,7 +21,14 @@ export default function ExportPartiesButton({
       type="button"
       className={className}
       disabled={exporting}
-      onClick={() => exportXlsx({ role, status, q, filename })}
+      onClick={() => exportXlsx({
+        role,
+        status,
+        lifecycleStage,
+        priority,
+        q,
+        filename,
+      })}
     >
       {children || (exporting ? 'Exporting…' : 'Export')}
     </button>

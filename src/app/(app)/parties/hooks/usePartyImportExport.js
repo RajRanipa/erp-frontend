@@ -12,11 +12,6 @@ import {
   downloadBlob,
 } from '../lib/partyApi';
 
-/**
- * usePartyImportExport
- * Keeps Excel import/export logic reusable across pages/modals.
- * Relies on axiosInstance + cookies (inside partyApi).
- */
 export function usePartyImportExport() {
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -34,7 +29,14 @@ export function usePartyImportExport() {
   }, []);
 
   const exportXlsx = useCallback(
-    async ({ role = '', status = 'all', q = '', filename } = {}) => {
+    async ({
+      role = '',
+      status = 'all',
+      lifecycleStage = '',
+      priority = '',
+      q = '',
+      filename,
+    } = {}) => {
       cancel();
       const ctrl = new AbortController();
       abortRef.current = ctrl;
@@ -43,17 +45,22 @@ export function usePartyImportExport() {
       setError(null);
 
       try {
-        const blob = await apiExportPartiesXlsx({ role, status, q }, { signal: ctrl.signal });
-        const safeName = filename || `parties_${Date.now()}.xlsx`;
+        const blob = await apiExportPartiesXlsx(
+          { role, status, lifecycleStage, priority, q },
+          { signal: ctrl.signal },
+        );
+        const safeName = filename || `business_partners_${Date.now()}.xlsx`;
         downloadBlob(blob, safeName);
         Toast.success('Export completed');
         return { ok: true };
       } catch (err) {
-        setError(err);
-        Toast.error(err?.response?.data?.message || err?.message || 'Export failed');
+        if (!ctrl.signal.aborted && err?.code !== 'ERR_CANCELED') {
+          setError(err);
+          Toast.error(err?.response?.data?.message || err?.message || 'Export failed');
+        }
         throw err;
       } finally {
-        setExporting(false);
+        if (abortRef.current === ctrl) setExporting(false);
       }
     },
     [cancel]
@@ -89,11 +96,13 @@ export function usePartyImportExport() {
 
         return res;
       } catch (err) {
-        setError(err);
-        Toast.error(err?.response?.data?.message || err?.message || 'Import failed');
+        if (!ctrl.signal.aborted && err?.code !== 'ERR_CANCELED') {
+          setError(err);
+          Toast.error(err?.response?.data?.message || err?.message || 'Import failed');
+        }
         throw err;
       } finally {
-        setImporting(false);
+        if (abortRef.current === ctrl) setImporting(false);
       }
     },
     [cancel]

@@ -21,7 +21,7 @@ export default function EditPartyPage() {
   const initialValues = useMemo(() => (party ? apiPartyToForm(party) : null), [party]);
 
   const handleSubmit = async (payload) => {
-    await updateParty(partyId, payload, { toast: 'Party updated' });
+    await updateParty(partyId, payload, { toast: 'Business partner updated' });
     // Re-fetch to keep UI in sync if you stay on the same page
     refetch?.();
   };
@@ -70,12 +70,26 @@ export default function EditPartyPage() {
     );
   }
 
+  if (party?.status === 'archived') {
+    return (
+      <div className="card p-4 space-y-3">
+        <div className="font-semibold">Archived business partners cannot be edited.</div>
+        <p className="text-sm text-secondary-text/70">Restore this record from its detail page first.</p>
+        <button type="button" className="btn-secondary" onClick={() => router.push(`/parties/${partyId}`)}>
+          View record
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Edit Party</h1>
-          <p className="text-secondary-text/70 text-sm">Update party details and keep masters clean.</p>
+          <h1 className="text-xl font-semibold">Edit Business Partner</h1>
+          <p className="text-secondary-text/70 text-sm">
+            Maintain one reliable record for ERP operations and future CRM workflows.
+          </p>
         </div>
 
         <div className="flex items-center gap-2">

@@ -7,81 +7,25 @@ import { mapDimension, mapPacking } from '@/utils/FGP';
 import { useHighlight } from '@/hooks/useHighlight';
 
 /**
- * StockTable (presentational + client-side filter only)
+ * StockTable is presentational. Filtering is performed by the backend so
+ * related specification values and the complete paginated dataset are used.
  *
  * Props:
  * - rows: InventorySnapshot[]   // raw rows from parent (already fetched)
  * - loading?: boolean
  * - error?: string
- * - filters?: { productType?: string, query?: string }
+ * - search?: string
  */
 export default function StockTable({
   rows = [],
   loading = false,
   error = '',
-  filters = {},
-  refrence = null,
+  search = '',
 }) {
-  const pt = filters.productType || '';
-  const categoryKey = filters.categoryKey || '';
-  const q = filters.query || '';
-  const stockTabelRef = useHighlight((filters?.query || '').toLowerCase().trim(), 'textHighlight');
-  
-  const filteredRows = useMemo(() => {
-    if (!q && !pt && !categoryKey) return rows;
-    const needle = String(q).toLowerCase().trim();
-    const str = (v) => (v == null ? '' : String(v)).toLowerCase();
-
-    return rows.filter((r) => {
-      const item = r.itemId || {};
-      // console.log("item", item)
-      const productTypeStr = String(
-        r?.productType?._id ||
-        r?.productType ||
-        item?.productType?._id ||
-        item?.productType ||
-        '',
-      );
-      const rowCategory = item?.categoryKey || r?.categoryKey || '';
-      const tempStr = item?.temperature
-        ? `${item.temperature?.value ?? ''} ${item.temperature?.unit ?? ''}`
-        : '';
-      const denStr = item?.density
-        ? `${item.density?.value ?? ''} ${item.density?.unit ?? ''}`
-        : '';
-      const dimStr = item?.dimension ? mapDimension(item.dimension) : '';
-      const pack = item?.packing || {};
-      const packStr = [
-        pack?.name,
-        pack?.brandType,
-        pack?.productColor,
-        pack?.UOM || pack?.unit,
-      ]
-        .filter(Boolean)
-        .join(' ');
-      const nameStr = item?.name || ''; // if we want to filter by name as well latter we can use this
-      const gradeStr = item?.grade || '';
-
-      const haystack = [
-        nameStr,
-        item?.sku,
-        rowCategory,
-        tempStr,
-        denStr,
-        dimStr,
-        packStr,
-        gradeStr,
-      ]
-        .map(str)
-        .join(' | ');
-
-      const matchesCategory = !categoryKey || rowCategory === categoryKey;
-      const matchesProductType = !pt || productTypeStr.includes(pt);
-      const matchesQuery =
-        !needle || needle.split(' ').every((word) => haystack.includes(word));
-      return matchesCategory && matchesProductType && matchesQuery;
-    });
-  }, [rows, q, pt, categoryKey]);
+  const stockTabelRef = useHighlight(
+    String(search).toLowerCase().trim(),
+    'textHighlight',
+  );
 
   const columns = useMemo(
     () => [
@@ -96,6 +40,9 @@ export default function StockTable({
         header: 'Category',
         sortable: true,
         render: (r) => r.itemId?.categoryKey || r.categoryKey || '—',
+        group: 'other',
+        groupLabel: 'Other Info',
+        groupCollapsed: true,
       },
       {
         key: 'temperature',
@@ -211,15 +158,6 @@ export default function StockTable({
 
   return (
     <>
-      {/* Toolbar */}
-      {/* <div className="px-3 py-2 border-b border-color-200 bg-white-100 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-2">
-          <span className="font-medium">Stock Snapshot</span>
-          <span className="text-xs text-white-500">({filteredRows.length} / {rows.length})</span>
-        </div>
-      </div> */}
-
-      {/* Table */}
       {loading ? (
         <div className="p-4">Loading…</div>
       ) : error ? (
@@ -227,9 +165,9 @@ export default function StockTable({
       ) : (
         <Table
           columns={columns}
-          data={filteredRows}
+          data={rows}
           rowKey={(r) => r._id || `${r.itemId?._id || r.itemId}-${r.warehouseId?._id || r.warehouseId}-${r.batchNo || 'none'}-${r.bin || 'none'}-${r.uom || ''}`}
-          virtualization={filteredRows.length > 200}
+          virtualization={rows.length > 200}
           loading={loading}
           tableRef={stockTabelRef}
           className='overflow-y-auto'

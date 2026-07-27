@@ -48,11 +48,13 @@ export function useParty(partyId, options = { enabled: true }) {
       setData(res?.data || null);
     } catch (e) {
       if (!mountedRef.current) return;
-      if (e?.name === 'AbortError' || e?.code === 'ERR_CANCELED') return;
+      if (ctrl.signal.aborted || e?.name === 'AbortError' || e?.code === 'ERR_CANCELED') {
+        return;
+      }
       setError(e);
       setData(null);
     } finally {
-      if (mountedRef.current) setLoading(false);
+      if (mountedRef.current && abortRef.current === ctrl) setLoading(false);
     }
   }, [partyId, enabled]);
 

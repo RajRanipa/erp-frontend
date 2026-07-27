@@ -194,6 +194,8 @@ export default function Finished() {
               header: 'Catagory',
               sortable: true,
               render: (r) => (r?.category?.name ?? '—'),
+              group: 'audit',
+              groupLabel: 'Audit fields',
               groupCollapsed: true, 
             },
             {
@@ -201,6 +203,8 @@ export default function Finished() {
               header: 'Product Type',
               sortable: true,
               render: (r) => (r?.productType?.name ?? '—'),
+              group: 'audit',
+              groupLabel: 'Audit fields',
               groupCollapsed: true, 
             },
             {

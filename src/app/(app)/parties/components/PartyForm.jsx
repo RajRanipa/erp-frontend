@@ -10,11 +10,20 @@ import PartyTaxProfile from './PartyTaxProfile';
 import PartyAddresses from './PartyAddresses';
 import PartyContacts from './PartyContacts';
 import PartyPaymentTerms from './PartyPaymentTerms';
+import PartyBankAccounts from './PartyBankAccounts';
 import { Toast } from '@/Components/toast';
 
 import { defaultPartyForm, validatePartyForm } from '../lib/partySchema';
 import { formToApiPartyPayload } from '../lib/partyMappers';
-import { PARTY_STATUS_OPTIONS } from '../lib/partyConstants';
+import { usePartyAccountOwners } from '../hooks/usePartyAccountOwners';
+import {
+    PARTY_LIFECYCLE_OPTIONS,
+    PARTY_PRIORITY_OPTIONS,
+    PARTY_STATUS_OPTIONS,
+    PARTY_TYPE_OPTIONS,
+    PREFERRED_CHANNEL_OPTIONS,
+    PREFERRED_CHANNELS,
+} from '../lib/partyConstants';
 
 function stableKey(obj) {
     try {
@@ -31,6 +40,7 @@ const STEPS = [
     { key: 'addresses', label: 'Addresses' },
     { key: 'contacts', label: 'Contacts' },
     { key: 'payment', label: 'Payment' },
+    { key: 'banking', label: 'Banking' },
     { key: 'notes', label: 'Notes' },
     { key: 'review', label: 'Review' },
 ];
@@ -41,13 +51,27 @@ function pickStepErrors(stepKey, errors) {
     const keys = Object.keys(e);
 
     const matchers = {
-        basic: (k) => ['name', 'legalName', 'status', 'phone', 'email', 'website'].includes(k) || k.startsWith('basic.'),
+        basic: (k) => [
+            'code',
+            'name',
+            'legalName',
+            'partyType',
+            'status',
+            'lifecycleStage',
+            'priority',
+            'phone',
+            'alternatePhone',
+            'email',
+            'website',
+            'currency',
+        ].includes(k) || k.startsWith('basic.'),
         roles: (k) => k === 'roles' || k.startsWith('roles.'),
         tax: (k) => k === 'taxProfile' || k.startsWith('taxProfile') || k.startsWith('tax.'),
         addresses: (k) => k === 'addresses' || k.startsWith('addresses'),
         contacts: (k) => k === 'contacts' || k.startsWith('contacts'),
         payment: (k) => k === 'paymentTerms' || k.startsWith('paymentTerms') || k === 'currency' || k === 'creditLimit',
-        notes: (k) => k === 'notes' || k.startsWith('notes'),
+        banking: (k) => k === 'bankAccounts' || k.startsWith('bankAccounts'),
+        notes: (k) => k === 'notes' || k === 'tags' || k.startsWith('notes'),
         review: (_k) => false,
     };
 
@@ -69,6 +93,7 @@ export default function PartyForm({
     const [saving, setSaving] = useState(false);
     const submitLockRef = useRef(false);
     const [stepIndex, setStepIndex] = useState(0);
+    const { options: accountOwnerOptions, loading: ownersLoading } = usePartyAccountOwners();
     const step = STEPS[stepIndex] || STEPS[0];
 
     const initKey = useMemo(() => stableKey(initialValues || {}), [initialValues]);
@@ -133,7 +158,6 @@ export default function PartyForm({
     }, []);
 
     const handleSubmit = async (e) => {
-        console.log("SUBMIT CALLED", Date.now(), new Error().stack)
         e?.preventDefault?.();
 
         // prevent any double-entry
@@ -161,9 +185,8 @@ export default function PartyForm({
         try {
             const payload = formToApiPartyPayload(form);
             await onSubmit?.(payload);
-            Toast.success(mode === 'edit' ? 'Party updated' : 'Party created');
-        } catch (err) {
-            Toast.error(err?.response?.data?.message || err?.message || 'Something went wrong');
+        } catch {
+            // Mutation hooks own API error presentation.
         } finally {
             submitLockRef.current = false;
             setSaving(false);
@@ -172,7 +195,7 @@ export default function PartyForm({
 
     return (
         <form
-            onSubmit={(e) => { console.log("SUBMIT CALLED", Date.now(), new Error().stack); handleSubmit(e); }}
+            onSubmit={handleSubmit}
             onKeyDownCapture={handleKeyDownCapture}
             className="space-y-6 flex flex-col gap-3 mt-3"
         >
@@ -214,6 +237,14 @@ export default function PartyForm({
                 <div className="border border-white-100 rounded-lg p-3 bg-white-100/30">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <CustomInput
+                            label="Partner Code"
+                            value={form.code}
+                            onChange={(e) => set({ code: e.target.value.toUpperCase() })}
+                            disabled={disabled || mode === 'edit'}
+                            placeholder="Auto-generated when blank"
+                        />
+
+                        <CustomInput
                             label="Name"
                             required
                             value={form.name}
@@ -231,6 +262,14 @@ export default function PartyForm({
                         />
 
                         <SelectInput
+                            label="Partner Type"
+                            value={form.partyType}
+                            onChange={(e) => set({ partyType: e.target.value })}
+                            options={PARTY_TYPE_OPTIONS}
+                            disabled={disabled}
+                        />
+
+                        <SelectInput
                             label="Status"
                             value={form.status}
                             onChange={(e) => set({ status: e.target.value })}
@@ -238,10 +277,61 @@ export default function PartyForm({
                             disabled={disabled}
                         />
 
+                        <SelectInput
+                            label="Lifecycle Stage"
+                            value={form.lifecycleStage}
+                            onChange={(e) => set({ lifecycleStage: e.target.value })}
+                            options={PARTY_LIFECYCLE_OPTIONS}
+                            disabled={disabled}
+                        />
+
+                        <SelectInput
+                            label="Priority"
+                            value={form.priority}
+                            onChange={(e) => set({ priority: e.target.value })}
+                            options={PARTY_PRIORITY_OPTIONS}
+                            disabled={disabled}
+                        />
+
+                        <CustomInput
+                            label="Industry"
+                            value={form.industry}
+                            onChange={(e) => set({ industry: e.target.value })}
+                            disabled={disabled}
+                            placeholder="Manufacturing, Logistics…"
+                        />
+
+                        <CustomInput
+                            label="Lead Source"
+                            value={form.leadSource}
+                            onChange={(e) => set({ leadSource: e.target.value })}
+                            disabled={disabled}
+                            placeholder="Referral, Website, Exhibition…"
+                        />
+
+                        <SelectInput
+                            label="Account Owner"
+                            value={form.accountOwner || ''}
+                            onChange={(e) => set({ accountOwner: e.target.value || null })}
+                            options={[
+                                { value: '', label: 'Unassigned / Current user' },
+                                ...accountOwnerOptions,
+                            ]}
+                            disabled={disabled || ownersLoading}
+                        />
+
                         <CustomInput
                             label="Phone"
                             value={form.phone}
                             onChange={(e) => set({ phone: e.target.value })}
+                            disabled={disabled}
+                            placeholder="+91..."
+                        />
+
+                        <CustomInput
+                            label="Alternate Phone"
+                            value={form.alternatePhone}
+                            onChange={(e) => set({ alternatePhone: e.target.value })}
                             disabled={disabled}
                             placeholder="+91..."
                         />
@@ -261,6 +351,41 @@ export default function PartyForm({
                             disabled={disabled}
                             placeholder="https://..."
                         />
+
+                        <SelectInput
+                            label="Preferred Contact Channel"
+                            value={form.communicationPreferences?.preferredChannel || PREFERRED_CHANNELS.EMAIL}
+                            onChange={(e) => set({
+                                communicationPreferences: {
+                                    ...(form.communicationPreferences || {}),
+                                    preferredChannel: e.target.value,
+                                },
+                            })}
+                            options={PREFERRED_CHANNEL_OPTIONS}
+                            disabled={disabled}
+                        />
+                    </div>
+                    <div className="flex flex-wrap gap-4 mt-4 text-sm">
+                        {[
+                            ['doNotContact', 'Do not contact'],
+                            ['marketingOptIn', 'Marketing opt-in'],
+                            ['whatsappOptIn', 'WhatsApp opt-in'],
+                        ].map(([field, label]) => (
+                            <label key={field} className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={Boolean(form.communicationPreferences?.[field])}
+                                    onChange={(e) => set({
+                                        communicationPreferences: {
+                                            ...(form.communicationPreferences || {}),
+                                            [field]: e.target.checked,
+                                        },
+                                    })}
+                                    disabled={disabled}
+                                />
+                                {label}
+                            </label>
+                        ))}
                     </div>
                 </div>
             )}
@@ -333,6 +458,16 @@ export default function PartyForm({
                 </div>
             )}
 
+            {step.key === 'banking' && (
+                <div className="border border-white-100 rounded-lg p-3 bg-white-100/30">
+                    <PartyBankAccounts
+                        value={form.bankAccounts}
+                        onChange={(bankAccounts) => set({ bankAccounts })}
+                        disabled={disabled}
+                    />
+                </div>
+            )}
+
             {step.key === 'notes' && (
                 <div className="border border-white-100 rounded-lg p-3 bg-white-100/30">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -342,6 +477,18 @@ export default function PartyForm({
                             onChange={(e) => set({ notes: e.target.value })}
                             disabled={disabled}
                             placeholder="Any extra notes"
+                        />
+                        <CustomInput
+                            label="Tags"
+                            value={(form.tags || []).join(', ')}
+                            onChange={(e) => set({
+                                tags: e.target.value
+                                    .split(',')
+                                    .map(value => value.trim())
+                                    .filter(Boolean),
+                            })}
+                            disabled={disabled}
+                            placeholder="strategic, west-region, export"
                         />
                     </div>
                 </div>
@@ -355,8 +502,12 @@ export default function PartyForm({
                         <div className="rounded border border-white-100 p-3 bg-white-100/40">
                             <div className="font-semibold mb-2">Basic</div>
                             <div className="text-sm">Name: {form.name || '-'}</div>
+                            <div className="text-sm">Code: {form.code || 'Auto-generated'}</div>
                             <div className="text-sm">Legal Name: {form.legalName || '-'}</div>
+                            <div className="text-sm">Type: {form.partyType || '-'}</div>
                             <div className="text-sm">Status: {form.status || '-'}</div>
+                            <div className="text-sm">Lifecycle: {form.lifecycleStage || '-'}</div>
+                            <div className="text-sm">Priority: {form.priority || '-'}</div>
                             <div className="text-sm">Phone: {form.phone || '-'}</div>
                             <div className="text-sm">Email: {form.email || '-'}</div>
                             <div className="text-sm">Website: {form.website || '-'}</div>

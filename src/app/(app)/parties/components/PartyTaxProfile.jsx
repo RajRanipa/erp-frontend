@@ -5,7 +5,13 @@ import CustomInput from '@/Components/inputs/CustomInput';
 import SelectInput from '@/Components/inputs/SelectInput';
 import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 
-import { INDIA_STATES, TAX_REGISTERED_OPTIONS } from '../lib/partyConstants';
+import {
+  GST_REGISTRATION_TYPE_OPTIONS,
+  INDIA_STATES,
+  TAX_ID_TYPE_OPTIONS,
+  TAX_ID_TYPES,
+  TAX_REGISTERED_OPTIONS,
+} from '../lib/partyConstants';
 
 const GSTIN_RE = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][A-Z0-9][Z][A-Z0-9]$/;
 const PAN_RE = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
@@ -34,7 +40,7 @@ export default function PartyTaxProfile({
 
     if (!india) return out;
 
-    const registered = !!tp.isTaxRegistered;
+    const registered = Boolean(tp.isTaxRegistered);
     const gstin = asStr(tp.taxId).trim().toUpperCase();
     const pan = asStr(tp.pan).trim().toUpperCase();
 
@@ -42,14 +48,14 @@ export default function PartyTaxProfile({
       out.taxId = 'GSTIN is required when Tax Registered is Yes';
     }
 
-    if (gstin) {
-      if (gstin.length >= 10 && !GSTIN_RE.test(gstin)) {
+    if (gstin && (tp.taxIdType || TAX_ID_TYPES.GSTIN) === TAX_ID_TYPES.GSTIN) {
+      if (!GSTIN_RE.test(gstin)) {
         out.taxId = 'GSTIN looks invalid (check format)';
       }
     }
 
     if (pan) {
-      if (pan.length >= 5 && !PAN_RE.test(pan)) {
+      if (!PAN_RE.test(pan)) {
         out.pan = 'PAN looks invalid (check format)';
       }
     }
@@ -62,7 +68,8 @@ export default function PartyTaxProfile({
     onChange(p || {});
   };
 
-  const reqTaxId = india && !!tp.isTaxRegistered;
+  const reqTaxId = Boolean(tp.isTaxRegistered);
+  const taxIdType = tp.taxIdType || (india ? TAX_ID_TYPES.GSTIN : TAX_ID_TYPES.OTHER);
 
   return (
     <div className="space-y-3">
@@ -83,13 +90,25 @@ export default function PartyTaxProfile({
           disabled={disabled}
           onChange={(e) => {
             const v = e?.target?.value ?? e;
-            patch({ isTaxRegistered: String(v) === 'true' });
+            const registered = String(v) === 'true';
+            patch({
+              isTaxRegistered: registered,
+              gstRegistrationType: registered ? 'REGULAR' : 'UNREGISTERED',
+            });
           }}
           autoFocus
         />
 
+        <SelectInput
+          label="Tax ID Type"
+          value={taxIdType}
+          options={TAX_ID_TYPE_OPTIONS}
+          disabled={disabled}
+          onChange={(e) => patch({ taxIdType: e.target.value })}
+        />
+
         <CustomInput
-          label={india ? 'GSTIN' : 'Tax ID'}
+          label={taxIdType === TAX_ID_TYPES.GSTIN ? 'GSTIN' : 'Tax ID'}
           value={asStr(tp.taxId)}
           disabled={disabled}
           required={reqTaxId}
@@ -98,7 +117,7 @@ export default function PartyTaxProfile({
             const v = e?.target?.value ?? e;
             patch({ taxId: asStr(v).toUpperCase() });
           }}
-          placeholder={india ? '24AAAAA0000A1Z5' : 'Tax ID'}
+          placeholder={taxIdType === TAX_ID_TYPES.GSTIN ? '24AAAAA0000A1Z5' : 'Tax ID'}
         />
 
         <CustomInput
@@ -135,6 +154,43 @@ export default function PartyTaxProfile({
             }}
             placeholder="State / Region"
           />
+        )}
+
+        {india && (
+          <SelectInput
+            label="GST Registration Type"
+            value={tp.gstRegistrationType || (tp.isTaxRegistered ? 'REGULAR' : 'UNREGISTERED')}
+            options={GST_REGISTRATION_TYPE_OPTIONS}
+            disabled={disabled}
+            onChange={(e) => patch({ gstRegistrationType: e.target.value })}
+          />
+        )}
+
+        <CustomInput
+          label="Registration Number"
+          value={asStr(tp.registrationNumber)}
+          disabled={disabled}
+          onChange={(e) => patch({ registrationNumber: e.target.value })}
+          placeholder="Business registration number"
+        />
+
+        {india && (
+          <>
+            <CustomInput
+              label="CIN"
+              value={asStr(tp.cin)}
+              disabled={disabled}
+              onChange={(e) => patch({ cin: asStr(e.target.value).toUpperCase() })}
+              placeholder="Corporate Identification Number"
+            />
+            <CustomInput
+              label="MSME / Udyam Number"
+              value={asStr(tp.msmeNumber)}
+              disabled={disabled}
+              onChange={(e) => patch({ msmeNumber: asStr(e.target.value).toUpperCase() })}
+              placeholder="UDYAM-XX-00-0000000"
+            />
+          </>
         )}
       </div>
     </div>

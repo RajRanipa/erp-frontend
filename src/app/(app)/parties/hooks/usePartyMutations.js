@@ -8,6 +8,7 @@ import {
   apiUpdateParty,
   apiUpdatePartyStatus,
   apiDeleteParty,
+  apiRestoreParty,
 } from '../lib/partyApi';
 import { Toast } from '@/Components/toast';
 
@@ -46,17 +47,23 @@ export function usePartyMutations() {
       if (toastSuccess) Toast.success(toastSuccess);
       return data;
     } catch (err) {
-      setError(err);
-      Toast.error(err?.response?.data?.message || err?.message || 'Something went wrong');
+      if (!ctrl.signal.aborted && err?.code !== 'ERR_CANCELED') {
+        setError(err);
+        Toast.error(err?.response?.data?.message || err?.message || 'Something went wrong');
+      }
       throw err;
     } finally {
-      setLoading(false);
+      if (abortRef.current === ctrl) setLoading(false);
     }
   }, [cancel]);
 
   const createParty = useCallback(
     async (payload, { toast = 'Party created' } = {}) => {
-      return run((signal) => apiCreateParty(payload, { signal }), { toastSuccess: toast });
+      const response = await run(
+        (signal) => apiCreateParty(payload, { signal }),
+        { toastSuccess: toast },
+      );
+      return response?.data || response;
     },
     [run]
   );
@@ -64,7 +71,11 @@ export function usePartyMutations() {
   const updateParty = useCallback(
     async (id, payload, { toast = 'Party updated' } = {}) => {
       if (!id) throw new Error('Missing party id');
-      return run((signal) => apiUpdateParty(id, payload, { signal }), { toastSuccess: toast });
+      const response = await run(
+        (signal) => apiUpdateParty(id, payload, { signal }),
+        { toastSuccess: toast },
+      );
+      return response?.data || response;
     },
     [run]
   );
@@ -73,15 +84,35 @@ export function usePartyMutations() {
     async (id, to, { toast = 'Status updated' } = {}) => {
       if (!id) throw new Error('Missing party id');
       if (!to) throw new Error('Missing target status');
-      return run((signal) => apiUpdatePartyStatus(id, to, { signal }), { toastSuccess: toast });
+      const response = await run(
+        (signal) => apiUpdatePartyStatus(id, to, { signal }),
+        { toastSuccess: toast },
+      );
+      return response?.data || response;
     },
     [run]
   );
 
   const deleteParty = useCallback(
-    async (id, { toast = 'Party deleted' } = {}) => {
+    async (id, { toast = 'Business partner archived' } = {}) => {
       if (!id) throw new Error('Missing party id');
-      return run((signal) => apiDeleteParty(id, { signal }), { toastSuccess: toast });
+      const response = await run(
+        (signal) => apiDeleteParty(id, { signal }),
+        { toastSuccess: toast },
+      );
+      return response?.data || response;
+    },
+    [run]
+  );
+
+  const restoreParty = useCallback(
+    async (id, { toast = 'Business partner restored' } = {}) => {
+      if (!id) throw new Error('Missing party id');
+      const response = await run(
+        (signal) => apiRestoreParty(id, { signal }),
+        { toastSuccess: toast },
+      );
+      return response?.data || response;
     },
     [run]
   );
@@ -94,6 +125,7 @@ export function usePartyMutations() {
     updateParty,
     setPartyStatus,
     deleteParty,
+    restoreParty,
   };
 }
 

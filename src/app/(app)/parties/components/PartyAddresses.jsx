@@ -142,6 +142,13 @@ export default function PartyAddresses({
   const pinAbortRef = useRef(new Map()); // key -> AbortController
   const pinTimerRef = useRef(new Map()); // key -> timeout
 
+  useEffect(() => () => {
+    pinTimerRef.current.forEach(timer => clearTimeout(timer));
+    pinAbortRef.current.forEach(controller => controller.abort());
+    pinTimerRef.current.clear();
+    pinAbortRef.current.clear();
+  }, []);
+
   const schedulePinLookup = useCallback(async (key, nextAddress, applyPatch) => {
     const pinRaw = String(nextAddress?.pincode || '').trim();
     const country = nextAddress?.country;
@@ -186,7 +193,7 @@ export default function PartyAddresses({
         applyPatch(patch2);
       } catch (e) {
         if (e?.name === 'AbortError') return;
-        console.error(e);
+        Toast.error('Pincode lookup is temporarily unavailable.');
       }
     }, 500);
 

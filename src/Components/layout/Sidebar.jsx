@@ -51,7 +51,7 @@ const Sidebar = ({ open, setOpen }) => {
       { name: 'items', href: '/items', icon: '📂' },
       { name: 'Manufacturing', href: '/manufacturing', icon: '🏭' },
       // { name: 'CRM', href: '/crm', icon: '👥' },
-      { name: 'Parties', href: '/parties', icon: '👥' },
+      { name: 'Business Partners', href: '/parties', icon: '🤝' },
       { name: 'Warehouses', href: '/warehouses', icon: '🏬' },
       { name: 'Users', href: '/users', icon: '👤' },
       { name: 'Settings', href: '/settings', icon: '⚙️' },
@@ -83,11 +83,14 @@ const Sidebar = ({ open, setOpen }) => {
   const allow = useMemo(() => new Set(permissions), [permissions]);
   // console.log('allow', allow);
   // Helper to test permission keys without relying on an unstable function reference.
-  const hasPerm = useCallback((base) => {
+  const hasPerm = useCallback((base, href) => {
     const key = String(base || '').toLowerCase();
+    const key1 = String(href || '').toLowerCase();
     return (
       allow.has(`${key}:full`) ||
       allow.has(`${key}:read`) ||
+      allow.has(`${key1}:full`) ||
+      allow.has(`${key1}:read`) ||
       // Back-compat: some roles may grant module-wide access like 'dashboard:full'
       allow.has('*:full')
     );
@@ -98,7 +101,7 @@ const Sidebar = ({ open, setOpen }) => {
     // If permissions are not available (e.g., before auth loads), show nothing to avoid flicker.
     // console.log('permissions', permissions); 
     if (!permissions || permissions.length === 0) return [];
-    return fullsidebarList.filter(item => hasPerm(item.name));
+    return fullsidebarList.filter(item => hasPerm(item.name, item.href.replace('/', '')));
   }, [fullsidebarList, permissions, hasPerm]);
 
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Loading from '@/Components/Loading';
 import NavLink from '@/Components/NavLink';
 import { Toast } from '@/Components/toast';
@@ -25,6 +25,7 @@ export default function InventoryStock() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
+  const latestRequest = useRef(0);
   const { list: warehouses } = useWarehouses();
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export default function InventoryStock() {
   ]);
 
   const fetchStock = useCallback(async ({ append = false, nextCursor = null } = {}) => {
+    const requestNumber = ++latestRequest.current;
     append ? setLoadingMore(true) : setLoading(true);
     setError('');
     try {
@@ -58,15 +60,19 @@ export default function InventoryStock() {
         },
       });
       const list = Array.isArray(response?.data?.data) ? response.data.data : [];
+      if (requestNumber !== latestRequest.current) return;
       setRows(current => append ? [...current, ...list] : list);
       setCursor(response?.data?.nextCursor || null);
     } catch (requestError) {
+      if (requestNumber !== latestRequest.current) return;
       const message = requestError?.response?.data?.message || 'Failed to load stock';
       setError(message);
       Toast.error(message);
     } finally {
-      setLoading(false);
-      setLoadingMore(false);
+      if (requestNumber === latestRequest.current) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
   }, [requestFilters]);
 
@@ -97,7 +103,7 @@ export default function InventoryStock() {
         </div>
       ) : rows.length ? (
         <>
-          <StockTable rows={rows} filters={{ query: filters.query }} />
+          <StockTable rows={rows} search={filters.query} />
           {cursor && (
             <div className="flex justify-center pb-3">
               <button

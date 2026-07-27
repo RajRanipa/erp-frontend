@@ -121,7 +121,7 @@ export default function StockFilters({
           type="search"
           parent_className="mb-5"
           className="min-w-[240px]"
-          placeholder="Search Item, SKU, grade…"
+          placeholder="Search Item, 96, 1260, size, packing…"
           value={filters.query}
           onChange={event => emit({ query: event.target.value })}
           icon={searchIcon()}

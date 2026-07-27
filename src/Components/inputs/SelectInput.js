@@ -1,6 +1,7 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { cn } from '../../utils/cn';
+import { downArrow } from '@/utils/SVG';
 
 const SelectInput = ({
   label,
@@ -31,6 +32,7 @@ const SelectInput = ({
   const [touched, setTouched] = useState(false);
   const [internalErr, setInternalErr] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const clearBtnRef = useRef(null);
   // setError(err);
   useEffect(() => {
     if (touched && required && !value) {
@@ -54,6 +56,11 @@ const SelectInput = ({
   };
 
   const effectiveType = (type === 'password' && showPassword) ? 'text' : type;
+
+  const clearSelection = useCallback((e) => {
+    onChange(e);
+    if (required) inputRef.current.focus();
+  }, [required, inputRef]);
 
   return (
     <div className={cn(`mb-5 w-full relative ${parent_className}`)}>
@@ -87,17 +94,18 @@ const SelectInput = ({
           autoComplete={autocomplete}
           aria-invalid={!!displayErr}
           aria-describedby={errorId}
-          className={cn(` text-most-text  block w-full px-3 py-2 border sm:text-sm
-          ${displayErr ? 'border-error' : 'border-white-200'} 
-          rounded-lg shadow-xs placeholder-white-400 focus:outline-none
-          focus:border-0.5 focus:ring-3
-          ${(displayErr && readOnly)
-              ? 'focus:ring-error focus:ring-3 focus:border-error focus:border-0.5 '
-              : 'focus:ring-blue-500/30  focus:border-blue-500 focus:border-0.5'} 
-          ${readOnly || disabled ? 'bg-black-200 pointer-events-none opacity-75' : ''}
-               ${icon ? 'pl-10' : ''}
-          ${type === 'password' ? 'pr-10' : ''}
-          ${className} 
+          // AFTER
+          className={cn(`appearance-none block w-full px-3 py-2 border sm:text-sm
+            ${!value ? 'text-white-400' : 'text-most-text'} 
+            ${displayErr ? 'border-error' : 'border-white-200'} 
+            rounded-lg shadow-xs focus:outline-none focus:border-0.5 focus:ring-3
+            ${(displayErr && readOnly)
+                        ? 'focus:ring-error focus:ring-3 focus:border-error focus:border-0.5 '
+                        : 'focus:ring-blue-500/30  focus:border-blue-500 focus:border-0.5'} 
+            ${readOnly || disabled ? 'bg-black-200 pointer-events-none opacity-75' : ''}
+            ${icon ? 'pl-10' : ''}
+            ${type === 'password' ? 'pr-10' : ''}
+            ${className} 
           `)}
           tabIndex={readOnly || disabled ? -1 : undefined}
           onFocus={readOnly ? (e) => e.target.blur() : undefined}
@@ -106,7 +114,7 @@ const SelectInput = ({
           onInput={(e) => onInpute?.(e)}
         >
           {placeholder && (
-            <option value="" disabled className="text-gray-900"> {/* this was hidden before */}
+            <option value="" disabled> {/* this was hidden before */}
               {placeholder}
             </option>
           )}
@@ -115,7 +123,27 @@ const SelectInput = ({
               {opt.label}
             </option>
           ))}
+
         </select>
+        {(
+          value && !readOnly ? (
+            <button
+              type="button"
+              aria-label="Clear selection"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-md text-white-300 scale-90 hover:text-white-700 w-[20px] h-[20px] flex justify-center items-center"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={clearSelection}
+              ref={clearBtnRef}
+              tabIndex={0}
+            >
+              ✕
+            </button>
+          ) : (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-2xl text-white-300 scale-75 pointer-events-none flex justify-center items-center">
+              {downArrow()}
+            </span>
+          )
+        )}
       </div>
       {/* {console.log(readOnly)} */}
       {displayErr && <p id={errorId} className="mt-1 text-sm text-error absolute">{displayErr}</p>}

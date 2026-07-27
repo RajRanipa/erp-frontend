@@ -1,67 +1,136 @@
-// src/app/(app)/parties/page.js
 'use client';
 
-import { useDeferredValue, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useParties } from './hooks/useParties';
+import { usePartySummary } from './hooks/usePartySummary';
 import PartiesToolbar from './components/PartiesToolbar';
 import PartiesTable from './components/PartiesTable';
 
-export default function PartiesPage() {
-  const router = useRouter();
+function SummaryCard({ label, value, loading }) {
+  return (
+    <div className="card p-3">
+      <div className="text-xs text-secondary-text/70">{label}</div>
+      <div className="text-2xl font-semibold mt-1">{loading ? '…' : value || 0}</div>
+    </div>
+  );
+}
 
-  // Filters
+export default function PartiesPage() {
   const [role, setRole] = useState('all');
   const [status, setStatus] = useState('active');
-  const [q, setQ] = useState('');
+  const [lifecycleStage, setLifecycleStage] = useState('all');
+  const [priority, setPriority] = useState('all');
+  const [queryText, setQueryText] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(25);
+  const [sort, setSort] = useState({ key: 'name', direction: 'asc' });
+  const deferredQuery = useDeferredValue(queryText);
 
-  // Debounced search
-  const dq = useDeferredValue(q);
+  useEffect(() => {
+    setPage(1);
+  }, [role, status, lifecycleStage, priority, deferredQuery, limit, sort]);
 
-  // Reset to page 1 when filters/search change
-  // no local pagination now, so no page reset needed
-  // useEffect omitted as it was empty
+  const query = useMemo(() => ({
+    role: role === 'all' ? '' : role,
+    status,
+    lifecycleStage: lifecycleStage === 'all' ? '' : lifecycleStage,
+    priority: priority === 'all' ? '' : priority,
+    q: deferredQuery,
+    page,
+    limit,
+    sortBy: sort.key,
+    sortOrder: sort.direction,
+  }), [
+    role,
+    status,
+    lifecycleStage,
+    priority,
+    deferredQuery,
+    page,
+    limit,
+    sort,
+  ]);
 
-  // Hook expects role/status/q/page/limit (keep this signature)
-  // NOTE: new backend uses roles[] and status active|inactive|all
-  // We pass role only when it's not 'all'
-  const query = useMemo(() => {
-    return {
-      role: role === 'all' ? '' : role,
-      status: status === 'all' ? 'all' : status,
-      q: dq,
-      page: 1,
-      limit: 200,
-    };
-  }, [role, status, dq]);
-
-  const { rows = [], total = 0, loading, refetch } = useParties(query);
+  const { rows, total, meta, loading, error, refetch } = useParties(query);
+  const summary = usePartySummary();
+  const refreshAll = () => {
+    refetch();
+    summary.refetch();
+  };
 
   return (
-    <div>
-
+    <div className="space-y-4">
       <PartiesToolbar
         role={role}
         status={status}
-        q={q}
+        lifecycleStage={lifecycleStage}
+        priority={priority}
+        q={queryText}
         onRoleChange={setRole}
         onStatusChange={setStatus}
-        onQueryChange={setQ}
-        onRefresh={() => refetch?.()}
+        onLifecycleChange={setLifecycleStage}
+        onPriorityChange={setPriority}
+        onQueryChange={setQueryText}
+        onRefresh={refreshAll}
         loading={loading}
       />
 
-      <div className="card mt-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <SummaryCard label="All partners" value={summary.data?.total} loading={summary.loading} />
+        <SummaryCard label="Active" value={summary.data?.statuses?.active} loading={summary.loading} />
+        <SummaryCard label="Customers" value={summary.data?.roles?.CUSTOMER} loading={summary.loading} />
+        <SummaryCard label="Suppliers" value={summary.data?.roles?.SUPPLIER} loading={summary.loading} />
+      </div>
+
+      {error && (
+        <div className="card p-3 text-red-400 text-sm">
+          {error?.response?.data?.message || error.message || 'Failed to load business partners'}
+        </div>
+      )}
+
+      <div className="card">
         <PartiesTable
           rows={rows}
           loading={loading}
-          emptyMessage={
-            role === 'all' && status === 'active' && !dq
-              ? 'No parties found. Create your first party.'
-              : 'No parties found for current filters.'
-          }
+          sort={sort}
+          onSortChange={setSort}
+          emptyMessage="No business partners match the current filters."
         />
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3 border-t border-white-100 text-sm">
+          <div className="text-secondary-text/70">
+            {total
+              ? `Showing ${(page - 1) * limit + 1}–${Math.min(page * limit, total)} of ${total}`
+              : 'No records'}
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              className="border rounded px-2 py-1 bg-transparent"
+              value={limit}
+              onChange={(event) => setLimit(Number(event.target.value))}
+            >
+              {[10, 25, 50, 100].map(size => (
+                <option key={size} value={size}>{size} / page</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="btn-secondary"
+              disabled={!meta?.hasPreviousPage || loading}
+              onClick={() => setPage(current => Math.max(1, current - 1))}
+            >
+              Previous
+            </button>
+            <span>Page {meta?.page || page} of {Math.max(meta?.pages || 1, 1)}</span>
+            <button
+              type="button"
+              className="btn-secondary"
+              disabled={!meta?.hasNextPage || loading}
+              onClick={() => setPage(current => current + 1)}
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
