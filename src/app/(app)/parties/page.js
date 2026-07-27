@@ -6,11 +6,15 @@ import { usePartySummary } from './hooks/usePartySummary';
 import PartiesToolbar from './components/PartiesToolbar';
 import PartiesTable from './components/PartiesTable';
 
-function SummaryCard({ label, value, loading }) {
+function SummaryCard({ label, value, loading, error }) {
+  const displayValue = loading ? '…' : error ? '—' : value ?? 0;
   return (
     <div className="card p-3">
       <div className="text-xs text-secondary-text/70">{label}</div>
-      <div className="text-2xl font-semibold mt-1">{loading ? '…' : value || 0}</div>
+      <div className="text-2xl font-semibold mt-1">{displayValue}</div>
+      {error && (
+        <div className="text-xs text-red-400 mt-1">Summary unavailable</div>
+      )}
     </div>
   );
 }
@@ -76,10 +80,30 @@ export default function PartiesPage() {
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <SummaryCard label="All partners" value={summary.data?.total} loading={summary.loading} />
-        <SummaryCard label="Active" value={summary.data?.statuses?.active} loading={summary.loading} />
-        <SummaryCard label="Customers" value={summary.data?.roles?.CUSTOMER} loading={summary.loading} />
-        <SummaryCard label="Suppliers" value={summary.data?.roles?.SUPPLIER} loading={summary.loading} />
+        <SummaryCard
+          label="All partners"
+          value={summary.data?.total}
+          loading={summary.loading}
+          error={summary.error}
+        />
+        <SummaryCard
+          label="Active"
+          value={summary.data?.statuses?.active}
+          loading={summary.loading}
+          error={summary.error}
+        />
+        <SummaryCard
+          label="Customers"
+          value={summary.data?.roles?.CUSTOMER}
+          loading={summary.loading}
+          error={summary.error}
+        />
+        <SummaryCard
+          label="Suppliers"
+          value={summary.data?.roles?.SUPPLIER}
+          loading={summary.loading}
+          error={summary.error}
+        />
       </div>
 
       {error && (
