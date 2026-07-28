@@ -21,8 +21,9 @@ export default function EditProductPage() {
                 setError('');
                 const queryParams = { id };
                 const res = await axiosInstance.get(`/api/items/by-id`, { params: queryParams });
-                if (active && res.data) {
-                    setItem(res.data);
+                const loadedItem = res?.api?.data || res?.data?.data || res?.data;
+                if (active && loadedItem) {
+                    setItem(loadedItem);
                 }
             } catch (error) {
                 if (!active) return;

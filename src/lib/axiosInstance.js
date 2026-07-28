@@ -98,11 +98,14 @@ const legacyPayloadFromEnvelope = (envelope) => {
   }
 
   if (data && typeof data === 'object') {
+    const hasDomainStatus = Object.prototype.hasOwnProperty.call(data, 'status');
     return {
       ...data,
       ...(envelope.meta || {}),
       success: true,
-      status: true,
+      // Preserve entity workflow states such as Item.status = "draft".
+      // The canonical API success flag remains available as `success`.
+      status: hasDomainStatus ? data.status : true,
       statusCode: envelope.statusCode,
       message: envelope.message,
       data,
