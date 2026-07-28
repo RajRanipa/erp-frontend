@@ -35,6 +35,11 @@ const ROUTE_PERM = [
     'inventory:transfer',
     'inventory:repack',
   ] },
+  { route: '/procurement', perm: 'procurement:read' },
+  { route: '/procurement/orders/new', perm: 'procurement:create' },
+  { route: '/procurement/receipts/new', perm: 'procurement:receive' },
+  { route: '/procurement/returns/new', perm: 'procurement:return' },
+  { route: '/procurement/invoices/new', perm: 'procurement:invoice' },
   { route: '/items', perm: 'items:read' },
   { route: '/items/create', perm: 'items:create' },
   { route: '/items/edit/', perm: 'items:update' }, // what i can do for path like this '/items/edit/:id' becuse :id string will change dynamically like this /items/edit/6909c8b91b7a3946d1bd20e4
@@ -49,6 +54,25 @@ const ROUTE_PERM = [
     'roles:read',
     'permissions:read',
   ] },
+];
+
+const DYNAMIC_ROUTE_PERM = [
+  {
+    pattern: /^\/procurement\/orders\/[^/]+\/edit\/?$/,
+    perm: 'procurement:update',
+  },
+  {
+    pattern: /^\/procurement\/receipts\/[^/]+\/edit\/?$/,
+    perm: 'procurement:receive',
+  },
+  {
+    pattern: /^\/procurement\/returns\/[^/]+\/edit\/?$/,
+    perm: 'procurement:return',
+  },
+  {
+    pattern: /^\/procurement\/invoices\/[^/]+\/edit\/?$/,
+    perm: 'procurement:invoice',
+  },
 ];
 
 function hasPermission(perm, perms = [], isOwner = false) {
@@ -74,6 +98,8 @@ function hasPermission(perm, perms = [], isOwner = false) {
 }
 
 function requiredPermFor(pathname) {
+  const dynamicMatch = DYNAMIC_ROUTE_PERM.find(entry => entry.pattern.test(pathname));
+  if (dynamicMatch) return dynamicMatch.perm;
   // Longest-prefix match so /inventory/stock matches '/inventory'
   let match = null;
 

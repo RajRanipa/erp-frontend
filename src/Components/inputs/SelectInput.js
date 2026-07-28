@@ -104,7 +104,7 @@ const SelectInput = ({
                         : 'focus:ring-blue-500/30  focus:border-blue-500 focus:border-0.5'} 
             ${readOnly || disabled ? 'bg-black-200 pointer-events-none opacity-75' : ''}
             ${icon ? 'pl-10' : ''}
-            ${type === 'password' ? 'pr-10' : ''}
+            pr-10
             ${className} 
           `)}
           tabIndex={readOnly || disabled ? -1 : undefined}

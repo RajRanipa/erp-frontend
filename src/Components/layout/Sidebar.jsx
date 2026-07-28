@@ -5,8 +5,6 @@ import { usePathname } from 'next/navigation';
 import NavLink from '../NavLink';
 import { cn } from '@/utils/cn';
 import useAuthz from '@/hooks/useAuthz';
-import { axiosInstance } from '@/lib/axiosInstance';
-import { Toast } from '../toast';
 
 // Memoized SidebarItem component
 const SidebarItem = React.memo(function SidebarItem({
@@ -39,70 +37,34 @@ const SidebarItem = React.memo(function SidebarItem({
 
 const Sidebar = ({ open, setOpen }) => {
   const [collapsed, setCollapsed] = useState(true);
-  const [loading, setLoading] = useState(true);
-  // const [permissions, setPermissions] = useState([]); // [keys, setPermissions]
   const pathname = usePathname();
 
   // Memoize sidebar list
   const fullsidebarList = useMemo(
     () => [
-      { name: 'Dashboard', href: '/dashboard', icon: '📊' },
-      { name: 'Inventory', href: '/inventory', icon: '📦' },
-      { name: 'items', href: '/items', icon: '📂' },
-      { name: 'Manufacturing', href: '/manufacturing', icon: '🏭' },
+      { name: 'Dashboard', href: '/dashboard', icon: '📊', permission: 'dashboard:read' },
+      { name: 'Inventory', href: '/inventory', icon: '📦', permission: 'inventory:read' },
+      { name: 'Items', href: '/items', icon: '📂', permission: 'items:read' },
+      { name: 'Procurement', href: '/procurement', icon: '🛒', permission: 'procurement:read' },
+      { name: 'Manufacturing', href: '/manufacturing', icon: '🏭', permission: 'manufacturing:read' },
       // { name: 'CRM', href: '/crm', icon: '👥' },
-      { name: 'Business Partners', href: '/parties', icon: '🤝' },
-      { name: 'Warehouses', href: '/warehouses', icon: '🏬' },
-      { name: 'Users', href: '/users', icon: '👤' },
-      { name: 'Settings', href: '/settings', icon: '⚙️' },
+      { name: 'Business Partners', href: '/parties', icon: '🤝', permission: 'parties:read' },
+      { name: 'Warehouses', href: '/warehouses', icon: '🏬', permission: 'warehouses:read' },
+      { name: 'Users', href: '/users', icon: '👤', permission: 'users:read' },
+      { name: 'Settings', href: '/settings', icon: '⚙️', permission: 'settings:read' },
     ],
     []
   );
 
   // Prefer a stable permissions set over calling a changing `can` function.
   // Update your useAuthz hook to expose `permissions` (array of strings) if it doesn't already.
-  const { permissions = [], can } = useAuthz();
-  // useEffect(() => {
-  //     (async () => {
-  //       try {
-  //         setLoading(true);
-  //         const roleRes = await axiosInstance.get(`/api/permissions/by-role`);
-  //         const keys = roleRes.data?.permissions || [];
-  //         // console.log('roleRes', roleRes, keys);
-  //         setPermissions(new Set(keys));
-  //       } catch (e) {
-  //         // setError(e.message || 'Failed to load role permissions');
-  //         Toast.error(`Role load error: ${e.message}`, 'error');
-  //       } finally {
-  //         setLoading(false);
-  //       }
-  //     })();
-  //   }, []);
-
-  // Build a stable Set for O(1) checks; memoized so it only changes when permissions change.
-  const allow = useMemo(() => new Set(permissions), [permissions]);
-  // console.log('allow', allow);
-  // Helper to test permission keys without relying on an unstable function reference.
-  const hasPerm = useCallback((base, href) => {
-    const key = String(base || '').toLowerCase();
-    const key1 = String(href || '').toLowerCase();
-    return (
-      allow.has(`${key}:full`) ||
-      allow.has(`${key}:read`) ||
-      allow.has(`${key1}:full`) ||
-      allow.has(`${key1}:read`) ||
-      // Back-compat: some roles may grant module-wide access like 'dashboard:full'
-      allow.has('*:full')
-    );
-  }, [allow]);
+  const { permissions = [], can, isOwner } = useAuthz();
 
   // Filter once per permissions change; no console.log here to avoid noise on hover re-renders.
   const sidebarList = useMemo(() => {
-    // If permissions are not available (e.g., before auth loads), show nothing to avoid flicker.
-    // console.log('permissions', permissions); 
-    if (!permissions || permissions.length === 0) return [];
-    return fullsidebarList.filter(item => hasPerm(item.name, item.href.replace('/', '')));
-  }, [fullsidebarList, permissions, hasPerm]);
+    if (!isOwner && (!permissions || permissions.length === 0)) return [];
+    return fullsidebarList.filter(item => can(item.permission));
+  }, [fullsidebarList, permissions, can, isOwner]);
 
 
   // Compute activeIndex directly from pathname and sidebarList
