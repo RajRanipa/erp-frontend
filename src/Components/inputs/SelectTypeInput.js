@@ -54,7 +54,7 @@ function htmlToPlain(label, saveinfo) {
         // console.log("/<[^>]+>/", String(firstEl.textContent || '').trim())
         label = String(firstEl.textContent || '').trim();
         if (label.length > 0 && typeof originalLabel === 'string' && /<[^>]+>/.test(originalLabel) && saveinfo) {
-          // console.log("originalLabel", originalLabel.replace(firstEl.outerHTML,''))
+          console.log("originalLabel", originalLabel.replace(firstEl.outerHTML,''))
           const labelstring = htmlToPlainForSearch(originalLabel.replace(firstEl.outerHTML, ''))
           if (saveinfo) saveinfo(labelstring)
         }
