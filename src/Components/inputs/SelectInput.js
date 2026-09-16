@@ -59,7 +59,7 @@ const SelectInput = ({
 
   const clearSelection = useCallback((e) => {
     onChange(e);
-    if (required) inputRef.current.focus();
+    if (required) inputRef?.current?.focus();
   }, [onChange, required, inputRef]);
 
   return (
@@ -113,11 +113,11 @@ const SelectInput = ({
           {...(type === 'number' ? { min, max, inputMode: 'decimal' } : {})}
           onInput={(e) => onInpute?.(e)}
         >
-          {placeholder && (
+          {/* {placeholder && ( */}
             <option value="" disabled> {/* this was hidden before */}
-              {placeholder}
+              {placeholder ? placeholder : 'Select an option'}
             </option>
-          )}
+          {/* )} */}
           {options.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}

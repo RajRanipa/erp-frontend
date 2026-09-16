@@ -143,7 +143,7 @@ export default function DocumentList({ kind }) {
   useEffect(() => setPage(1), [deferredSearch, status]);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 flex flex-col gap-3">
       <PageTitle
         eyebrow="Procurement"
         title={config.title}

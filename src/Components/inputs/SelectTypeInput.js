@@ -51,9 +51,10 @@ function htmlToPlain(label, saveinfo) {
       parser.innerHTML = label;
       const firstEl = parser.firstElementChild;
       if (firstEl) {
-        // console.log("/<[^>]+>/", String(firstEl.textContent || '').trim())
+        console.log("/<[^>]+>/", String(firstEl.textContent || '').trim())
         label = String(firstEl.textContent || '').trim();
         if (label.length > 0 && typeof originalLabel === 'string' && /<[^>]+>/.test(originalLabel) && saveinfo) {
+          console.log("firstEl.outerHTML", firstEl.outerHTML)
           console.log("originalLabel", originalLabel.replace(firstEl.outerHTML,''))
           const labelstring = htmlToPlainForSearch(originalLabel.replace(firstEl.outerHTML, ''))
           if (saveinfo) saveinfo(labelstring)
@@ -72,8 +73,8 @@ function htmlToPlainForSearch(label) {
     // Create a temporary DOM element (browser-safe)
     const temp = document.createElement('div');
     // temp.innerHTML = label;
-    // console.log("label", label, label.split(/<[^>]+>/).filter((item) => item))
-    let finallabel = String(label.trim().split(/<[^>]+>/).filter((item) => item).join(' - ')).trim();
+    console.log("label", label, label.split(/<[^>]+>/).filter((item) => item.replace('\n    ','')))
+    let finallabel = String(label.trim().split(/<[^>]+>/).map((item) => item.replace('\n    ','')).filter((item) => item).join(' - ')).trim();
     return finallabel;
   }
   return String(label);

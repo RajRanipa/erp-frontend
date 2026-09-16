@@ -28,21 +28,13 @@ function isStaticAsset(pathname) {
 const ROUTE_PERM = [
   { route: '/dashboard', perm: 'dashboard:read' },
   { route: '/inventory', perm: 'inventory:read' },
-  { route: '/inventory/create', perm: [
-    'inventory:adjust',
-    'inventory:issue',
-    'inventory:receipt',
-    'inventory:transfer',
-    'inventory:repack',
-  ] },
   { route: '/procurement', perm: 'procurement:read' },
   { route: '/procurement/orders/new', perm: 'procurement:create' },
   { route: '/procurement/receipts/new', perm: 'procurement:receive' },
   { route: '/procurement/returns/new', perm: 'procurement:return' },
   { route: '/procurement/invoices/new', perm: 'procurement:invoice' },
   { route: '/items', perm: 'items:read' },
-  { route: '/items/create', perm: 'items:create' },
-  { route: '/items/edit/', perm: 'items:update' }, // what i can do for path like this '/items/edit/:id' becuse :id string will change dynamically like this /items/edit/6909c8b91b7a3946d1bd20e4
+  { route: '/items/catalog/create', perm: 'items:create' },
   { route: '/manufacturing', perm: 'manufacturing:read' },
   { route: '/crm', perm: 'crm:read' },
   { route: '/warehouse', perm: 'warehouse:read' },
@@ -107,14 +99,14 @@ function requiredPermFor(pathname) {
     const routePrefix = entry.route;
     const isExact = pathname === routePrefix;
 
-    // Prefix match for child paths: /items/edit/123
+    // Prefix match for child paths such as /items/catalog/123.
     const isChild = pathname.startsWith(routePrefix.endsWith('/')
-      ? routePrefix               // '/items/edit/' → '/items/edit/123'
-      : routePrefix + '/'         // '/items/edit' → '/items/edit/123'
+      ? routePrefix
+      : routePrefix + '/'
     );
 
     if (isExact || isChild) {
-      // Longest-prefix wins, e.g. /items vs /items/edit
+      // Longest-prefix wins, e.g. /items vs /items/catalog/create.
       if (!match || routePrefix.length > match.route.length) {
         match = entry;
       }
@@ -140,7 +132,8 @@ export async function middleware(request) {
 
   // Allow public API and explicit public paths
   const isPublicApi = pathname.startsWith('/api/public');
-  const isPublicPath = PUBLIC_PATHS.includes(pathname) || isPublicApi;
+  const isPublicTrace = pathname === '/trace' || pathname.startsWith('/trace/');
+  const isPublicPath = PUBLIC_PATHS.includes(pathname) || isPublicApi || isPublicTrace;
   // NOTE: we don't early-return here for /login & /signup because we want to
   // possibly redirect authenticated users away from auth pages.
 

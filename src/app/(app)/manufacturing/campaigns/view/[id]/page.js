@@ -160,16 +160,16 @@ export default function CampaignDetailsPage() {
                     edit campaign
                   </NavLink>
                   <NavLink
-                    href={`/manufacturing/batches`}
+                    href="/manufacturing/orders/create"
                     type="button"
                     className="bg-primary text-center"
                   >
-                    add batch
+                    create production order
                   </NavLink>
-                  <NavLink href={`/manufacturing/batches/view`}
+                  <NavLink href="/manufacturing/orders"
                     type="button"
                     className="bg-primary text-center">
-                    view batches
+                    view production orders
                   </NavLink>
                 </div>
               </div>

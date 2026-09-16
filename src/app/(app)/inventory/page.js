@@ -1,14 +1,5 @@
-// src/app/(app)/inventory/page.js
-'use client';
+import { redirect } from 'next/navigation';
 
-import { useEffect, useState } from 'react';
-
-
-export default function InventoryPage({ children }) {
-
-  return (
-    <div>
-      Inventory Page is in production
-    </div>
-  );
+export default function InventoryPage() {
+  redirect('/inventory/control');
 }

@@ -63,7 +63,7 @@ export default function ProcurementOverviewPage() {
     + (summary.orders?.PARTIALLY_RECEIVED?.count || 0);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 flex flex-col gap-3">
       <PageTitle
         eyebrow="Purchase-to-pay"
         title="Procurement command center"
@@ -168,7 +168,7 @@ export default function ProcurementOverviewPage() {
           <p className="mt-1 text-xs text-secondary-text/55">
             Every posting is auditable and inventory-safe.
           </p>
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-2 flex flex-col gap-2">
             {[
               ['01', 'Create & submit PO', '/procurement/orders/new', 'procurement:create'],
               ['02', 'Receive supplier goods', '/procurement/receipts/new', 'procurement:receive'],

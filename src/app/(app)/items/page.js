@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
 export default function ItemsPage() {
-  redirect('/items/finished');
+  redirect('/items/catalog');
 }

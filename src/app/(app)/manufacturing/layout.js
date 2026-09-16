@@ -7,6 +7,7 @@ import { NavListProvider, useNavList } from './NavListContext';
 import React, { useState, useEffect, useRef } from 'react';
 import { downArrow } from '@/utils/SVG';
 import DisplayMain from '@/Components/layout/DisplayMain';
+import useAuthz from '@/hooks/useAuthz';
 
 // The sticky bar content that reads from context
 const NavList = [
@@ -14,6 +15,7 @@ const NavList = [
 ]
 
 function ManufacturingBar() {
+    const { can } = useAuthz();
     const { activeCampaign , campaignList,setActiveCampaign } = useActiveCampaign();
     const { navList } = useNavList();
     const [showDropdown, setShowDropdown] = useState(false);
@@ -33,8 +35,18 @@ function ManufacturingBar() {
     return (
         <DisplayBar title="manufacturing" href="/manufacturing" className="overflow-visible">
             <div className="flex relative gap-4">
-                <NavLink href="/manufacturing/production">Production</NavLink>
-                <NavLink href="/manufacturing/batches">Batches</NavLink>
+                {can('production:read') && (
+                    <NavLink href="/manufacturing/production">Production</NavLink>
+                )}
+                {can('production:read') && (
+                    <>
+                        <NavLink href="/manufacturing/orders">Production Orders</NavLink>
+                        <NavLink href="/manufacturing/recipes">Recipes</NavLink>
+                        {can('production:create') && (
+                            <NavLink href="/manufacturing/chopping">Chopping</NavLink>
+                        )}
+                    </>
+                )}
 
                 {activeCampaign && (
                     <div className="flex items-center gap-4">
