@@ -17,7 +17,7 @@ export default function ProductionOrdersPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get('/api/manufacturing-v2/orders', {
+      const response = await axiosInstance.get('/api/manufacturing/orders', {
         params: { status: status || undefined },
       });
       setRows(response.data || []);

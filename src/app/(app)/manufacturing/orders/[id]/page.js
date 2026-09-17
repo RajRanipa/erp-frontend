@@ -23,7 +23,7 @@ export default function ProductionOrderDetailPage({ params }) {
 
   const load = useCallback(async () => {
     try {
-      const response = await axiosInstance.get(`/api/manufacturing-v2/orders/${id}`);
+      const response = await axiosInstance.get(`/api/manufacturing/orders/${id}`);
       setOrder(response.data);
     } catch (error) {
       Toast.error(error?.response?.data?.message || 'Unable to load Production Order');
@@ -35,7 +35,7 @@ export default function ProductionOrderDetailPage({ params }) {
     setBusy(action);
     try {
       const response = await axiosInstance.post(
-        `/api/manufacturing-v2/orders/${id}/${path}`,
+        `/api/manufacturing/orders/${id}/${path}`,
         body,
         { headers: { 'Idempotency-Key': requestKey(action) } },
       );

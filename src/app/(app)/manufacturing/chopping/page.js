@@ -30,7 +30,7 @@ export default function ChoppingBatchPage() {
   const load = useCallback(async () => {
     try {
       const [stockResponse, setupResponse, outputResponse] = await Promise.all([
-        axiosInstance.get('/api/inventory-v2/stock', {
+        axiosInstance.get('/api/inventory/stock', {
           params: { positiveOnly: 'true', limit: 200 },
         }),
         axiosInstance.get('/api/item-master/setup'),
@@ -97,7 +97,7 @@ export default function ChoppingBatchPage() {
     });
     setSaving(true);
     try {
-      const response = await axiosInstance.post('/api/manufacturing-v2/chopping-batches', {
+      const response = await axiosInstance.post('/api/manufacturing/chopping-batches', {
         ...form,
         outputQuantity: Number(form.outputQuantity),
         inputs: materialInputs,

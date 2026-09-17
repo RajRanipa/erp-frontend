@@ -2,7 +2,7 @@
 
 import { axiosInstance } from '@/lib/axiosInstance';
 
-// Compatibility guard for databases that have not run the V2 cleanup yet.
+// Compatibility guard for databases that have not completed item cleanup yet.
 // The backend migration removes this field permanently; the frontend must
 // neither display it nor send it back while old cached records still contain it.
 const REMOVED_ATTRIBUTE_CODES = new Set(['material_class']);

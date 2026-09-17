@@ -37,7 +37,7 @@ function parseUnitLines(value, defaultManufacturedAt) {
   });
 }
 
-export default function InventoryV2OperationsPage() {
+export default function InventoryOperationsPage() {
   const { can } = useAuthz();
   const canReceiveProduction = can('inventory:receipt');
   const canAdjust = can('inventory:adjust');
@@ -79,14 +79,14 @@ export default function InventoryV2OperationsPage() {
         axiosInstance.get('/api/item-master/items', {
           params: { status: 'active', inventory: 'true', limit: 200 },
         }),
-        axiosInstance.get('/api/inventory-v2/stock', { params: { limit: 200 } }),
-        axiosInstance.get('/api/inventory-v2/receipt-context').catch(() => ({ data: { campaigns: [] } })),
+        axiosInstance.get('/api/inventory/stock', { params: { limit: 200 } }),
+        axiosInstance.get('/api/inventory/receipt-context').catch(() => ({ data: { campaigns: [] } })),
       ]);
       setItems(Array.isArray(itemResponse.data) ? itemResponse.data : []);
       setStock(Array.isArray(stockResponse.data) ? stockResponse.data : []);
       setCampaigns(contextResponse.data?.campaigns || []);
     } catch (error) {
-      Toast.error(apiMessage(error, 'Unable to load Item Master V2 operations'));
+      Toast.error(apiMessage(error, 'Unable to load inventory operations'));
     }
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -221,7 +221,7 @@ export default function InventoryV2OperationsPage() {
       Toast.error(unitLineError || `Enter exactly ${quantity} individual weight lines`);
       return;
     }
-    const response = await post('/api/inventory-v2/receipts', {
+    const response = await post('/api/inventory/receipts', {
       itemId: receipt.itemId,
       warehouseId: receipt.warehouseId,
       quantity,
@@ -252,7 +252,7 @@ export default function InventoryV2OperationsPage() {
 
   const postOpeningAdjustment = async event => {
     event.preventDefault();
-    const response = await post('/api/inventory-v2/opening-stock-adjustments', {
+    const response = await post('/api/inventory/opening-stock-adjustments', {
       itemId: adjustment.itemId,
       warehouseId: adjustment.warehouseId,
       quantity: Number(adjustment.quantity),
@@ -282,7 +282,7 @@ export default function InventoryV2OperationsPage() {
     event.preventDefault();
     const rows = packing.components.filter(row => row.itemId && Number(row.quantity) > 0)
       .map(row => ({ itemId: row.itemId, quantityPerUnit: Number(row.quantity) }));
-    const response = await post('/api/inventory-v2/blanket-packings', {
+    const response = await post('/api/inventory/blanket-packings', {
       itemId: packing.itemId,
       warehouseId: packing.warehouseId,
       fromPackingKey: packing.fromPackingKey,
@@ -304,7 +304,7 @@ export default function InventoryV2OperationsPage() {
     event.preventDefault();
     const quantity = Number(issue.quantity);
     const isBlanket = selectedIssueItem?.familyId?.code === 'BLANKET';
-    const response = await post('/api/inventory-v2/issues', {
+    const response = await post('/api/inventory/issues', {
       itemId: issue.itemId,
       warehouseId: issue.warehouseId,
       quantity,
@@ -327,7 +327,7 @@ export default function InventoryV2OperationsPage() {
       Toast.error('Source and destination Warehouses must be different');
       return;
     }
-    const response = await post('/api/inventory-v2/transfers', {
+    const response = await post('/api/inventory/transfers', {
       itemId: transfer.itemId,
       fromWarehouseId: transfer.fromWarehouseId,
       toWarehouseId: transfer.toWarehouseId,

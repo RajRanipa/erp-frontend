@@ -29,7 +29,7 @@ export default function CreateProductionOrderPage() {
       axiosInstance.get('/api/item-master/items', {
         params: { status: 'active', manufacturable: 'true', limit: 100 },
       }),
-      axiosInstance.get('/api/manufacturing-v2/recipes', { params: { status: 'ACTIVE' } }),
+      axiosInstance.get('/api/manufacturing/recipes', { params: { status: 'ACTIVE' } }),
     ]).then(([itemResponse, recipeResponse]) => {
       setItems(itemResponse.data || []);
       setRecipes(recipeResponse.data || []);
@@ -49,7 +49,7 @@ export default function CreateProductionOrderPage() {
     event.preventDefault();
     setSaving(true);
     try {
-      const response = await axiosInstance.post('/api/manufacturing-v2/orders', form);
+      const response = await axiosInstance.post('/api/manufacturing/orders', form);
       Toast.success(response?.api?.message || 'Production Order created');
       router.push(`/manufacturing/orders/${response.data._id}`);
     } catch (error) {

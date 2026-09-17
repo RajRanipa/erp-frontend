@@ -13,7 +13,7 @@ export default function InventorySerialRegistryPage() {
 
   const load = useCallback(async () => {
     try {
-      const response = await axiosInstance.get('/api/inventory-v2/serials', {
+      const response = await axiosInstance.get('/api/inventory/serials', {
         params: { limit: 1000 },
       });
       setSerials(response.data || []);

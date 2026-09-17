@@ -36,7 +36,7 @@ export default function ManufacturingRecipesPage() {
   const load = useCallback(async () => {
     try {
       const [recipeResponse, outputResponse, componentResponse] = await Promise.all([
-        axiosInstance.get('/api/manufacturing-v2/recipes'),
+        axiosInstance.get('/api/manufacturing/recipes'),
         axiosInstance.get('/api/item-master/items', {
           params: { status: 'active', manufacturable: 'true', limit: 100 },
         }),
@@ -65,7 +65,7 @@ export default function ManufacturingRecipesPage() {
     event.preventDefault();
     setSaving(true);
     try {
-      const response = await axiosInstance.post('/api/manufacturing-v2/recipes', form);
+      const response = await axiosInstance.post('/api/manufacturing/recipes', form);
       Toast.success(response?.api?.message || 'Recipe created');
       setForm({
         outputItemId: '',
@@ -85,7 +85,7 @@ export default function ManufacturingRecipesPage() {
   };
   const activate = async id => {
     try {
-      const response = await axiosInstance.patch(`/api/manufacturing-v2/recipes/${id}/activate`);
+      const response = await axiosInstance.patch(`/api/manufacturing/recipes/${id}/activate`);
       Toast.success(response?.api?.message || 'Recipe activated');
       await load();
     } catch (error) {

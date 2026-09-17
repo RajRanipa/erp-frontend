@@ -35,15 +35,15 @@ export default function InventoryControlPage() {
     setLoading(true);
     try {
       const [summaryResponse, stockResponse, transactionResponse] = await Promise.all([
-        axiosInstance.get('/api/inventory-v2/summary'),
-        axiosInstance.get('/api/inventory-v2/stock', {
+        axiosInstance.get('/api/inventory/summary'),
+        axiosInstance.get('/api/inventory/stock', {
           params: {
             search: search.trim() || undefined,
             qualityStatus: qualityStatus || undefined,
             limit: 200,
           },
         }),
-        axiosInstance.get('/api/inventory-v2/transactions', { params: { limit: 30 } }),
+        axiosInstance.get('/api/inventory/transactions', { params: { limit: 30 } }),
       ]);
       setSummary(summaryResponse.data);
       setStock(stockResponse.data || []);
@@ -71,7 +71,7 @@ export default function InventoryControlPage() {
     try {
       const idempotencyKey = `reject-lot:${lotId}`;
       const response = await axiosInstance.post(
-        `/api/inventory-v2/lots/${lotId}/reject`,
+        `/api/inventory/lots/${lotId}/reject`,
         { note: 'Quality downgraded by authorized inventory user' },
         { headers: { 'Idempotency-Key': idempotencyKey } },
       );
@@ -329,7 +329,7 @@ export default function InventoryControlPage() {
           rowKey={row => row._id}
           loading={loading}
           pageSize={25}
-          emptyMessage="No V2 stock has been migrated or posted yet."
+          emptyMessage="No stock has been posted yet."
         />
         </section>
       )}
@@ -346,7 +346,7 @@ export default function InventoryControlPage() {
           rowKey={row => row._id}
           loading={loading}
           pageSize={15}
-          emptyMessage="No V2 inventory transactions have been posted yet."
+          emptyMessage="No inventory transactions have been posted yet."
         />
       </section>
       )}
