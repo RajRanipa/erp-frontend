@@ -1,9 +1,9 @@
 
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectInput from '@/Components/inputs/SelectInput';
 import AddButton from '@/Components/buttons/AddButton';
 import { Toast } from '@/Components/toast';
 
@@ -359,7 +359,7 @@ export default function PartyAddresses({
         <div className="text-sm font-medium">Primary Address</div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-          <SelectInput
+          <AdaptiveSelectInput
             label="Country"
             value={primary.country || 'India'}
             onChange={(e) => setPrimary({ country: e.target.value })}
@@ -540,7 +540,7 @@ export default function PartyAddresses({
               ) : (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <SelectInput
+                    <AdaptiveSelectInput
                       label="Country"
                       value={draft.country || 'India'}
                       onChange={(e) => setDraftAt({ country: e.target.value })}

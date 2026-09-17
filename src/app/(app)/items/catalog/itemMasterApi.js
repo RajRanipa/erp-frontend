@@ -27,6 +27,14 @@ const sanitizePayload = payload => ({
       .filter(([code]) => !REMOVED_ATTRIBUTE_CODES.has(code)),
   ),
 });
+const sanitizeEditContext = context => context && typeof context === 'object'
+  ? {
+      ...context,
+      item: sanitizeItem(context.item),
+      setup: sanitizeSetup(context.setup),
+      form: sanitizeForm(context.form),
+    }
+  : context;
 
 export const itemMasterApi = {
   setup: async () =>
@@ -41,6 +49,10 @@ export const itemMasterApi = {
   },
   get: async id =>
     sanitizeItem((await axiosInstance.get(`/api/item-master/items/${id}`)).data),
+  editContext: async id =>
+    sanitizeEditContext(
+      (await axiosInstance.get(`/api/item-master/items/${id}/edit-context`)).data,
+    ),
   options: async params =>
     (await axiosInstance.get('/api/item-master/items/options', { params })).data,
   create: async payload =>

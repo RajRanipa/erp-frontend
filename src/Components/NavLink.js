@@ -3,7 +3,7 @@ import { cn } from '../utils/cn';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export default function NavLink({ href, children, activeClass, inactiveClass, className ='', type ='link', onClick = () => {} }) {
+export default function NavLink({ href, children, activeClass, inactiveClass, className ='', type ='link', onClick = () => {}, prefetch = false }) {
   const pathname = usePathname();
   const isActive = pathname === href;
   // console.log("isActive",isActive, pathname, href)
@@ -19,6 +19,7 @@ export default function NavLink({ href, children, activeClass, inactiveClass, cl
   return (
     <Link
       href={href}
+      prefetch={prefetch}
       className={cn(`capitalize text-sm md:text-base ${isActive ? activeClass : inactiveClass} ${className} `)}
       onClick={onClick}
     >

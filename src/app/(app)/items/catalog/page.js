@@ -58,7 +58,11 @@ export default function ItemMasterCatalogPage() {
       header: 'SKU',
       sortable: true,
       render: row => (
-        <Link className="text-blue-500 hover:underline" href={`/items/catalog/${row._id}`}>
+        <Link
+          className="text-blue-500 hover:underline"
+          href={`/items/catalog/${row._id}`}
+          prefetch={false}
+        >
           {row.sku}
         </Link>
       ),

@@ -1,9 +1,9 @@
 // src/app/(auth)/setup/components/Step4Currency.jsx
 
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 import React, { useEffect, useMemo, useState } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 
 /**
  * Step4Currency — localization settings: currency, timezone, (optional) date format & fiscal year start.
@@ -115,7 +115,7 @@ export default function Step4Currency({ values = {}, saving, onValidityChange, o
       {initialized && (
         <>
           <div>
-            <SelectTypeInput
+            <AdaptiveSelectInput force
               label="Base Currency"
               value={loc.currency}
               onChange={(val) => handleChange('currency', val)}
@@ -138,7 +138,7 @@ export default function Step4Currency({ values = {}, saving, onValidityChange, o
             />
           </div>
 
-          <SelectTypeInput
+          <AdaptiveSelectInput force
             label="Date Format (optional)"
             options={dateFormatOptions}
             value={loc.dateFormat}
@@ -147,7 +147,7 @@ export default function Step4Currency({ values = {}, saving, onValidityChange, o
             placeholder="e.g., DD/MM/YYYY or MM/DD/YYYY or YYYY-MM-DD"
           />
 
-          <SelectTypeInput
+          <AdaptiveSelectInput force
             label="Fiscal Year Start (optional)"
             value={loc.fiscalYearStart}
             onChange={(val) => handleChange('fiscalYearStart', val)}

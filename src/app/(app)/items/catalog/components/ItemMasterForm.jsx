@@ -1,9 +1,9 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectInput from '@/Components/inputs/SelectInput';
 import SubmitButton from '@/Components/buttons/SubmitButton';
 import ItemLifecycleActions from '../components/ItemLifecycleActions';
 import Loading from '@/Components/Loading';
@@ -13,8 +13,6 @@ import {
   apiMessage,
   itemMasterApi,
 } from '../itemMasterApi';
-import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
-import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 const editableStatuses = new Set(['draft', 'returned']);
 
@@ -26,7 +24,11 @@ const inputValue = attribute =>
   ?? attribute?.valueString
   ?? '';
 
-export default function ItemMasterForm({ itemId = null, ItemLifecycleHTML=false }) {
+export default function ItemMasterForm({
+  itemId = null,
+  initialContext = null,
+  ItemLifecycleHTML = false,
+}) {
   const router = useRouter();
   const [setup, setSetup] = useState(null);
   const [schema, setSchema] = useState(null);
@@ -86,6 +88,35 @@ export default function ItemMasterForm({ itemId = null, ItemLifecycleHTML=false 
     let alive = true;
     (async () => {
       try {
+        if (itemId && initialContext?.item) {
+          const existingItem = initialContext.item;
+          const nextSchema = initialContext.form;
+          const existingAttributes = Object.fromEntries(
+            (existingItem.attributes || []).map(attribute => [
+              attribute.code,
+              inputValue(attribute),
+            ]),
+          );
+          if (!alive) return;
+          setSetup(initialContext.setup);
+          setItem(existingItem);
+          setSchema(nextSchema);
+          setReferenceOptions(initialContext.referenceOptions || {});
+          setForm({
+            familyId: existingItem.familyId?._id || existingItem.familyId,
+            sku: existingItem.sku || '',
+            name: existingItem.name || '',
+            description: existingItem.description || '',
+            minimumStock: existingItem.minimumStock ?? 0,
+            attributes: Object.fromEntries(
+              (nextSchema?.attributes || []).map(attribute => [
+                attribute.code,
+                existingAttributes[attribute.code] ?? attribute.defaultValue ?? '',
+              ]),
+            ),
+          });
+          return;
+        }
         const nextSetup = await itemMasterApi.setup();
         const existingItem = itemId ? await itemMasterApi.get(itemId) : null;
         if (!alive) return;
@@ -114,7 +145,7 @@ export default function ItemMasterForm({ itemId = null, ItemLifecycleHTML=false 
     return () => {
       alive = false;
     };
-  }, [itemId, loadFamily]);
+  }, [initialContext, itemId, loadFamily]);
 
   const setField = (field, value) =>
     setForm(current => ({ ...current, [field]: value }));
@@ -192,7 +223,7 @@ export default function ItemMasterForm({ itemId = null, ItemLifecycleHTML=false 
         </div>
 
         <div className="grid grid-cols-1 gap-x-5 md:grid-cols-2 xl:grid-cols-4">
-          <SelectTypeInput
+          <AdaptiveSelectInput force
             label="Item Family"
             name="familyId"
             placeholder="Select family"
@@ -286,7 +317,7 @@ export default function ItemMasterForm({ itemId = null, ItemLifecycleHTML=false 
               }
               if (attribute.dataType === 'boolean') {
                 return (
-                  <SelectInput
+                  <AdaptiveSelectInput
                     key={attribute.code}
                     {...common}
                     placeholder={`Select ${attribute.label}`}

@@ -1,15 +1,15 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectInput from '@/Components/inputs/SelectInput';
 import SubmitButton from '@/Components/buttons/SubmitButton';
 import { Toast } from '@/Components/toast';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { useWarehouses } from '@/hooks/useWarehouses';
 import { cn } from '@/utils/cn';
 import { mapItemOption } from '@/utils/FGP';
+import useAuthz from '@/hooks/useAuthz';
 import SerialLabels from '../components/SerialLabels';
 
 const requestKey = prefix =>
@@ -38,8 +38,14 @@ function parseUnitLines(value, defaultManufacturedAt) {
 }
 
 export default function InventoryV2OperationsPage() {
+  const { can } = useAuthz();
+  const canReceiveProduction = can('inventory:receipt');
+  const canAdjust = can('inventory:adjust');
+  const canPack = can('inventory:repack');
+  const canIssue = can('inventory:issue');
+  const canTransfer = can('inventory:transfer');
   const { list: warehouses } = useWarehouses();
-  const [tab, setTab] = useState('RECEIPT');
+  const [tab, setTab] = useState('MANUAL_PRODUCTION');
   const [items, setItems] = useState([]);
   const [stock, setStock] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
@@ -49,6 +55,11 @@ export default function InventoryV2OperationsPage() {
     itemId: '', warehouseId: '', quantity: '', catchQuantity: '', unitLines: '',
     lotNo: '', unitCost: '0', note: '', receiptMode: 'PRODUCTION', campaignId: '',
     manufacturedAt: localDateTime(), manualReason: '',
+  });
+  const [adjustment, setAdjustment] = useState({
+    itemId: '', warehouseId: '', quantity: '', catchQuantity: '', lotNo: '',
+    unitCost: '0', effectiveAt: localDateTime(), referenceId: '',
+    authorizationReference: '', reason: '', note: '', qualityStatus: 'AVAILABLE',
   });
   const [packing, setPacking] = useState({
     itemId: '', warehouseId: '', fromPackingKey: 'UNPACKED', quantity: '',
@@ -80,9 +91,23 @@ export default function InventoryV2OperationsPage() {
   }, []);
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
+    const allowedTabs = [
+      canReceiveProduction && 'MANUAL_PRODUCTION',
+      canAdjust && 'OPENING_ADJUSTMENT',
+      canPack && 'PACK',
+      canIssue && 'ISSUE',
+      canTransfer && 'TRANSFER',
+    ].filter(Boolean);
+    if (allowedTabs.length && !allowedTabs.includes(tab)) setTab(allowedTabs[0]);
+  }, [tab, canReceiveProduction, canAdjust, canPack, canIssue, canTransfer]);
+  useEffect(() => {
     if (!warehouses.length) return;
     const warehouseId = String(warehouses[0]._id);
     setReceipt(current => ({ ...current, warehouseId: current.warehouseId || warehouseId }));
+    setAdjustment(current => ({
+      ...current,
+      warehouseId: current.warehouseId || warehouseId,
+    }));
     setPacking(current => ({
       ...current,
       warehouseId: current.warehouseId || warehouseId,
@@ -110,11 +135,15 @@ export default function InventoryV2OperationsPage() {
     [items],
   );
   const selectedReceiptItem = itemById.get(receipt.itemId);
+  const selectedAdjustmentItem = itemById.get(adjustment.itemId);
   const selectedIssueItem = itemById.get(issue.itemId);
   const selectedTransferItem = itemById.get(transfer.itemId);
   const receiptIsSerialized = isSerialized(selectedReceiptItem);
   const warehouseOptions = warehouses.map(row => ({ value: String(row._id), label: row.name }));
   const itemOptions = items.map(item => ({ value: String(item._id), label: mapItemOption(item) }));
+  const manufacturableItemOptions = items
+    .filter(item => item.capabilities?.manufacturable)
+    .map(item => ({ value: String(item._id), label: mapItemOption(item) }));
   const campaignOptions = campaigns.map(campaign => ({
     value: String(campaign._id),
     label: `${campaign.name} · Running`,
@@ -206,7 +235,7 @@ export default function InventoryV2OperationsPage() {
       processStatus: 'AVAILABLE',
       sourceType: 'MANUAL_RECEIPT',
       receiptMode: receipt.receiptMode,
-      campaignId: receipt.receiptMode === 'OPENING_STOCK' ? undefined : receipt.campaignId,
+      campaignId: receipt.campaignId,
       manufacturedAt: receipt.manufacturedAt || undefined,
       manualReason: receipt.manualReason,
       note: receipt.note,
@@ -217,6 +246,34 @@ export default function InventoryV2OperationsPage() {
       ...current,
       itemId: '', quantity: '', catchQuantity: '', unitLines: '', lotNo: '',
       unitCost: '0', note: '', manualReason: '', manufacturedAt: localDateTime(),
+    }));
+    await load();
+  };
+
+  const postOpeningAdjustment = async event => {
+    event.preventDefault();
+    const response = await post('/api/inventory-v2/opening-stock-adjustments', {
+      itemId: adjustment.itemId,
+      warehouseId: adjustment.warehouseId,
+      quantity: Number(adjustment.quantity),
+      catchQuantity: adjustment.catchQuantity === ''
+        ? undefined
+        : Number(adjustment.catchQuantity),
+      lotNo: adjustment.lotNo || undefined,
+      unitCost: Number(adjustment.unitCost),
+      effectiveAt: adjustment.effectiveAt,
+      qualityStatus: adjustment.qualityStatus,
+      referenceId: adjustment.referenceId,
+      authorizationReference: adjustment.authorizationReference,
+      reason: adjustment.reason,
+      note: adjustment.note,
+    }, 'opening-stock-adjustment', 'Opening stock adjustment posted');
+    if (!response) return;
+    setAdjustment(current => ({
+      ...current,
+      itemId: '', quantity: '', catchQuantity: '', lotNo: '', unitCost: '0',
+      effectiveAt: localDateTime(), referenceId: '', authorizationReference: '',
+      reason: '', note: '', qualityStatus: 'AVAILABLE',
     }));
     await load();
   };
@@ -284,18 +341,20 @@ export default function InventoryV2OperationsPage() {
   };
 
   const tabs = [
-    ['RECEIPT', 'Receive Stock'],
-    ['PACK', 'Pack Blanket'],
-    ['ISSUE', 'Issue / Sell'],
-    ['TRANSFER', 'Transfer'],
-  ];
+    canReceiveProduction && ['MANUAL_PRODUCTION', 'Manual Production Receipt'],
+    canAdjust && ['OPENING_ADJUSTMENT', 'Opening Stock / Adjustment'],
+    canPack && ['PACK', 'Pack Blanket'],
+    canIssue && ['ISSUE', 'Issue / Sell'],
+    canTransfer && ['TRANSFER', 'Transfer'],
+  ].filter(Boolean);
 
   return (
     <div className="space-y-5 flex flex-col gap-3">
       <div>
         <h1 className="text-xl font-semibold">Inventory Operations</h1>
         <p className="mt-1 text-sm text-secondary-text">
-          Receive manufactured units, then manage packing and stock movements by quantity.
+          Use manual production only as a controlled fallback. Purchased raw and packing materials
+          are received through Procurement → Goods Receipts.
         </p>
       </div>
       {createdSerials.length > 0 && (
@@ -312,16 +371,17 @@ export default function InventoryV2OperationsPage() {
         ))}
       </div>
 
-      {tab === 'RECEIPT' && (
+      {tab === 'MANUAL_PRODUCTION' && canReceiveProduction && (
         <form onSubmit={receive} className="space-y-5 rounded-xl border border-white-100 p-5">
           <div>
-            <h2 className="font-semibold">Manual controlled receipt</h2>
+            <h2 className="font-semibold">Manual Production Receipt</h2>
             <p className="mt-1 text-sm text-secondary-text">
-              The gateway remains the normal production path. Manual posting requires a reason and individual weights.
+              Use only when normal gateway production posting is unavailable. A campaign,
+              manufacture time, reason and applicable individual roll weights are mandatory.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-x-4 md:grid-cols-3">
-            <SelectInput
+            <AdaptiveSelectInput
               label="Receipt reason/type"
               name="receiptMode"
               value={receipt.receiptMode}
@@ -329,7 +389,6 @@ export default function InventoryV2OperationsPage() {
               options={[
                 { value: 'PRODUCTION', label: 'Manual production receipt' },
                 { value: 'GATEWAY_FALLBACK', label: 'Gateway downtime fallback' },
-                { value: 'OPENING_STOCK', label: 'Verified opening stock' },
               ]}
               required
             />
@@ -341,7 +400,7 @@ export default function InventoryV2OperationsPage() {
               onChange={event => setReceipt(current => ({
                 ...current, itemId: event.target.value, quantity: '', catchQuantity: '', unitLines: '',
               }))}
-              options={itemOptions}
+              options={manufacturableItemOptions}
               required
               force
             />
@@ -353,17 +412,15 @@ export default function InventoryV2OperationsPage() {
               options={warehouseOptions}
               required
             />
-            {receipt.receiptMode !== 'OPENING_STOCK' && (
-              <AdaptiveSelectInput
-                label="Running campaign"
-                name="v2ReceiptCampaign"
-                value={receipt.campaignId}
-                onChange={event => setReceipt(current => ({ ...current, campaignId: event.target.value }))}
-                options={campaignOptions}
-                placeholder="Select campaign"
-                required
-              />
-            )}
+            <AdaptiveSelectInput
+              label="Running campaign"
+              name="v2ReceiptCampaign"
+              value={receipt.campaignId}
+              onChange={event => setReceipt(current => ({ ...current, campaignId: event.target.value }))}
+              options={campaignOptions}
+              placeholder="Select campaign"
+              required
+            />
             <CustomInput
               label={`Quantity${selectedReceiptItem ? ` (${selectedReceiptItem.baseUom})` : ''}`}
               name="v2ReceiptQuantity"
@@ -385,7 +442,7 @@ export default function InventoryV2OperationsPage() {
               type="datetime-local"
               value={receipt.manufacturedAt}
               onChange={event => setReceipt(current => ({ ...current, manufacturedAt: event.target.value }))}
-              required={receiptIsSerialized}
+              required
             />
             {!receiptIsSerialized && selectedReceiptItem?.catchMode !== 'NONE' && (
               <CustomInput
@@ -422,7 +479,7 @@ export default function InventoryV2OperationsPage() {
               value={receipt.manualReason}
               onChange={event => setReceipt(current => ({ ...current, manualReason: event.target.value }))}
               placeholder="Why was the gateway/normal flow not used?"
-              required={receiptIsSerialized}
+              required
             />
             <CustomInput
               label="Note"
@@ -461,12 +518,176 @@ export default function InventoryV2OperationsPage() {
           <SubmitButton
             loading={saving}
             disabled={receiptIsSerialized && !hasExactSerializedWeights}
-            label="Validate, Post and Generate Serials"
+            label={receiptIsSerialized
+              ? 'Validate, Post and Generate Serials'
+              : 'Post Manual Production Receipt'}
           />
         </form>
       )}
 
-      {tab === 'PACK' && (
+      {tab === 'OPENING_ADJUSTMENT' && canAdjust && (
+        <form onSubmit={postOpeningAdjustment} className="space-y-5 rounded-xl border border-white-100 p-5">
+          <div>
+            <h2 className="font-semibold">Opening Stock / Adjustment</h2>
+            <p className="mt-1 text-sm text-secondary-text">
+              Restricted setup and correction entry for inventory-enabled Items. Every posting is
+              immutable and records its reason, source reference, valuation and authorization.
+              Do not use this for routine purchases.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-x-4 md:grid-cols-3">
+            <AdaptiveSelectInput
+              label="Item"
+              name="adjustmentItem"
+              value={adjustment.itemId}
+              onChange={event => setAdjustment(current => ({
+                ...current,
+                itemId: event.target.value,
+                quantity: '',
+                catchQuantity: '',
+              }))}
+              options={itemOptions}
+              placeholder="Select inventory item"
+              required
+              force
+            />
+            <AdaptiveSelectInput
+              label="Warehouse"
+              name="adjustmentWarehouse"
+              value={adjustment.warehouseId}
+              onChange={event => setAdjustment(current => ({
+                ...current,
+                warehouseId: event.target.value,
+              }))}
+              options={warehouseOptions}
+              required
+            />
+            <CustomInput
+              label={`Quantity${selectedAdjustmentItem
+                ? ` (${selectedAdjustmentItem.baseUom})`
+                : ''}`}
+              name="adjustmentQuantity"
+              type="number"
+              min="0.000001"
+              step={['roll', 'nos'].includes(selectedAdjustmentItem?.baseUom) ? '1' : 'any'}
+              value={adjustment.quantity}
+              onChange={event => setAdjustment(current => ({
+                ...current,
+                quantity: event.target.value,
+              }))}
+              required
+            />
+            {selectedAdjustmentItem?.catchMode !== 'NONE' && (
+              <CustomInput
+                label={`Measured quantity (${selectedAdjustmentItem?.catchUom || 'catch UOM'})`}
+                name="adjustmentCatchQuantity"
+                type="number"
+                min="0.000001"
+                step="any"
+                value={adjustment.catchQuantity}
+                onChange={event => setAdjustment(current => ({
+                  ...current,
+                  catchQuantity: event.target.value,
+                }))}
+                required={selectedAdjustmentItem?.catchMode === 'MEASURED'}
+              />
+            )}
+            <CustomInput
+              label="Lot number"
+              name="adjustmentLotNo"
+              value={adjustment.lotNo}
+              onChange={event => setAdjustment(current => ({
+                ...current,
+                lotNo: event.target.value,
+              }))}
+              placeholder="Generated if blank"
+            />
+            <CustomInput
+              label={`Unit value per ${selectedAdjustmentItem?.baseUom || 'unit'}`}
+              name="adjustmentUnitCost"
+              type="number"
+              min="0"
+              step="any"
+              value={adjustment.unitCost}
+              onChange={event => setAdjustment(current => ({
+                ...current,
+                unitCost: event.target.value,
+              }))}
+              required
+            />
+            <CustomInput
+              label="Effective date and time"
+              name="adjustmentEffectiveAt"
+              type="datetime-local"
+              value={adjustment.effectiveAt}
+              onChange={event => setAdjustment(current => ({
+                ...current,
+                effectiveAt: event.target.value,
+              }))}
+              required
+            />
+            <AdaptiveSelectInput
+              label="Quality status"
+              name="adjustmentQualityStatus"
+              value={adjustment.qualityStatus}
+              onChange={event => setAdjustment(current => ({
+                ...current,
+                qualityStatus: event.target.value,
+              }))}
+              options={[
+                { value: 'AVAILABLE', label: 'Available' },
+                { value: 'HOLD', label: 'Quality hold' },
+                { value: 'REJECTED', label: 'Rejected' },
+              ]}
+              required
+            />
+            <CustomInput
+              label="Source reference"
+              name="adjustmentReference"
+              value={adjustment.referenceId}
+              onChange={event => setAdjustment(current => ({
+                ...current,
+                referenceId: event.target.value,
+              }))}
+              placeholder="Count sheet / migration document"
+              required
+            />
+            <CustomInput
+              label="Approval / authorization reference"
+              name="adjustmentAuthorization"
+              value={adjustment.authorizationReference}
+              onChange={event => setAdjustment(current => ({
+                ...current,
+                authorizationReference: event.target.value,
+              }))}
+              placeholder="Approval ticket or signed document"
+              required
+            />
+            <CustomInput
+              label="Adjustment reason"
+              name="adjustmentReason"
+              value={adjustment.reason}
+              onChange={event => setAdjustment(current => ({
+                ...current,
+                reason: event.target.value,
+              }))}
+              required
+            />
+            <CustomInput
+              label="Note"
+              name="adjustmentNote"
+              value={adjustment.note}
+              onChange={event => setAdjustment(current => ({
+                ...current,
+                note: event.target.value,
+              }))}
+            />
+          </div>
+          <SubmitButton loading={saving} label="Post Authorized Adjustment" />
+        </form>
+      )}
+
+      {tab === 'PACK' && canPack && (
         <form onSubmit={pack} className="space-y-5 rounded-xl border border-white-100 p-5">
           <h2 className="font-semibold">Pack or repack Blanket rolls</h2>
           <div className="grid grid-cols-1 gap-x-4 md:grid-cols-3">
@@ -582,11 +803,11 @@ export default function InventoryV2OperationsPage() {
         </form>
       )}
 
-      {tab === 'ISSUE' && (
+      {tab === 'ISSUE' && canIssue && (
         <form onSubmit={issueStock} className="space-y-5 rounded-xl border border-white-100 p-5">
           <h2 className="font-semibold">Issue or sell stock</h2>
           <div className="grid grid-cols-1 gap-x-4 md:grid-cols-3">
-            <SelectInput label="Purpose" name="issuePurpose" value={issue.purpose}
+            <AdaptiveSelectInput label="Purpose" name="issuePurpose" value={issue.purpose}
               onChange={event => setIssue(current => ({ ...current, purpose: event.target.value }))}
               options={[
                 { value: 'ISSUE', label: 'Internal / manual issue' },
@@ -640,7 +861,7 @@ export default function InventoryV2OperationsPage() {
         </form>
       )}
 
-      {tab === 'TRANSFER' && (
+      {tab === 'TRANSFER' && canTransfer && (
         <form onSubmit={transferStock} className="space-y-5 rounded-xl border border-white-100 p-5">
           <div>
             <h2 className="font-semibold">Warehouse transfer</h2>

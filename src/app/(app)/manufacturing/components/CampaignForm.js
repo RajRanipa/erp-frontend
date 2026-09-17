@@ -1,7 +1,7 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 import { useState, useEffect, useMemo } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectInput from '@/Components/inputs/SelectInput';
 import TextArea from '@/Components/inputs/TextArea';
 import DateInput from '@/Components/inputs/DateInput';
 
@@ -131,7 +131,7 @@ export default function CampaignForm({
                     err={touched.name ? errors.name : ''}
                 />
 
-                <SelectInput
+                <AdaptiveSelectInput
                     key={`status-${resetKey}`}
                     name="status"
                     options={statusOptions}

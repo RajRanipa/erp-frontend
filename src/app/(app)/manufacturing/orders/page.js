@@ -1,9 +1,9 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import NavLink from '@/Components/NavLink';
-import SelectInput from '@/Components/inputs/SelectInput';
 import Table from '@/Components/layout/Table';
 import { Toast } from '@/Components/toast';
 import { axiosInstance } from '@/lib/axiosInstance';
@@ -84,7 +84,7 @@ export default function ProductionOrdersPage() {
         )}
       </div>
       <div className="max-w-xs">
-        <SelectInput
+        <AdaptiveSelectInput
           label="Status"
           name="orderStatus"
           placeholder="All statuses"

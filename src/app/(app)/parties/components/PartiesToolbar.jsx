@@ -1,7 +1,7 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 import React, { useState } from 'react';
-import SelectInput from '@/Components/inputs/SelectInput';
 import CustomInput from '@/Components/inputs/CustomInput';
 import {
   PARTY_FILTER_STATUS_OPTIONS,
@@ -12,7 +12,6 @@ import {
 import ExportPartiesButton from './ExportPartiesButton';
 import ImportPartiesModal from './ImportPartiesModal';
 import useAuthz from '@/hooks/useAuthz';
-import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 
 const ROLE_OPTIONS = [
   { value: 'all', label: 'All roles' },
@@ -57,25 +56,25 @@ export default function PartiesToolbar({
           </p>
         </div>
         <div className="flex gap-2 items-start">
-          <SelectInput
+          <AdaptiveSelectInput
             placeholder="Select Role"
             value={role}
             onChange={(e) => onRoleChange?.(e.target.value)}
             options={ROLE_OPTIONS}
           />
-          <SelectInput
+          <AdaptiveSelectInput
             placeholder="Select Status"
             value={status}
             onChange={(e) => onStatusChange?.(e.target.value)}
             options={PARTY_FILTER_STATUS_OPTIONS}
           />
-          <SelectInput
+          <AdaptiveSelectInput
             placeholder="Select Lifecycle Stage"
             value={lifecycleStage}
             onChange={(e) => onLifecycleChange?.(e.target.value)}
             options={LIFECYCLE_OPTIONS}
           />
-          <SelectInput
+          <AdaptiveSelectInput
             placeholder="Select Priority"
             value={priority}
             onChange={(e) => onPriorityChange?.(e.target.value)}

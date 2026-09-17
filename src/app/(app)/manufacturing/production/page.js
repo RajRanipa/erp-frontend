@@ -1,13 +1,12 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 import React, { useEffect, useState } from 'react'
 import { apiClient, getApiErrorMessage } from '@/lib/axiosInstance';
 import Loading from '@/Components/Loading';
 import ProductionTable from './components/ProductionTable';
 import DateInput from '@/Components/inputs/DateInput';
 import ProductionTableSpecific from './components/ProductionTableSpecific';
-import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import { filter1Icon } from '@/utils/SVG';
-import SelectInput from '@/Components/inputs/SelectInput';
 
 const localDateString = () => {
   const now = new Date();
@@ -72,7 +71,7 @@ export default function Production() {
         <div className='fllex gap-2'><span>Check Production :- </span><span>{dateRange?.start + " to " + dateRange?.end}</span></div>
         <div className='flex gap-4'>
 
-          <SelectInput
+          <AdaptiveSelectInput
             name="status"
             id="status"
             placeholder="status"
@@ -84,7 +83,7 @@ export default function Production() {
             ]}
           />
 
-          <SelectTypeInput
+          <AdaptiveSelectInput force
             name="productType"
             id="productType"
             placeholder="Product Type"

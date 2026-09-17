@@ -1,7 +1,7 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 import React, { useMemo } from 'react';
-import SelectInput from '@/Components/inputs/SelectInput';
 import CustomInput from '@/Components/inputs/CustomInput';
 import { DEFAULT_CURRENCY, PAYMENT_TERM_TYPE_OPTIONS, PAYMENT_TERM_TYPES } from '../lib/partyConstants';
 
@@ -48,7 +48,7 @@ export default function PartyPaymentTerms({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <SelectInput
+        <AdaptiveSelectInput
           label="Term Type"
           value={pt.type || PAYMENT_TERM_TYPES.NET_DAYS}
           onChange={(e) => {

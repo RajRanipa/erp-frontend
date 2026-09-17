@@ -1,8 +1,8 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectInput from '@/Components/inputs/SelectInput';
 import Table from '@/Components/layout/Table';
 import { Toast } from '@/Components/toast';
 import { axiosInstance } from '@/lib/axiosInstance';
@@ -285,7 +285,7 @@ export default function InventoryControlPage() {
             value={search}
             onChange={event => setSearch(event.target.value)}
           />
-          <SelectInput
+          <AdaptiveSelectInput
             label="Quality"
             name="qualityStatus"
             placeholder="All quality statuses"

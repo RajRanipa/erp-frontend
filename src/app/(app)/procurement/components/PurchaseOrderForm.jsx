@@ -8,6 +8,7 @@ import useAuthz from '@/hooks/useAuthz';
 import { getApiErrorMessage } from '@/lib/axiosInstance';
 import { ErrorBanner, Field, PageTitle, inputClass } from './ProcurementUI';
 import { money, procurementApi } from '../lib/procurementApi';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 const today = () => new Date().toISOString().slice(0, 10);
 const emptyLine = () => ({
@@ -249,7 +250,7 @@ export default function PurchaseOrderForm({ orderId = null }) {
 
       <section className="grid gap-4 rounded-xl border border-color-100 bg-secondary p-4 lg:grid-cols-4">
         <Field label="Supplier" required>
-          <select
+          <AdaptiveSelectInput
             className={inputClass}
             value={form.supplierId}
             disabled={loadingLookups}
@@ -262,14 +263,14 @@ export default function PurchaseOrderForm({ orderId = null }) {
                 paymentTerms: supplier?.paymentTerms || current.paymentTerms,
               }));
             }}
-          >
-            <option value="">Select supplier</option>
-            {lookups.suppliers.map(supplier => (
-              <option key={supplier._id} value={supplier._id}>
-                {supplier.code} · {supplier.legalName || supplier.name}
-              </option>
-            ))}
-          </select>
+            name="supplierId"
+            placeholder="Select supplier"
+            options={lookups.suppliers.map(supplier => ({
+              value: supplier._id,
+              label: `${supplier.code} · ${supplier.legalName || supplier.name}`,
+            }))}
+            required
+          />
         </Field>
         <Field label="Delivery warehouse" required>
           <select

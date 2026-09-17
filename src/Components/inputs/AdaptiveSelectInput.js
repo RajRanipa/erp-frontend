@@ -14,7 +14,11 @@ export default function AdaptiveSelectInput({
   ...props
 }) {
   const normalizedOptions = Array.isArray(options) ? options : [];
-  const InputComponent = normalizedOptions.length > searchableThreshold || force
+  const requiresSearchableInput = force
+    || Boolean(props.apiget)
+    || Boolean(props.apipost)
+    || Boolean(props.allowCustomValue);
+  const InputComponent = normalizedOptions.length > searchableThreshold || requiresSearchableInput
     ? SelectTypeInput
     : SelectInput;
 

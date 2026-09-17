@@ -1,7 +1,7 @@
 // src/components/layout/UnitSelect.jsx
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 import { useEffect, useState } from "react";
-import SelectInput from "./SelectInput";
 import { Density_uom_options, Dimension_uom_options, Packing_uom_options, Temp_uom_options, Volume_uom_options, Weight_uom_options } from "@/config/Uom";
 
 const unitrange = {
@@ -33,7 +33,7 @@ const UnitSelect = ({ type, required, value, onChange, className, name,label, pl
           {required && <span className="text-error ml-1">*</span>}
         </label>
       )}
-      <SelectInput className="w-[unset]"
+      <AdaptiveSelectInput className="w-[unset]"
         placeholder={placeholder}
         name={name}
         value={value}

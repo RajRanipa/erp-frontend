@@ -1,10 +1,10 @@
 
 
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 import React, { useCallback } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectInput from '@/Components/inputs/SelectInput';
 import AddButton from '@/Components/buttons/AddButton';
 import { PREFERRED_CHANNEL_OPTIONS, PREFERRED_CHANNELS } from '../lib/partyConstants';
 
@@ -151,7 +151,7 @@ export default function PartyContacts({
                     disabled={disabled}
                   />
 
-                  <SelectInput
+                  <AdaptiveSelectInput
                     label="Preferred Channel"
                     value={c.preferredChannel || PREFERRED_CHANNELS.EMAIL}
                     options={PREFERRED_CHANNEL_OPTIONS}

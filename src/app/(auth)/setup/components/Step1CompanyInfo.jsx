@@ -1,7 +1,7 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 import React, { useEffect, useMemo, useState } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 
 export default function Step1CompanyInfo({ values = {}, saving, onValidityChange, onDirtyChange, onPartialChange }) {
   const [form, setForm] = useState({
@@ -93,7 +93,7 @@ export default function Step1CompanyInfo({ values = {}, saving, onValidityChange
             /> 
           </div>
 
-          <SelectTypeInput
+          <AdaptiveSelectInput force
             label="Industry"
             value={form.industry}
             onChange={(val) => handleChange('industry', val)}

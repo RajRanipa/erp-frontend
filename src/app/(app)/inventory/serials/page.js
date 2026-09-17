@@ -39,7 +39,7 @@ export default function InventorySerialRegistryPage() {
   const labelRows = serials.filter(serial => selectedSet.has(serial.serialNo));
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 flex flex-col gap-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">Serial Registry</h1>
@@ -59,9 +59,9 @@ export default function InventorySerialRegistryPage() {
       {printing && labelRows.length > 0 && (
         <SerialLabels serials={labelRows} onClose={() => setPrinting(false)} />
       )}
-      <div className="rounded-xl border border-white-100 p-4">
+      <div className="rounded-xl ">
         <input
-          className="rounded-lg border border-white-100 bg-transparent px-3 py-2"
+          className="rounded-lg border border-white-100 bg-transparent px-3 py-2 w-[350px]"
           value={search}
           placeholder="Search serial, SKU, product, lot or campaign"
           onChange={event => setSearch(event.target.value)}

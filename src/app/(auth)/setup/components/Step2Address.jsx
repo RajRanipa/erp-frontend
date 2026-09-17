@@ -1,7 +1,7 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 import React, { useEffect, useMemo, useState } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 
 /**
  * Step2Address — collects company address details.
@@ -127,7 +127,7 @@ export default function Step2Address({ values = {}, saving, onValidityChange, on
               placeholder="e.g., Mumbai"
               required
             />
-            <SelectTypeInput
+            <AdaptiveSelectInput force
               label="State / Province"
               value={addr.state}
               onChange={(val) => handleChange('state', val)}
@@ -139,7 +139,7 @@ export default function Step2Address({ values = {}, saving, onValidityChange, on
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <SelectTypeInput
+            <AdaptiveSelectInput force
               label="Country"
               value={addr.country}
               onChange={(val) => handleChange('country', val)}

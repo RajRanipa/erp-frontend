@@ -1,6 +1,5 @@
 // src/app/(app)/dashboard/page.js
 'use client';
-import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 import DisplayMain from '@/Components/layout/DisplayMain';
 import { Toast } from '@/Components/toast';
 import { useState } from 'react';

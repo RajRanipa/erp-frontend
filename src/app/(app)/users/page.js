@@ -1,11 +1,11 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
 import Table from '@/Components/layout/Table';
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectInput from '@/Components/inputs/SelectInput';
 import RoleSelect from '@/Components/role/RoleSelect';
 import Dialog from '@/Components/Dialog';
 import SubmitButton from '@/Components/buttons/SubmitButton';
@@ -236,7 +236,7 @@ export default function ManageUsersPage() {
           placeholder="Name, email, or role"
           parent_className="mb-0 min-w-0 sm:min-w-64 sm:flex-[1_1_16rem]"
         />
-        <SelectInput
+        <AdaptiveSelectInput
           label="Membership status"
           value={status}
           onChange={(event) => setStatus(event.target.value)}

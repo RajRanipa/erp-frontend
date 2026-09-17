@@ -1,9 +1,9 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 import React, { useCallback } from 'react';
 import AddButton from '@/Components/buttons/AddButton';
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectInput from '@/Components/inputs/SelectInput';
 
 const ACCOUNT_TYPE_OPTIONS = [
   { value: 'CURRENT', label: 'Current' },
@@ -123,7 +123,7 @@ export default function PartyBankAccounts({
                 onChange={(e) => setAt(index, { branch: e.target.value })}
                 disabled={disabled}
               />
-              <SelectInput
+              <AdaptiveSelectInput
                 label="Account Type"
                 value={account.accountType || 'CURRENT'}
                 options={ACCOUNT_TYPE_OPTIONS}

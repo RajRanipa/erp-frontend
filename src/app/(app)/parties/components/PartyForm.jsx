@@ -1,9 +1,9 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectInput from '@/Components/inputs/SelectInput';
 
 import PartyRolesPicker from './PartyRolesPicker';
 import PartyTaxProfile from './PartyTaxProfile';
@@ -261,7 +261,7 @@ export default function PartyForm({
                             placeholder="Registered name (optional)"
                         />
 
-                        <SelectInput
+                        <AdaptiveSelectInput
                             label="Partner Type"
                             value={form.partyType}
                             onChange={(e) => set({ partyType: e.target.value })}
@@ -269,7 +269,7 @@ export default function PartyForm({
                             disabled={disabled}
                         />
 
-                        <SelectInput
+                        <AdaptiveSelectInput
                             label="Status"
                             value={form.status}
                             onChange={(e) => set({ status: e.target.value })}
@@ -277,7 +277,7 @@ export default function PartyForm({
                             disabled={disabled}
                         />
 
-                        <SelectInput
+                        <AdaptiveSelectInput
                             label="Lifecycle Stage"
                             value={form.lifecycleStage}
                             onChange={(e) => set({ lifecycleStage: e.target.value })}
@@ -285,7 +285,7 @@ export default function PartyForm({
                             disabled={disabled}
                         />
 
-                        <SelectInput
+                        <AdaptiveSelectInput
                             label="Priority"
                             value={form.priority}
                             onChange={(e) => set({ priority: e.target.value })}
@@ -309,7 +309,7 @@ export default function PartyForm({
                             placeholder="Referral, Website, Exhibition…"
                         />
 
-                        <SelectInput
+                        <AdaptiveSelectInput
                             label="Account Owner"
                             value={form.accountOwner || ''}
                             onChange={(e) => set({ accountOwner: e.target.value || null })}
@@ -352,7 +352,7 @@ export default function PartyForm({
                             placeholder="https://..."
                         />
 
-                        <SelectInput
+                        <AdaptiveSelectInput
                             label="Preferred Contact Channel"
                             value={form.communicationPreferences?.preferredChannel || PREFERRED_CHANNELS.EMAIL}
                             onChange={(e) => set({

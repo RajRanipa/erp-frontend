@@ -1,10 +1,10 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Toast } from '@/Components/toast';
 import { useUser } from '@/context/UserContext';
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectInput from '@/Components/inputs/SelectInput';
 import CheckBox from '@/Components/inputs/CheckBox';
 import SubmitButton from '@/Components/buttons/SubmitButton';
 import { axiosInstance, clearAccessTokenTimer } from '@/lib/axiosInstance';
@@ -352,7 +352,7 @@ export default function MyAccount() {
           <form onSubmit={savePreferences} className="max-w-xl">
             <h2 className="text-lg font-semibold">Preferences</h2>
             <p className="mb-6 text-sm text-white-500">Customize your personal ERP experience.</p>
-            <SelectInput
+            <AdaptiveSelectInput
               label="Theme"
               value={preferences.theme}
               onChange={(event) => setPreferences((value) => ({ ...value, theme: event.target.value }))}
@@ -362,7 +362,7 @@ export default function MyAccount() {
                 { value: 'system', label: 'System default' },
               ]}
             />
-            <SelectInput
+            <AdaptiveSelectInput
               label="Language"
               value={preferences.language}
               onChange={(event) => setPreferences((value) => ({ ...value, language: event.target.value }))}

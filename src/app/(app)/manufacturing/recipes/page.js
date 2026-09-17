@@ -1,9 +1,8 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 import { useCallback, useEffect, useState } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectInput from '@/Components/inputs/SelectInput';
-import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 import SubmitButton from '@/Components/buttons/SubmitButton';
 import Table from '@/Components/layout/Table';
 import { Toast } from '@/Components/toast';
@@ -32,6 +31,7 @@ export default function ManufacturingRecipesPage() {
     expectedYieldPercent: 100,
     components: [emptyComponent()],
   });
+  const selectedOutput = outputs.find(item => String(item._id) === String(form.outputItemId));
 
   const load = useCallback(async () => {
     try {
@@ -204,6 +204,13 @@ export default function ManufacturingRecipesPage() {
               Add component
             </button>
           </div>
+          {selectedOutput?.familyId?.code === 'BLANKET' && (
+            <p className="rounded-lg border border-blue-500/30 bg-blue-500/5 p-3 text-sm text-secondary-text">
+              Blanket recipes must include exactly one Plastic Bag per output roll. Select the
+              PLASTIC_BAG Item, set “Consume at” to Packing, and make its quantity equal to the
+              output basis quantity. Accepted PLC rolls will consume this material automatically.
+            </p>
+          )}
           {form.components.map((row, index) => (
             <div key={index} className="grid grid-cols-1 gap-x-3 rounded-lg border border-white-100 p-3 md:grid-cols-4">
               <AdaptiveSelectInput
@@ -228,7 +235,7 @@ export default function ManufacturingRecipesPage() {
                 onChange={event => updateComponent(index, { quantity: event.target.value })}
                 required
               />
-              <SelectInput
+              <AdaptiveSelectInput
                 label="Consume at"
                 name={`componentStage-${index}`}
                 value={row.stage}

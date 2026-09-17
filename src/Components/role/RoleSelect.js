@@ -1,7 +1,7 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import SelectInput from '@/Components/inputs/SelectInput';
 import { axiosInstance } from '@/lib/axiosInstance';
 
 export default function RoleSelect({
@@ -52,7 +52,7 @@ export default function RoleSelect({
     })), [excludeOwner, maxRank, roles]);
 
   return (
-    <SelectInput
+    <AdaptiveSelectInput
       label={label}
       name="roleId"
       placeholder={loading ? 'Loading roles…' : placeholder}

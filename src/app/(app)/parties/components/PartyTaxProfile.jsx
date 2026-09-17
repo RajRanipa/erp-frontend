@@ -1,9 +1,8 @@
 'use client';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 
 import React, { useMemo } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
-import SelectInput from '@/Components/inputs/SelectInput';
-import SelectTypeInput from '@/Components/inputs/SelectTypeInput';
 
 import {
   GST_REGISTRATION_TYPE_OPTIONS,
@@ -83,7 +82,7 @@ export default function PartyTaxProfile({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <SelectInput
+        <AdaptiveSelectInput
           label="Tax Registered"
           value={String(!!tp.isTaxRegistered)}
           options={TAX_REGISTERED_OPTIONS}
@@ -99,7 +98,7 @@ export default function PartyTaxProfile({
           autoFocus
         />
 
-        <SelectInput
+        <AdaptiveSelectInput
           label="Tax ID Type"
           value={taxIdType}
           options={TAX_ID_TYPE_OPTIONS}
@@ -133,7 +132,7 @@ export default function PartyTaxProfile({
         />
 
         {india ? (
-          <SelectTypeInput
+          <AdaptiveSelectInput force
             label="Place of Supply"
             value={asStr(tp.placeOfSupply)}
             disabled={disabled}
@@ -157,7 +156,7 @@ export default function PartyTaxProfile({
         )}
 
         {india && (
-          <SelectInput
+          <AdaptiveSelectInput
             label="GST Registration Type"
             value={tp.gstRegistrationType || (tp.isTaxRegistered ? 'REGULAR' : 'UNREGISTERED')}
             options={GST_REGISTRATION_TYPE_OPTIONS}
