@@ -4,10 +4,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
 import SerialLabels from '../components/SerialLabels';
+import DateInput from '@/Components/inputs/DateInput';
+import CustomInput from '@/Components/inputs/CustomInput';
 
 export default function InventorySerialRegistryPage() {
   const [serials, setSerials] = useState([]);
   const [search, setSearch] = useState('');
+  const [searchByDate, setSearchByDate] = useState('');
   const [selected, setSelected] = useState([]);
   const [printing, setPrinting] = useState(false);
 
@@ -25,16 +28,21 @@ export default function InventorySerialRegistryPage() {
   useEffect(() => { load(); }, [load]);
 
   const visible = useMemo(() => {
-    const needle = search.trim().toLowerCase();
-    if (!needle) return serials;
-    return serials.filter(serial => [
+    const needle = [search.trim().toLowerCase(), searchByDate].join(' ');
+    if (!needle && !searchByDate) return serials;
+    const matchdata = serials.filter(serial => {
+    let testsearch = needle.split(' ').every((val) => serial.manufacturedAt.includes(val) || [
       serial.serialNo,
       serial.itemId?.sku,
       serial.itemId?.name,
       serial.lotId?.lotNo,
       serial.campaignId?.name,
-    ].some(value => String(value || '').toLowerCase().includes(needle)));
-  }, [search, serials]);
+      
+    ].some(value => String(value || '').toLowerCase().includes(val)));
+    return testsearch
+  });
+  return matchdata;
+  }, [search, serials, searchByDate]);
   const selectedSet = new Set(selected);
   const labelRows = serials.filter(serial => selectedSet.has(serial.serialNo));
 
@@ -59,12 +67,19 @@ export default function InventorySerialRegistryPage() {
       {printing && labelRows.length > 0 && (
         <SerialLabels serials={labelRows} onClose={() => setPrinting(false)} />
       )}
-      <div className="rounded-xl ">
-        <input
-          className="rounded-lg border border-white-100 bg-transparent px-3 py-2 w-[350px]"
+      <div className="rounded-xl flex justify-center">
+        <CustomInput
+          parent_className='w-auto'
+          className="rounded-lg bg-transparent px-3 py-2 w-[350px]"
           value={search}
           placeholder="Search serial, SKU, product, lot or campaign"
           onChange={event => setSearch(event.target.value)}
+        />
+        <DateInput 
+          className="ml-3 w-fit" 
+          singleValue={searchByDate}
+          mode = {'single'}
+          onChange={value => setSearchByDate(value)}
         />
       </div>
       <div className="overflow-x-auto rounded-xl border border-white-100">
