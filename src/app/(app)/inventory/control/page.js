@@ -280,7 +280,7 @@ export default function InventoryControlPage() {
         <div className="grid grid-cols-1 gap-x-4 md:grid-cols-3">
           <CustomInput
             label="Search stock"
-            name="inventoryV2Search"
+            name="inventorySearch"
             placeholder="Name, SKU, 96, 1260, size, grade…"
             value={search}
             onChange={event => setSearch(event.target.value)}

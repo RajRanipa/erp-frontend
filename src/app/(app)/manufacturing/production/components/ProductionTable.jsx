@@ -9,7 +9,7 @@ import { useHighlight } from '@/hooks/useHighlight';
  * StockTable (presentational + client-side filter only)
  *
  * Props:
- * - rows: InventorySnapshot[]   // raw rows from parent (already fetched)
+ * - rows: GatewayProduction[]   // grouped production rows from the backend
  * - loading?: boolean
  * - error?: string
  * - filters?: { productType?: string, query?: string }
@@ -32,7 +32,7 @@ export default function ProductionTable({
 
     return rows.filter((r) => {
       const item = r.itemId || {};
-      const productTypeStr = r?.productType ? `${r.productType}` : '';
+      const familyStr = r?.family ? `${r.family}` : '';
       const tempStr = item?.temperature
         ? `${item.temperature?.value ?? ''} ${item.temperature?.unit ?? ''}`
         : '';
@@ -56,8 +56,8 @@ export default function ProductionTable({
         .map(str)
         .join(' | ');
 
-      if (needle && pt) return needle.split(' ').every((w) => haystack.includes(w)) && productTypeStr.includes(pt);
-      if (pt) return productTypeStr.includes(pt);
+      if (needle && pt) return needle.split(' ').every((w) => haystack.includes(w)) && familyStr.includes(pt);
+      if (pt) return familyStr.includes(pt);
       if (needle) return needle.split(' ').every((w) => haystack.includes(w));
       return true;
     });
@@ -69,13 +69,13 @@ export default function ProductionTable({
         key: 'item',
         header: 'Item',
         sortable: true,
-        render: (r) => r.matchedItem?.name || '—',
+        render: (r) => r.item?.name || '—',
       },
       {
-        key: 'productType',
-        header: 'Product Type',
+        key: 'family',
+        header: 'Family',
         sortable: true,
-        render: (r) => r.productType?.name || '—',
+        render: (r) => r.family?.name || '—',
       },
       {
         key: 'temperature',
@@ -108,7 +108,7 @@ export default function ProductionTable({
         key: 'packing',
         header: 'Packing',
         sortable: true,
-        render: (r) => r.packingItem ? mapPacking(r.packingItem) : '—',
+        render: (r) => r.packing ? mapPacking(r.packing) : '—',
       },
       {
         key: 'statusOk',
@@ -167,7 +167,7 @@ export default function ProductionTable({
         <Table
           columns={columns}
           data={filteredRows}
-          rowKey={(r) => r.matchedItem?._id+r?.totalRolls}
+          rowKey={(r) => `${r.item?._id || 'unmapped'}-${r.statusOk}-${r.temperatureValue}-${r.densityValue}-${r.sizeCode}`}
           virtualization={filteredRows.length > 200}
           loading={loading}
           tableRef={stockTabelRef}

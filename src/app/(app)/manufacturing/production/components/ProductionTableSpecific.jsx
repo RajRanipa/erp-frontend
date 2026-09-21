@@ -9,7 +9,7 @@ import { useHighlight } from '@/hooks/useHighlight';
  * StockTable (presentational + client-side filter only)
  *
  * Props:
- * - rows: InventorySnapshot[]   // raw rows from parent (already fetched)
+ * - rows: GatewayProduction[]   // grouped production rows from the backend
  * - loading?: boolean
  * - error?: string
  * - filters?: { productType?: string, query?: string }
@@ -34,7 +34,7 @@ export default function ProductionTableSpecific({
     return rows.filter((r) => {
       // const item = r.itemId || {};
       // console.log("item specific", item)
-      const productTypeStr = r?.productType ? `${r.productType._id}` : '';
+      const familyStr = r?.family ? `${r.family._id}` : '';
       const statusValue = r.statusOk;
       typeof statusValue === "boolean"
       const tempStr = rows?.temperature
@@ -59,10 +59,10 @@ export default function ProductionTableSpecific({
       const haystack = [tempStr, denStr, dimStr, packStr, gradeStr]
         .map(str)
         .join(' | ');
-      if (needle && pt) return needle.split(' ').every((w) => haystack.includes(w)) && productTypeStr.includes(pt);
-      if (pt && st !== "") return productTypeStr.includes(pt) &&statusValue === newst;
+      if (needle && pt) return needle.split(' ').every((w) => haystack.includes(w)) && familyStr.includes(pt);
+      if (pt && st !== "") return familyStr.includes(pt) &&statusValue === newst;
       if (st !== "") return statusValue === newst;
-      if (pt) return productTypeStr.includes(pt);
+      if (pt) return familyStr.includes(pt);
       if (needle) return needle.split(' ').every((w) => haystack.includes(w));
       return true;
     });
@@ -97,13 +97,13 @@ export default function ProductionTableSpecific({
         key: 'item',
         header: 'Item',
         sortable: true,
-        render: (r) => r.matchedItem?.name || '—',
+        render: (r) => r.item?.name || '—',
       },
       {
-        key: 'productType',
-        header: 'Product Type',
+        key: 'family',
+        header: 'Family',
         sortable: true,
-        render: (r) => r.productType?.name || '—',
+        render: (r) => r.family?.name || '—',
       },
       {
         key: 'temperature',
@@ -136,7 +136,7 @@ export default function ProductionTableSpecific({
         key: 'packing',
         header: 'Packing',
         sortable: true,
-        render: (r) => r.packingItem ? mapPacking(r.packingItem) : '—',
+        render: (r) => r.packing ? mapPacking(r.packing) : '—',
       },
       {
         key: 'statusOk',

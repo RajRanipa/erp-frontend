@@ -239,7 +239,7 @@ export default function InventoryOperationsPage() {
       manufacturedAt: receipt.manufacturedAt || undefined,
       manualReason: receipt.manualReason,
       note: receipt.note,
-    }, 'v2-receipt', 'Inventory receipt posted');
+    }, 'inventory-receipt', 'Inventory receipt posted');
     if (!response) return;
     setCreatedSerials(response.api?.meta?.serials || []);
     setReceipt(current => ({
@@ -313,7 +313,7 @@ export default function InventoryOperationsPage() {
       referenceType: issue.purpose === 'SALE' ? 'CUSTOMER_SALE' : 'MANUAL_ISSUE',
       referenceId: issue.referenceId || undefined,
       note: issue.note,
-    }, 'v2-issue', issue.purpose === 'SALE' ? 'Customer stock issue posted' : 'Stock issue posted');
+    }, 'inventory-issue', issue.purpose === 'SALE' ? 'Customer stock issue posted' : 'Stock issue posted');
     if (!response) return;
     setIssue(current => ({
       ...current, itemId: '', packingKey: '', quantity: '', referenceId: '', note: '',
@@ -334,7 +334,7 @@ export default function InventoryOperationsPage() {
       quantity: Number(transfer.quantity),
       referenceType: 'WAREHOUSE_TRANSFER',
       note: transfer.note,
-    }, 'v2-transfer', 'Inventory transfer posted');
+    }, 'inventory-transfer', 'Inventory transfer posted');
     if (!response) return;
     setTransfer(current => ({ ...current, itemId: '', quantity: '', note: '' }));
     await load();
@@ -394,7 +394,7 @@ export default function InventoryOperationsPage() {
             />
             <AdaptiveSelectInput
               label="Item"
-              name="v2ReceiptItem"
+              name="receiptItem"
               placeholder="Select an item"
               value={receipt.itemId}
               onChange={event => setReceipt(current => ({
@@ -406,7 +406,7 @@ export default function InventoryOperationsPage() {
             />
             <AdaptiveSelectInput
               label="Warehouse"
-              name="v2ReceiptWarehouse"
+              name="receiptWarehouse"
               value={receipt.warehouseId}
               onChange={event => setReceipt(current => ({ ...current, warehouseId: event.target.value }))}
               options={warehouseOptions}
@@ -414,7 +414,7 @@ export default function InventoryOperationsPage() {
             />
             <AdaptiveSelectInput
               label="Running campaign"
-              name="v2ReceiptCampaign"
+              name="receiptCampaign"
               value={receipt.campaignId}
               onChange={event => setReceipt(current => ({ ...current, campaignId: event.target.value }))}
               options={campaignOptions}
@@ -423,7 +423,7 @@ export default function InventoryOperationsPage() {
             />
             <CustomInput
               label={`Quantity${selectedReceiptItem ? ` (${selectedReceiptItem.baseUom})` : ''}`}
-              name="v2ReceiptQuantity"
+              name="receiptQuantity"
               type="number"
               min="1"
               max="1000"
@@ -438,7 +438,7 @@ export default function InventoryOperationsPage() {
             />
             <CustomInput
               label="Manufactured at"
-              name="v2ReceiptManufacturedAt"
+              name="receiptManufacturedAt"
               type="datetime-local"
               value={receipt.manufacturedAt}
               onChange={event => setReceipt(current => ({ ...current, manufacturedAt: event.target.value }))}
@@ -447,7 +447,7 @@ export default function InventoryOperationsPage() {
             {!receiptIsSerialized && selectedReceiptItem?.catchMode !== 'NONE' && (
               <CustomInput
                 label={`Measured quantity (${selectedReceiptItem?.catchUom || 'catch UOM'})`}
-                name="v2ReceiptCatch"
+                name="receiptCatch"
                 type="number"
                 min="0.000001"
                 step="any"
@@ -458,14 +458,14 @@ export default function InventoryOperationsPage() {
             )}
             <CustomInput
               label="Lot number"
-              name="v2ReceiptLot"
+              name="receiptLot"
               value={receipt.lotNo}
               onChange={event => setReceipt(current => ({ ...current, lotNo: event.target.value }))}
               placeholder="Generated if blank"
             />
             <CustomInput
               label={`Unit cost per ${selectedReceiptItem?.baseUom || 'unit'}`}
-              name="v2ReceiptCost"
+              name="receiptCost"
               type="number"
               min="0"
               step="any"
@@ -475,7 +475,7 @@ export default function InventoryOperationsPage() {
             />
             <CustomInput
               label="Manual receipt reason"
-              name="v2ReceiptReason"
+              name="receiptReason"
               value={receipt.manualReason}
               onChange={event => setReceipt(current => ({ ...current, manualReason: event.target.value }))}
               placeholder="Why was the gateway/normal flow not used?"
@@ -483,7 +483,7 @@ export default function InventoryOperationsPage() {
             />
             <CustomInput
               label="Note"
-              name="v2ReceiptNote"
+              name="receiptNote"
               value={receipt.note}
               onChange={event => setReceipt(current => ({ ...current, note: event.target.value }))}
             />
@@ -815,14 +815,14 @@ export default function InventoryOperationsPage() {
               ]}
               required
             />
-            <AdaptiveSelectInput label="Item" name="v2IssueItem" value={issue.itemId}
+            <AdaptiveSelectInput label="Item" name="issueItem" value={issue.itemId}
               onChange={event => setIssue(current => ({
                 ...current, itemId: event.target.value, packingKey: '', quantity: '',
               }))}
               options={itemOptions}
               required
             />
-            <AdaptiveSelectInput label="Warehouse" name="v2IssueWarehouse" value={issue.warehouseId}
+            <AdaptiveSelectInput label="Warehouse" name="issueWarehouse" value={issue.warehouseId}
               onChange={event => setIssue(current => ({
                 ...current, warehouseId: event.target.value,
               }))}
@@ -830,7 +830,7 @@ export default function InventoryOperationsPage() {
               required
             />
             {selectedIssueItem?.familyId?.code === 'BLANKET' && (
-              <AdaptiveSelectInput label="Packing Type" name="v2IssuePacking" value={issue.packingKey}
+              <AdaptiveSelectInput label="Packing Type" name="issuePacking" value={issue.packingKey}
                 onChange={event => setIssue(current => ({
                   ...current, packingKey: event.target.value,
                 }))}
@@ -839,18 +839,18 @@ export default function InventoryOperationsPage() {
               />
             )}
             <CustomInput label={`Quantity${selectedIssueItem ? ` (${selectedIssueItem.baseUom})` : ''}`}
-              name="v2IssueQuantity" type="number" min="0.000001"
+              name="issueQuantity" type="number" min="0.000001"
               step={['roll', 'nos'].includes(selectedIssueItem?.baseUom) ? '1' : 'any'}
               value={issue.quantity}
               onChange={event => setIssue(current => ({ ...current, quantity: event.target.value }))}
               required
             />
             <CustomInput label={issue.purpose === 'SALE' ? 'Customer / Invoice Reference' : 'Issue Reference'}
-              name="v2IssueReference" value={issue.referenceId}
+              name="issueReference" value={issue.referenceId}
               onChange={event => setIssue(current => ({ ...current, referenceId: event.target.value }))}
               required={issue.purpose === 'SALE'}
             />
-            <CustomInput label="Note" name="v2IssueNote" value={issue.note}
+            <CustomInput label="Note" name="issueNote" value={issue.note}
               onChange={event => setIssue(current => ({ ...current, note: event.target.value }))}
             />
           </div>
@@ -870,14 +870,14 @@ export default function InventoryOperationsPage() {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-x-4 md:grid-cols-3">
-            <AdaptiveSelectInput label="Item" name="v2TransferItem" value={transfer.itemId}
+            <AdaptiveSelectInput label="Item" name="transferItem" value={transfer.itemId}
               onChange={event => setTransfer(current => ({
                 ...current, itemId: event.target.value, quantity: '',
               }))}
               options={itemOptions}
               required
             />
-            <AdaptiveSelectInput label="From Warehouse" name="v2TransferFrom"
+            <AdaptiveSelectInput label="From Warehouse" name="transferFrom"
               value={transfer.fromWarehouseId}
               onChange={event => setTransfer(current => ({
                 ...current, fromWarehouseId: event.target.value, toWarehouseId: '',
@@ -885,7 +885,7 @@ export default function InventoryOperationsPage() {
               options={warehouseOptions}
               required
             />
-            <AdaptiveSelectInput label="To Warehouse" name="v2TransferTo"
+            <AdaptiveSelectInput label="To Warehouse" name="transferTo"
               value={transfer.toWarehouseId}
               onChange={event => setTransfer(current => ({
                 ...current, toWarehouseId: event.target.value,
@@ -895,7 +895,7 @@ export default function InventoryOperationsPage() {
             />
             <CustomInput
               label={`Quantity${selectedTransferItem ? ` (${selectedTransferItem.baseUom})` : ''}`}
-              name="v2TransferQuantity"
+              name="transferQuantity"
               type="number"
               min="0.000001"
               step={['roll', 'nos'].includes(selectedTransferItem?.baseUom) ? '1' : 'any'}
@@ -905,7 +905,7 @@ export default function InventoryOperationsPage() {
               }))}
               required
             />
-            <CustomInput label="Note" name="v2TransferNote" value={transfer.note}
+            <CustomInput label="Note" name="transferNote" value={transfer.note}
               onChange={event => setTransfer(current => ({
                 ...current, note: event.target.value,
               }))}
