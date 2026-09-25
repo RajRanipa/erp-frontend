@@ -7,6 +7,10 @@ import Table from '@/Components/layout/Table';
 import { Toast } from '@/Components/toast';
 import { axiosInstance } from '@/lib/axiosInstance';
 import useAuthz from '@/hooks/useAuthz';
+import {
+  formatInventoryQuantity,
+  formatItemSpecification,
+} from '@/utils/inventoryDisplay';
 
 const money = new Intl.NumberFormat('en-IN', {
   style: 'currency',
@@ -101,6 +105,15 @@ export default function InventoryControlPage() {
       render: row => row.lotId?.lotNo || '—',
     },
     {
+      key: 'specification',
+      header: 'Specification',
+      render: row => (
+        <span className="text-sm text-secondary-text">
+          {formatItemSpecification(row.itemId)}
+        </span>
+      ),
+    },
+    {
       key: 'warehouse',
       header: 'Warehouse',
       render: row => `${row.warehouseId?.name || '—'}${row.bin ? ` · ${row.bin}` : ''}`,
@@ -126,13 +139,13 @@ export default function InventoryControlPage() {
       key: 'onHand',
       header: 'On hand',
       align: 'right',
-      render: row => `${row.onHand} ${row.baseUom}`,
+      render: row => `${formatInventoryQuantity(row.onHand)} ${row.baseUom}`,
     },
     {
       key: 'available',
       header: 'Available',
       align: 'right',
-      render: row => `${row.available} ${row.baseUom}`,
+      render: row => `${formatInventoryQuantity(row.available)} ${row.baseUom}`,
     },
     {
       key: 'catchOnHand',
@@ -140,7 +153,7 @@ export default function InventoryControlPage() {
       align: 'right',
       render: row => row.catchOnHand === null
         ? '—'
-        : `${row.catchOnHand} ${row.catchUom}`,
+        : `${formatInventoryQuantity(row.catchOnHand)} ${row.catchUom}`,
     },
     {
       key: 'action',
@@ -220,10 +233,19 @@ export default function InventoryControlPage() {
         <span className='text-sm text-white-600'>{row.item?.sku || '' }</span>
       </span>),
     },
+    {
+      key: 'specification',
+      header: 'Specification',
+      render: row => (
+        <span className="text-sm text-secondary-text">
+          {formatItemSpecification(row.item)}
+        </span>
+      ),
+    },
     { key: 'packing', header: 'Packing Type' },
     { key: 'warehouse', header: 'Warehouse', render: row => row.warehouse?.name || '—' },
-    { key: 'onHand', header: 'On hand', align: 'right', render: row => `${row.onHand} ${row.uom}` },
-    { key: 'available', header: 'Available', align: 'right', render: row => `${row.available} ${row.uom}` },
+    { key: 'onHand', header: 'On hand', align: 'right', render: row => `${formatInventoryQuantity(row.onHand)} ${row.uom}` },
+    { key: 'available', header: 'Available', align: 'right', render: row => `${formatInventoryQuantity(row.available)} ${row.uom}` },
   ], []);
 
   const qualityBuckets = (summary?.stock || []).reduce((totals, row) => ({

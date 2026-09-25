@@ -45,7 +45,7 @@ export default function InventorySerialRegistryPage() {
     const sku = skuFilter.trim().toLowerCase();
     const status = qualityStatusFilter.trim().toUpperCase();
     const targetDate = dateFilter ? String(dateFilter).trim() : '';
-
+    console.log("1.visible -> sNo, sku, status, targetDate", sNo, sku, status, targetDate);
     if (!sNo && !sku && !status && !targetDate) return serials;
 
     return serials.filter(serial => {
@@ -77,14 +77,15 @@ export default function InventorySerialRegistryPage() {
     const sku = skuFilter.trim();
     const status = qualityStatusFilter.trim();
     const date = dateFilter ? String(dateFilter).trim() : '';
-
     // Abort if no criteria is filled
     if (!sNo && !sku && !status && !date) return;
-
+    
+    console.log("2. sNo, sku, status, date", sNo, sku, status, date);
+    console.log("executedServerQueries", executedServerQueries)
     const queryKey = `${sNo}__${sku}__${status}__${date}`;
     if (executedServerQueries.current.has(queryKey)) return;
 
-    if (visible.length < 5) {
+    if (visible.length <= 5) {
       const timer = setTimeout(async () => {
         try {
           setIsSearchingServer(true);

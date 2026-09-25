@@ -4,6 +4,7 @@ import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import CustomInput from '@/Components/inputs/CustomInput';
 import SubmitButton from '@/Components/buttons/SubmitButton';
+import Table from '@/Components/layout/Table';
 import { Toast } from '@/Components/toast';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { useWarehouses } from '@/hooks/useWarehouses';
@@ -11,6 +12,7 @@ import { cn } from '@/utils/cn';
 import { mapItemOption } from '@/utils/FGP';
 import useAuthz from '@/hooks/useAuthz';
 import SerialLabels from '../components/SerialLabels';
+import { formatInventoryQuantity } from '@/utils/inventoryDisplay';
 
 const requestKey = prefix =>
   `${prefix}:${globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`}`;
@@ -49,6 +51,10 @@ export default function InventoryOperationsPage() {
   const [items, setItems] = useState([]);
   const [stock, setStock] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
+  const [gatewayRecovery, setGatewayRecovery] = useState({ records: [], total: 0 });
+  const [selectedRecoveryIds, setSelectedRecoveryIds] = useState([]);
+  const [recoveryCampaignId, setRecoveryCampaignId] = useState('');
+  const [replayingGateway, setReplayingGateway] = useState(false);
   const [saving, setSaving] = useState(false);
   const [createdSerials, setCreatedSerials] = useState([]);
   const [receipt, setReceipt] = useState({
@@ -75,24 +81,32 @@ export default function InventoryOperationsPage() {
 
   const load = useCallback(async () => {
     try {
-      const [itemResponse, stockResponse, contextResponse] = await Promise.all([
+      const [itemResponse, stockResponse, contextResponse, recoveryResponse] = await Promise.all([
         axiosInstance.get('/api/item-master/items', {
           params: { status: 'active', inventory: 'true', limit: 200 },
         }),
         axiosInstance.get('/api/inventory/stock', { params: { limit: 200 } }),
         axiosInstance.get('/api/inventory/receipt-context').catch(() => ({ data: { campaigns: [] } })),
+        canReceiveProduction
+          ? axiosInstance.get('/api/inventory/gateway-recovery', { params: { limit: 100 } })
+          : Promise.resolve({ data: { records: [], total: 0 } }),
       ]);
       setItems(Array.isArray(itemResponse.data) ? itemResponse.data : []);
       setStock(Array.isArray(stockResponse.data) ? stockResponse.data : []);
       setCampaigns(contextResponse.data?.campaigns || []);
+      setGatewayRecovery({
+        records: recoveryResponse.data?.records || [],
+        total: Number(recoveryResponse.data?.total || 0),
+      });
     } catch (error) {
       Toast.error(apiMessage(error, 'Unable to load inventory operations'));
     }
-  }, []);
+  }, [canReceiveProduction]);
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
     const allowedTabs = [
       canReceiveProduction && 'MANUAL_PRODUCTION',
+      canReceiveProduction && 'GATEWAY_RECOVERY',
       canAdjust && 'OPENING_ADJUSTMENT',
       canPack && 'PACK',
       canIssue && 'ISSUE',
@@ -340,8 +354,110 @@ export default function InventoryOperationsPage() {
     await load();
   };
 
+  const toggleRecoveryRecord = useCallback(productionId => {
+    setSelectedRecoveryIds(current => current.includes(productionId)
+      ? current.filter(id => id !== productionId)
+      : [...current, productionId]);
+  }, []);
+
+  const replaySelectedGatewayRecords = async () => {
+    if (!selectedRecoveryIds.length) {
+      Toast.error('Select at least one gateway production record');
+      return;
+    }
+    const selectedRecords = gatewayRecovery.records.filter(record =>
+      selectedRecoveryIds.includes(String(record._id)));
+    if (selectedRecords.some(record => record.requiresCampaign) && !recoveryCampaignId) {
+      Toast.error('Select a running Campaign to repair records whose original Campaign is missing');
+      return;
+    }
+    setReplayingGateway(true);
+    try {
+      const response = await axiosInstance.post('/api/inventory/gateway-recovery/replay', {
+        productionIds: selectedRecoveryIds,
+        fallbackCampaignId: recoveryCampaignId || undefined,
+      });
+      const summary = response.data?.summary;
+      Toast.success(response?.api?.message || (
+        `${summary?.posted || 0} gateway record(s) posted to inventory`
+      ));
+      setSelectedRecoveryIds([]);
+      await load();
+    } catch (error) {
+      Toast.error(apiMessage(error, 'Unable to retry gateway inventory posting'));
+    } finally {
+      setReplayingGateway(false);
+    }
+  };
+
+  const gatewayRecoveryColumns = useMemo(() => [
+    {
+      key: 'select',
+      header: '',
+      render: row => (
+        <input
+          type="checkbox"
+          aria-label={`Select gateway record ${row.recordId}`}
+          checked={selectedRecoveryIds.includes(String(row._id))}
+          onChange={() => toggleRecoveryRecord(String(row._id))}
+        />
+      ),
+    },
+    {
+      key: 'record',
+      header: 'Gateway record',
+      render: row => (
+        <div>
+          <div className="font-mono text-xs">{row.recordId}</div>
+          <div className="text-xs text-secondary-text">
+            {new Date(row.at).toLocaleString('en-IN')} · Scale {row.scaleNo}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'specification',
+      header: 'Specification',
+      render: row => (
+        <div className="text-sm">
+          <div>{row.itemId?.name || `Gateway product ${row.productCode}`}</div>
+          <div className="text-xs text-secondary-text">
+            {row.temperatureValue} °C · {row.densityValue} kg/m³ · Size code {row.sizeCode}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'quality',
+      header: 'Quality / packing',
+      render: row => row.statusOk
+        ? <span>Accepted · {Number(row.productCode) === 1 ? 'Plastic Bag' : 'Normal receipt'}</span>
+        : <span>Rejected · Unpacked</span>,
+    },
+    {
+      key: 'weight',
+      header: 'Weight',
+      align: 'right',
+      render: row => `${formatInventoryQuantity(row.weightKg)} kg`,
+    },
+    {
+      key: 'failure',
+      header: 'Posting status',
+      render: row => (
+        <div className="max-w-sm">
+          <div>{row.inventoryStatus || 'Pending'}</div>
+          <div className="text-xs text-red-400">
+            {row.requiresCampaign ? 'Original Campaign is missing. ' : ''}
+            {row.inventoryLastError || ''}
+          </div>
+        </div>
+      ),
+    },
+  ], [selectedRecoveryIds, toggleRecoveryRecord]);
+
   const tabs = [
     canReceiveProduction && ['MANUAL_PRODUCTION', 'Manual Production Receipt'],
+    canReceiveProduction && ['GATEWAY_RECOVERY', 'Gateway Recovery'],
     canAdjust && ['OPENING_ADJUSTMENT', 'Opening Stock / Adjustment'],
     canPack && ['PACK', 'Pack Blanket'],
     canIssue && ['ISSUE', 'Issue / Sell'],
@@ -523,6 +639,69 @@ export default function InventoryOperationsPage() {
               : 'Post Manual Production Receipt'}
           />
         </form>
+      )}
+
+      {tab === 'GATEWAY_RECOVERY' && canReceiveProduction && (
+        <section className="space-y-5 rounded-xl border border-white-100 p-5">
+          <div>
+            <h2 className="font-semibold">Gateway Inventory Recovery</h2>
+            <p className="mt-1 text-sm text-secondary-text">
+              Retry production already saved by the PLC but not posted to stock. This runs the
+              same atomic logic as the live gateway: accepted Blanket rolls consume one Plastic
+              Bag and become packed; rejected rolls remain unpacked and unavailable.
+            </p>
+          </div>
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-sm">
+            This does not create duplicate production. The original gateway idempotency key is
+            reused, and successfully posted records disappear from this list.
+          </div>
+          <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-3">
+            <AdaptiveSelectInput
+              label="Replacement Campaign (only for missing links)"
+              name="gatewayRecoveryCampaign"
+              value={recoveryCampaignId}
+              onChange={event => setRecoveryCampaignId(event.target.value)}
+              options={campaignOptions}
+              placeholder="Select a running Campaign when required"
+            />
+            <div className="text-sm text-secondary-text">
+              {selectedRecoveryIds.length} selected · {gatewayRecovery.total} total need attention
+            </div>
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                className="rounded-lg border border-white-100 px-4 py-2 text-sm"
+                onClick={() => setSelectedRecoveryIds(
+                  gatewayRecovery.records.length > 0
+                    && selectedRecoveryIds.length === gatewayRecovery.records.length
+                    ? []
+                    : gatewayRecovery.records.map(record => String(record._id)),
+                )}
+              >
+                {gatewayRecovery.records.length > 0
+                  && selectedRecoveryIds.length === gatewayRecovery.records.length
+                  ? 'Clear selection'
+                  : 'Select visible'}
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-primary px-4 py-2 text-sm text-white disabled:opacity-50"
+                disabled={!selectedRecoveryIds.length || replayingGateway}
+                onClick={replaySelectedGatewayRecords}
+              >
+                {replayingGateway ? 'Retrying…' : 'Retry selected'}
+              </button>
+            </div>
+          </div>
+          <Table
+            columns={gatewayRecoveryColumns}
+            data={gatewayRecovery.records}
+            rowKey={row => row._id}
+            loading={false}
+            pageSize={25}
+            emptyMessage="Every saved gateway production record is posted to inventory."
+          />
+        </section>
       )}
 
       {tab === 'OPENING_ADJUSTMENT' && canAdjust && (
