@@ -175,13 +175,13 @@ export default function InventorySerialRegistryPage() {
           ]}
           onChange={event => setQualityStatusFilter(event.target.value)}
         />
-          <DateInput
-            label={"Select Date"}
-            className="w-full"
-            singleValue={dateFilter}
-            mode="single"
-            onChange={value => setDateFilter(value)}
-          />
+        <DateInput
+          label={"Select Date"}
+          className="w-full"
+          singleValue={dateFilter}
+          mode="single"
+          onChange={value => setDateFilter(value)}
+        />
       </div>
 
       {isSearchingServer && (
@@ -240,7 +240,31 @@ export default function InventorySerialRegistryPage() {
                     {serial.catchQuantity ?? '—'} {serial.catchUom || ''}
                   </td>
                   <td className="p-3">
-                    {serial.manufacturedAt ? new Date(serial.manufacturedAt).toLocaleDateString() : '—'}
+                    {serial.manufacturedAt ? (
+                      <div className="flex flex-col">
+                        <span className="font-medium text-secondary-text ">
+                          {new Intl.DateTimeFormat('en-GB', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                          }).format(new Date(serial.manufacturedAt)).replace(/\//g, '-')}
+                        </span>
+                        <span className="text-xs text-primary-text tracking-wide">
+                          {(() => {
+                            const d = new Date(serial.manufacturedAt);
+                            let hours = d.getHours();
+                            const minutes = String(d.getMinutes()).padStart(2, '0');
+                            const seconds = String(d.getSeconds()).padStart(2, '0');
+                            const ampm = hours >= 12 ? 'PM' : 'AM';
+                            hours = hours % 12 || 12;
+                            const formattedHours = String(hours).padStart(2, '0');
+                            return `${formattedHours} : ${minutes} : ${seconds} ${ampm}`;
+                          })()}
+                        </span>
+                      </div>
+                    ) : (
+                      '—'
+                    )}
                   </td>
                   <td className="p-3">
                     <a
