@@ -214,7 +214,11 @@ export default function InventoryControlPage() {
     {
       key: 'item',
       header: 'Blanket Item',
-      render: row => `${row.item?.sku || ''} · ${row.item?.name || ''}`,
+      render: row => (
+      <span className='flex flex-col'>
+        <span>{row.item?.name || ''}</span>
+        <span className='text-sm text-white-600'>{row.item?.sku || '' }</span>
+      </span>),
     },
     { key: 'packing', header: 'Packing Type' },
     { key: 'warehouse', header: 'Warehouse', render: row => row.warehouse?.name || '—' },
