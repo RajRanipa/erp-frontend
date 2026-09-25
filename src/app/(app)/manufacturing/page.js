@@ -38,7 +38,7 @@ export default function ProductionDashboard({ children }) {
     };
 
     const handleDelete = async (id, name, triggerEl) => {
-        const ok = await Toast.promise(`Delete ${name} campaign? This action cannot be undone.`, {
+        const ok = await Toast.promise(`Delete unused campaign ${name}? Campaigns with production or inventory history are protected and must be retained.`, {
             cancelText: 'Cancel',
             confirmText: 'Delete',
             focusTarget: triggerEl,
