@@ -4,25 +4,29 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
 import SerialLabels from '../components/SerialLabels';
-import DateInput from '@/Components/inputs/DateInput';
 import CustomInput from '@/Components/inputs/CustomInput';
+import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
+import DateInput from '@/Components/inputs/DateInput';
 
 export default function InventorySerialRegistryPage() {
   const [serials, setSerials] = useState([]);
-  const [search, setSearch] = useState('');
-  const [searchByDate, setSearchByDate] = useState('');
+  const [serialNoFilter, setSerialNoFilter] = useState('');
+  const [skuFilter, setSkuFilter] = useState('');
+  const [qualityStatusFilter, setQualityStatusFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+
   const [selected, setSelected] = useState([]);
   const [printing, setPrinting] = useState(false);
   const [isSearchingServer, setIsSearchingServer] = useState(false);
 
-  // Keep track of search queries already resolved on the server to prevent redundant calls
+  // Tracks executed query signatures to avoid duplicate network calls
   const executedServerQueries = useRef(new Set());
 
-  // Initial load
+  // 1. Initial Load
   const load = useCallback(async () => {
     try {
       const response = await axiosInstance.get('/api/inventory/serials', {
-        params: { limit: 1000 },
+        params: { limit: 500 },
       });
       setSerials(response.data || []);
       setSelected([]);
@@ -35,68 +39,71 @@ export default function InventorySerialRegistryPage() {
     load();
   }, [load]);
 
-  // 1. Local Filtering Logic
+  // 2. Client-Side Multi-field Filtering
   const visible = useMemo(() => {
-    const rawTokens = [
-      ...search.trim().toLowerCase().split(/\s+/),
-      searchByDate ? String(searchByDate).trim() : '',
-    ].filter(Boolean);
+    const sNo = serialNoFilter.trim().toLowerCase();
+    const sku = skuFilter.trim().toLowerCase();
+    const status = qualityStatusFilter.trim().toUpperCase();
+    const targetDate = dateFilter ? String(dateFilter).trim() : '';
 
-    if (rawTokens.length === 0) return serials;
+    if (!sNo && !sku && !status && !targetDate) return serials;
 
     return serials.filter(serial => {
-      const manufactured = serial.manufacturedAt
-        ? new Date(serial.manufacturedAt).toISOString().slice(0, 10)
-        : '';
-      const manufacturedLocale = serial.manufacturedAt
-        ? new Date(serial.manufacturedAt).toLocaleString().toLowerCase()
-        : '';
+      // Serial match
+      const matchSerial = !sNo || String(serial.serialNo || '').toLowerCase().includes(sNo);
 
-      const searchableText = [
-        serial.serialNo,
-        serial.itemId?.sku,
-        serial.itemId?.name,
-        serial.lotId?.lotNo,
-        serial.campaignId?.name,
-        manufactured,
-        manufacturedLocale,
-      ]
-        .map(v => String(v || '').toLowerCase())
-        .join(' ');
+      // SKU match
+      const matchSku = !sku || String(serial.itemId?.sku || '').toLowerCase().includes(sku);
 
-      return rawTokens.every(token => searchableText.includes(token));
+      // Status match (checks serial or lot status)
+      const currentStatus = String(serial.qualityStatus || serial.lotId?.qualityStatus || '').toUpperCase();
+      const matchStatus = !status || currentStatus === status;
+
+      // Date match (checks YYYY-MM-DD format against manufacturedAt or createdAt)
+      let matchDate = true;
+      if (targetDate) {
+        const dateSource = serial.manufacturedAt || serial.createdAt;
+        const serialDateStr = dateSource ? new Date(dateSource).toISOString().slice(0, 10) : '';
+        matchDate = serialDateStr === targetDate;
+      }
+
+      return matchSerial && matchSku && matchStatus && matchDate;
     });
-  }, [search, searchByDate, serials]);
+  }, [serials, serialNoFilter, skuFilter, qualityStatusFilter, dateFilter]);
 
-  // 2. Fallback to API if local count < 5
+  // 3. Fallback: Trigger API call when local matching records < 5
   useEffect(() => {
-    const trimmedSearch = search.trim();
-    const queryKey = `${trimmedSearch}__${searchByDate || ''}`;
+    const sNo = serialNoFilter.trim();
+    const sku = skuFilter.trim();
+    const status = qualityStatusFilter.trim();
+    const date = dateFilter ? String(dateFilter).trim() : '';
 
-    // If query is empty or we already searched this exact term on the server, skip
-    if ((!trimmedSearch && !searchByDate) || executedServerQueries.current.has(queryKey)) {
-      return;
-    }
+    // Abort if no criteria is filled
+    if (!sNo && !sku && !status && !date) return;
 
-    // Trigger API only if local matches are fewer than 5
+    const queryKey = `${sNo}__${sku}__${status}__${date}`;
+    if (executedServerQueries.current.has(queryKey)) return;
+
     if (visible.length < 5) {
       const timer = setTimeout(async () => {
         try {
           setIsSearchingServer(true);
-          const response = await axiosInstance.get('/api/inventory/serials', {
-            params: {
-              search: trimmedSearch || undefined,
-              date: searchByDate || undefined,
-              limit: 50,
-            },
-          });
 
+          // Structured payload expected by backend
+          const params = {
+            serialNo: sNo || undefined,
+            sku: sku || undefined,
+            qualityStatus: status || undefined,
+            date: date || undefined,
+            limit: 50,
+          };
+
+          const response = await axiosInstance.get('/api/inventory/serials', { params });
           const serverResults = response.data || [];
           executedServerQueries.current.add(queryKey);
 
           if (serverResults.length > 0) {
             setSerials(prev => {
-              // Merge results avoiding duplicate records
               const existingIds = new Set(prev.map(item => item._id || item.serialNo));
               const freshItems = serverResults.filter(
                 item => !existingIds.has(item._id || item.serialNo)
@@ -109,11 +116,11 @@ export default function InventorySerialRegistryPage() {
         } finally {
           setIsSearchingServer(false);
         }
-      }, 350); // 350ms debounce
+      }, 350);
 
       return () => clearTimeout(timer);
     }
-  }, [visible.length, search, searchByDate]);
+  }, [visible.length, serialNoFilter, skuFilter, qualityStatusFilter, dateFilter]);
 
   const selectedSet = new Set(selected);
   const labelRows = serials.filter(serial => selectedSet.has(serial.serialNo));
@@ -141,25 +148,45 @@ export default function InventorySerialRegistryPage() {
         <SerialLabels serials={labelRows} onClose={() => setPrinting(false)} />
       )}
 
-      <div className="rounded-xl flex justify-center items-center">
+      {/* 4-Input Structured Search Bar */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 items-end">
         <CustomInput
-          parent_className="w-auto"
-          className="rounded-lg bg-transparent px-3 py-2 w-[350px]"
-          value={search}
-          placeholder="Search serial, SKU, product, lot or campaign"
-          onChange={event => setSearch(event.target.value)}
+          label="Serial Number"
+          name="serialNo"
+          value={serialNoFilter}
+          placeholder="e.g. SN-2026-001"
+          onChange={event => setSerialNoFilter(event.target.value)}
         />
-        <DateInput
-          className="ml-3 w-fit"
-          singleValue={searchByDate}
-          mode="single"
-          onChange={value => setSearchByDate(value)}
+        <CustomInput
+          label="SKU"
+          name="sku"
+          value={skuFilter}
+          placeholder="e.g. BLKT-1260-96"
+          onChange={event => setSkuFilter(event.target.value)}
         />
+        <AdaptiveSelectInput
+          label="Quality Status"
+          name="qualityStatus"
+          value={qualityStatusFilter}
+          options={[
+            { value: 'AVAILABLE', label: 'Available' },
+            { value: 'HOLD', label: 'Hold' },
+            { value: 'REJECTED', label: 'Rejected' },
+          ]}
+          onChange={event => setQualityStatusFilter(event.target.value)}
+        />
+          <DateInput
+            label={"Select Date"}
+            className="w-full"
+            singleValue={dateFilter}
+            mode="single"
+            onChange={value => setDateFilter(value)}
+          />
       </div>
 
       {isSearchingServer && (
         <p className="text-center text-xs text-blue-400 animate-pulse">
-          Searching server for additional records...
+          Searching server for records matching criteria...
         </p>
       )}
 
@@ -169,72 +196,75 @@ export default function InventorySerialRegistryPage() {
             <tr>
               <th className="p-3">Print</th>
               <th className="p-3">Serial</th>
-              <th className="p-3">Product</th>
-              <th className="p-3">Lot / campaign</th>
+              <th className="p-3">Product / SKU</th>
+              <th className="p-3">Status</th>
+              <th className="p-3">Lot / Campaign</th>
               <th className="p-3">Weight</th>
               <th className="p-3">Manufactured</th>
               <th className="p-3">Trace</th>
             </tr>
           </thead>
           <tbody>
-            {visible.map(serial => (
-              <tr key={serial._id || serial.serialNo} className="border-b border-white-100 last:border-0">
-                <td className="p-3">
-                  <input
-                    type="checkbox"
-                    checked={selectedSet.has(serial.serialNo)}
-                    onChange={() =>
-                      setSelected(current =>
-                        selectedSet.has(serial.serialNo)
-                          ? current.filter(value => value !== serial.serialNo)
-                          : [...current, serial.serialNo]
-                      )
-                    }
-                  />
-                </td>
-                <td className="p-3 font-mono">{serial.serialNo}</td>
-                <td className="p-3">
-                  <p>{serial.itemId?.name}</p>
-                  <p className="text-xs text-secondary-text">{serial.itemId?.sku}</p>
-                </td>
-                <td className="p-3">
-                  <p>{serial.lotId?.lotNo}</p>
-                  <p className="text-xs text-secondary-text">{serial.campaignId?.name || '—'}</p>
-                </td>
-                <td className="p-3">
-                  {serial.catchQuantity ?? '—'} {serial.catchUom || ''}
-                </td>
-                <td className="p-3">
-                  {serial.manufacturedAt ? new Date(serial.manufacturedAt).toLocaleString() : '—'}
-                </td>
-                <td className="p-3">
-                  <a
-                    className="text-blue-500 hover:underline"
-                    href={`/trace/${serial.serialNo}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open
-                  </a>
-                </td>
-              </tr>
-            ))}
+            {visible.map(serial => {
+              const currentStatus = serial.qualityStatus || serial.lotId?.qualityStatus || '—';
+              return (
+                <tr key={serial._id || serial.serialNo} className="border-b border-white-100 last:border-0">
+                  <td className="p-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedSet.has(serial.serialNo)}
+                      onChange={() =>
+                        setSelected(current =>
+                          selectedSet.has(serial.serialNo)
+                            ? current.filter(value => value !== serial.serialNo)
+                            : [...current, serial.serialNo]
+                        )
+                      }
+                    />
+                  </td>
+                  <td className="p-3 font-mono font-medium">{serial.serialNo}</td>
+                  <td className="p-3">
+                    <p>{serial.itemId?.name || '—'}</p>
+                    <p className="text-xs text-secondary-text">{serial.itemId?.sku || '—'}</p>
+                  </td>
+                  <td className="p-3">
+                    <span className="inline-block rounded px-2 py-0.5 text-xs font-medium uppercase bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
+                      {currentStatus}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    <p>{serial.lotId?.lotNo || '—'}</p>
+                    <p className="text-xs text-secondary-text">{serial.campaignId?.name || '—'}</p>
+                  </td>
+                  <td className="p-3">
+                    {serial.catchQuantity ?? '—'} {serial.catchUom || ''}
+                  </td>
+                  <td className="p-3">
+                    {serial.manufacturedAt ? new Date(serial.manufacturedAt).toLocaleDateString() : '—'}
+                  </td>
+                  <td className="p-3">
+                    <a
+                      className="text-blue-500 hover:underline"
+                      href={`/trace/${serial.serialNo}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Open
+                    </a>
+                  </td>
+                </tr>
+              );
+            })}
             {!visible.length && !isSearchingServer && (
               <tr>
-                <td colSpan="7" className="p-8 text-center text-secondary-text">
-                  No serials match the filter.
+                <td colSpan="8" className="p-8 text-center text-secondary-text">
+                  No serials match the current filter criteria.
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
-
-      {serials.length >= 1000 && (
-        <p className="text-sm text-amber-400">
-          Showing the first 1,000 records. Remote search automatically queries older records if not found locally.
-        </p>
-      )}
     </div>
   );
 }
