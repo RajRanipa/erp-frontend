@@ -1,5 +1,5 @@
-import ShiftProductionPage from '../components/ShiftProductionPage';
+import { redirect } from 'next/navigation';
 
-export default function DayProductionPage() {
-  return <ShiftProductionPage shift="DAY" />;
+export default function LegacyDayProductionPage() {
+  redirect('/manufacturing/campaigns');
 }

@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Manufacturing from '../../../page';
 import CampaignForm from '../../../components/CampaignForm';
 import { axiosInstance } from '@/lib/axiosInstance';
 import { Toast } from '@/Components/toast';
@@ -26,14 +25,14 @@ export default function EditCampaignPage() {
         setLoading(false);
       }
     })();
-  }, [id, initial]);
+  }, [id]);
 
   const handleUpdate = async (values) => {
     try {
       setSubmitting(true);
       await axiosInstance.put(`/api/campaigns/${id}`, values);
       Toast.success('Campaign updated');
-      router.push('/manufacturing'); // or go back to list
+      router.push(`/manufacturing/campaigns/${id}`);
     } catch (e) {
       Toast.error( e?.response?.data?.message || 'Update failed');
     } finally {
@@ -42,14 +41,13 @@ export default function EditCampaignPage() {
   };
 
   return (
-    <Manufacturing>
-      <div className="max-w-3xl">
-        {/* <h1 className="lg:text-3xl text-xl  font-semibold mb-6">Edit Campaign</h1> */}
+      <div className="mx-auto max-w-3xl">
+        <h1 className="mb-2 text-3xl font-semibold">Edit campaign</h1>
+        <p className="mb-6 text-sm text-white-500">Update campaign dates, status and operational remarks.</p>
         {loading
           ? <div>Loading…</div>
           : <CampaignForm mode="edit" initialValues={initial} onSubmit={handleUpdate} submitting={submitting} />
         }
       </div>
-    </Manufacturing>
   );
 }

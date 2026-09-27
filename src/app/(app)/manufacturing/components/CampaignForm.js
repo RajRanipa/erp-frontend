@@ -22,7 +22,7 @@ function normalizeDate(d) {
 }
 
 export default function CampaignForm({
-    initialValues = { name: '', startDate: '', status: 'PLANNED', remarks: '' },
+    initialValues = { name: '', startDate: '', endDate: '', status: 'PLANNED', remarks: '' },
     mode = 'create',            // 'create' | 'edit'
     onSubmit,                   // async (values) => void
     submitting = false,
@@ -30,11 +30,13 @@ export default function CampaignForm({
     const normalizedInitialValues = useMemo(() => ({
         name: initialValues?.name || '',
         startDate: normalizeDate(initialValues?.startDate),
+        endDate: normalizeDate(initialValues?.endDate),
         status: initialValues?.status || 'PLANNED',
         remarks: initialValues?.remarks || '',
     }), [
         initialValues?.name,
         initialValues?.startDate,
+        initialValues?.endDate,
         initialValues?.status,
         initialValues?.remarks,
     ]);
@@ -53,12 +55,14 @@ export default function CampaignForm({
         const e = {};
         const today = new Date(); today.setHours(0, 0, 0, 0);
         const s = values.startDate ? new Date(values.startDate) : null;
-        // const ed = values.endDate ? new Date(values.endDate) : null;
+        const ed = values.endDate ? new Date(values.endDate) : null;
 
         // requireds
         if (!values.name?.trim()) e.name = 'Name is required';
         if (!values.status) e.status = 'Status is required';
         if (!s) e.startDate = 'Start Date is required';
+        if (values.status === 'COMPLETED' && !ed) e.endDate = 'End Date is required for a completed campaign';
+        if (s && ed && ed.getTime() < s.getTime()) e.endDate = 'End Date cannot be before Start Date';
 
         const status = values.status; // proposed status in form
 
@@ -101,11 +105,12 @@ export default function CampaignForm({
         e.preventDefault();
         const nextErrors = validate(formData);
         setErrors(nextErrors);
-        setTouched({ name: true, startDate: true, status: true, remarks: !!formData.remarks });
+        setTouched({ name: true, startDate: true, endDate: true, status: true, remarks: !!formData.remarks });
         if (Object.keys(nextErrors).length) return;
         await onSubmit({
             name: formData.name.trim(),
             startDate: formData.startDate,
+            endDate: formData.endDate || '',
             status: formData.status,
             remarks: formData.remarks || '',
         });
@@ -155,6 +160,19 @@ export default function CampaignForm({
                     placeholder="Start date"
                     label="Start Date"
                     error={touched.startDate ? errors.startDate : ''}
+                />
+
+                <DateInput
+                    key={`endDate-${resetKey}`}
+                    mode="single"
+                    name="endDate"
+                    singleValue={formData.endDate}
+                    onChange={(v) => handleChange('endDate', v)}
+                    onBlur={() => handleBlur('endDate')}
+                    required={formData.status === 'COMPLETED'}
+                    placeholder="End date"
+                    label={formData.status === 'COMPLETED' ? 'End Date' : 'Planned End Date'}
+                    error={touched.endDate ? errors.endDate : ''}
                 />
 
                 <div className="md:col-span-2">

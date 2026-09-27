@@ -3,9 +3,9 @@ import { cn } from '../utils/cn';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export default function NavLink({ href, children, activeClass, inactiveClass, className ='', type ='link', onClick = () => {}, prefetch = false }) {
+export default function NavLink({ href, children, activeClass, inactiveClass, className ='', type ='link', onClick = () => {}, prefetch = false, matchPrefix = false }) {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  const isActive = pathname === href || (matchPrefix && pathname.startsWith(`${href}/`));
   // console.log("isActive",isActive, pathname, href)
   
   if (type && type.toLowerCase() === 'button') {

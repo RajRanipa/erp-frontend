@@ -1,5 +1,5 @@
-import ShiftProductionPage from '../components/ShiftProductionPage';
+import { redirect } from 'next/navigation';
 
-export default function NightProductionPage() {
-  return <ShiftProductionPage shift="NIGHT" />;
+export default function LegacyNightProductionPage() {
+  redirect('/manufacturing/campaigns');
 }
