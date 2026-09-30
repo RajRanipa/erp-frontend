@@ -2,15 +2,15 @@
 
 import AdaptiveSelectInput from '@/Components/inputs/AdaptiveSelectInput';
 import BaseDatePicker from '@/Components/inputs/BaseDatePicker';
+import Table from '@/Components/layout/Table';
 import useAuthz from '@/hooks/useAuthz';
+import { cn } from '@/utils/cn';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { use, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import CampaignStatusBadge from '../../components/CampaignStatusBadge';
 import { formatDate, formatDateTime, formatWeight, specificationText, todayInIndia } from '../../lib/formatters';
 import { getCampaignProductionReport } from '../../lib/manufacturingApi';
-import { cn } from '@/utils/cn';
-import Table from '@/Components/layout/Table';
 
 const SHIFT_OPTIONS = [
   { value: 'DAY', label: 'Day · 07:30 AM–07:30 PM' },
@@ -67,8 +67,7 @@ export default function CampaignReportPage() {
     shift: 'DAY',
     quality: 'ALL',
     familyId: '',
-    page: 1,
-    limit: 50,
+    limit: 1000, // <-- Requests all records to prevent backend 50-item capping
   }));
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -80,12 +79,14 @@ export default function CampaignReportPage() {
     let active = true;
     setLoading(true);
     setError('');
+
     getCampaignProductionReport(id, filters, controller.signal)
       .then(data => { if (active) setReport(data); })
       .catch(err => {
         if (active && err?.code !== 'ERR_CANCELED') setError(err?.response?.data?.message || 'Unable to load this production report');
       })
       .finally(() => { if (active) setLoading(false); });
+
     return () => {
       active = false;
       controller.abort();
@@ -105,7 +106,6 @@ export default function CampaignReportPage() {
       ...current,
       ...(['date', 'shift'].includes(name) ? { familyId: '' } : {}),
       [name]: value === 'ALL' && name === 'familyId' ? '' : value,
-      page: 1,
     }));
   };
 
@@ -113,41 +113,69 @@ export default function CampaignReportPage() {
   const summary = report?.summary || {};
   const pagination = report?.pagination || { page: 1, pages: 1, total: 0 };
 
-  const detailProductionData = useMemo(() => { 
-    if(report?.records?.length > 0){
-      return report?.records
-    }
-  });
+  // Always return an array (empty array fallback instead of undefined)
+  const detailProductionData = useMemo(() => {
+    return report?.records || [];
+  }, [report?.records]);
 
   const productionColumns = useMemo(() => [
     {
       key: 'manufactured_at',
       header: 'Manufactured at',
       className: 'whitespace-nowrap px-4 py-3 text-sm',
-      render: row => (
-        <span>
-          {formatDateTime(row.at)}
-        </span>),
+      render: row => <span>{formatDateTime(row.at)}</span>,
     },
     {
       key: 'item',
-      header: 'Item', 
-      className:"px-4 py-3",
+      header: 'Item',
+      className: 'px-4 py-3',
+      render: row => <ItemIdentity record={row} />,
+    },
+    {
+      key: 'specification',
+      header: 'Specification',
+      className: 'max-w-sm px-4 py-3 text-sm text-white-500',
+      render: row => specificationText(row),
+    },
+    {
+      key: 'serial_no.',
+      header: 'Serial no.',
+      className: 'px-4 py-3 font-mono text-sm',
+      render: row => (row?.serialNo ? <a href={`/trace/${row.serialNo}`}>{row.serialNo}</a> : '—'),
+    },
+    {
+      key: 'weight',
+      header: 'Weight',
+      className: 'whitespace-nowrap px-4 py-3 text-right font-semibold',
+      render: row => formatWeight(row.weightKg),
+    },
+    {
+      key: 'quality',
+      header: 'Quality',
+      className: 'px-4 py-3',
+      render: row => <QualityBadge accepted={row.statusOk} />,
+    },
+    {
+      key: 'source',
+      header: 'Source',
+      className: 'px-4 py-3 text-sm text-white-500',
       render: row => (
-        <ItemIdentity record={row} />
+        <>
+          <p>{row.gatewayId}</p>
+          <p className="mt-1 text-xs">Scale {row.scaleNo} · {row.recordId}</p>
+        </>
       ),
     },
-    { key: 'specification', header: 'Specification', className:"max-w-sm px-4 py-3 text-sm text-white-500", render: row => specificationText(row) },
-    { key: 'serial_no.', header: 'Serial no.', className:"px-4 py-3 font-mono text-sm", render: row => (row?.serialNo ? <a href={"/trace/" + row.serialNo}>{row.serialNo}</a> : '—')},
-    { key: 'weight', header: 'Weight', className:"whitespace-nowrap px-4 py-3 text-right font-semibold", render: row => (formatWeight(row.weightKg)) },
-    { key: 'quality', header: 'Quality',className:"px-4 py-3", render: row => (<QualityBadge accepted={row.statusOk} />) },
-    { key: 'source', header: 'Source' , className:"px-4 py-3 text-sm text-white-500", render: row => (<><p>{row.gatewayId}</p><p className="mt-1 text-xs">Scale {row.scaleNo} · {row.recordId}</p></>)},
-    { key: 'inventory', header: 'Inventory', className:"px-4 py-3",
+    {
+      key: 'inventory',
+      header: 'Inventory',
+      className: 'px-4 py-3',
       render: row => (
-      <span className='flex flex-col'>
-        <InventoryBadge status={row.inventoryStatus} />
-        {row.inventoryLastError ? <p className="mt-2 max-w-xs text-xs text-error">{row.inventoryLastError}</p> : null}
-      </span>)
+        <span className="flex flex-col">
+          <InventoryBadge status={row.inventoryStatus} />
+          {row.inventoryLastError ? <p className="mt-2 max-w-xs text-xs text-error">{row.inventoryLastError}</p> : null}
+        </span>
+      ),
     },
   ], []);
 
@@ -173,16 +201,14 @@ export default function CampaignReportPage() {
       <section className="rounded-2xl">
         <dl className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {[
-            [{ key: 'Start date', class: "from-amber-500/20 to-amber-500/5" }, formatDate(campaign?.startDate)],
-            [{ key: 'End date', class: "from-yellow-500/20 to-yellow-500/5" }, formatDate(campaign?.endDate)],
-            [{ key: 'Total rolls', class: "from-indigo-500/20 to-indigo-500/5" }, Number(campaign?.totalBlanketRollsProduced || 0).toLocaleString('en-IN')],
-            [{ key: 'Good fibre', class: "from-emerald-500/20 to-emerald-500/5" }, formatWeight(campaign?.totalGoodFiberProduced)],
-            [{ key: 'Rejected fibre', class: "from-red-500/20 to-red-500/5" }, formatWeight(campaign?.totalRejectedFiber)],
+            [{ key: 'Start date', class: 'from-amber-500/20 to-amber-500/5' }, formatDate(campaign?.startDate)],
+            [{ key: 'End date', class: 'from-yellow-500/20 to-yellow-500/5' }, formatDate(campaign?.endDate)],
+            [{ key: 'Total rolls', class: 'from-indigo-500/20 to-indigo-500/5' }, Number(campaign?.totalBlanketRollsProduced || 0).toLocaleString('en-IN')],
+            [{ key: 'Good fibre', class: 'from-emerald-500/20 to-emerald-500/5' }, formatWeight(campaign?.totalGoodFiberProduced)],
+            [{ key: 'Rejected fibre', class: 'from-red-500/20 to-red-500/5' }, formatWeight(campaign?.totalRejectedFiber)],
           ].map(([label, value]) => (
-            <div key={label.key} className={cn(label.class, "p-4 rounded-2xl border border-color-100 bg-gradient-to-br")}>
-              <dt className="text-xs uppercase tracking-wider text-white-500">
-                {label.key} {/* <--- Fix is here */}
-              </dt>
+            <div key={label.key} className={cn(label.class, 'p-4 rounded-2xl border border-color-100 bg-gradient-to-br')}>
+              <dt className="text-xs uppercase tracking-wider text-white-500">{label.key}</dt>
               <dd className="mt-2 font-semibold">{value}</dd>
             </div>
           ))}
@@ -269,6 +295,7 @@ export default function CampaignReportPage() {
           </div>
           <p className="text-sm text-white-500">{Number(pagination.total || 0).toLocaleString('en-IN')} records</p>
         </div>
+
         <Table
           columns={productionColumns}
           data={detailProductionData}
@@ -277,47 +304,6 @@ export default function CampaignReportPage() {
           pageSize={25}
           emptyMessage="No individual records match this selection."
         />
-        {/* <div className="overflow-x-auto">
-          <table className="min-w-[1200px] w-full">
-            <thead className="bg-black-300 text-left text-xs uppercase tracking-wider text-white-500">
-              <tr>
-                <th className="px-4 py-3">Manufactured at</th>
-                <th className="px-4 py-3">Item</th>
-                <th className="px-4 py-3">Specification</th>
-                <th className="px-4 py-3">Serial no.</th>
-                <th className="px-4 py-3 text-right">Weight</th>
-                <th className="px-4 py-3">Quality</th>
-                <th className="px-4 py-3">Source</th>
-                <th className="px-4 py-3">Inventory</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white-100">
-              {loading ? (
-                <tr><td colSpan="8" className="px-4 py-12 text-center text-sm text-white-500">Loading individual records…</td></tr>
-              ) : report?.records?.length ? report.records.map(record => (
-                <tr key={record._id} className="align-top hover:bg-white-100">
-                  <td className="whitespace-nowrap px-4 py-3 text-sm">{formatDateTime(record.at)}</td>
-                  <td className="px-4 py-3"><ItemIdentity record={record} /></td>
-                  <td className="max-w-sm px-4 py-3 text-sm text-white-500">{specificationText(record)}</td>
-                  <td className="px-4 py-3 font-mono text-sm"><a href={"/trace/" + record?.serialNo}></a>{record.serialNo || '—'}</td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right font-semibold">{formatWeight(record.weightKg)}</td>
-                  <td className="px-4 py-3"><QualityBadge accepted={record.statusOk} /></td>
-                  <td className="px-4 py-3 text-sm text-white-500"><p>{record.gatewayId}</p><p className="mt-1 text-xs">Scale {record.scaleNo} · {record.recordId}</p></td>
-                  <td className="px-4 py-3"><InventoryBadge status={record.inventoryStatus} />{record.inventoryLastError ? <p className="mt-2 max-w-xs text-xs text-error">{record.inventoryLastError}</p> : null}</td>
-                </tr>
-              )) : (
-                <tr><td colSpan="8" className="px-4 py-12 text-center text-sm text-white-500">No individual records match this selection.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        <div className="flex flex-col gap-3 border-t border-white-100 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-white-500">Page {pagination.page} of {pagination.pages}</p>
-          <div className="flex gap-2">
-            <button type="button" className="btn-border" disabled={loading || pagination.page <= 1} onClick={() => setFilters(current => ({ ...current, page: current.page - 1 }))}>Previous</button>
-            <button type="button" className="btn-border" disabled={loading || pagination.page >= pagination.pages} onClick={() => setFilters(current => ({ ...current, page: current.page + 1 }))}>Next</button>
-          </div>
-        </div> */}
       </section>
     </div>
   );
