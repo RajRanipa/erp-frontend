@@ -118,11 +118,12 @@ export default function CampaignReportPage() {
       return report?.records
     }
   });
-  
+
   const productionColumns = useMemo(() => [
     {
       key: 'manufactured_at',
       header: 'Manufactured at',
+      className: 'whitespace-nowrap px-4 py-3 text-sm',
       render: row => (
         <span>
           {formatDateTime(row.at)}
@@ -130,17 +131,18 @@ export default function CampaignReportPage() {
     },
     {
       key: 'item',
-      header: 'Item',
+      header: 'Item', 
+      className:"px-4 py-3",
       render: row => (
         <ItemIdentity record={row} />
       ),
     },
-    { key: 'specification', header: 'Specification', render: row => specificationText(row) },
-    { key: 'serial_no.', header: 'Serial no.', render: row => (row?.serialNo ? <a href={"/trace/" + row.serialNo}>{row.serialNo}</a> : '—')},
-    { key: 'weight', header: 'Weight', render: row => (formatWeight(row.weightKg)) },
-    { key: 'quality', header: 'Quality', render: row => (<QualityBadge accepted={row.statusOk} />) },
-    { key: 'source', header: 'Source' , render: row => (<><p>{row.gatewayId}</p><p className="mt-1 text-xs">Scale {row.scaleNo} · {row.recordId}</p></>)},
-    { key: 'inventory', header: 'Inventory', 
+    { key: 'specification', header: 'Specification', className:"max-w-sm px-4 py-3 text-sm text-white-500", render: row => specificationText(row) },
+    { key: 'serial_no.', header: 'Serial no.', className:"px-4 py-3 font-mono text-sm", render: row => (row?.serialNo ? <a href={"/trace/" + row.serialNo}>{row.serialNo}</a> : '—')},
+    { key: 'weight', header: 'Weight', className:"whitespace-nowrap px-4 py-3 text-right font-semibold", render: row => (formatWeight(row.weightKg)) },
+    { key: 'quality', header: 'Quality',className:"px-4 py-3", render: row => (<QualityBadge accepted={row.statusOk} />) },
+    { key: 'source', header: 'Source' , className:"px-4 py-3 text-sm text-white-500", render: row => (<><p>{row.gatewayId}</p><p className="mt-1 text-xs">Scale {row.scaleNo} · {row.recordId}</p></>)},
+    { key: 'inventory', header: 'Inventory', className:"px-4 py-3",
       render: row => (
       <span className='flex flex-col'>
         <InventoryBadge status={row.inventoryStatus} />
