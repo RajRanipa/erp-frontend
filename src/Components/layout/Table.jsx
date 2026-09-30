@@ -42,7 +42,7 @@ export default function Table(
   const paginatedRows = useMemo(() => {
     if (!pagination || !pageSize) return sorted;
     const start = (currentPage - 1) * pageSize;
-    return sorted.slice(start, start + pageSize);
+    return sorted?.slice(start, start + pageSize);
   }, [sorted, currentPage, pageSize, pagination]);
 
   // Column groups & visibility (for grouped/collapsible columns)
@@ -266,7 +266,7 @@ export default function Table(
           </tr>
         </thead>
         <tbody>
-          {paginatedRows.map((row, idx) => {
+          {paginatedRows?.map((row, idx) => {
             const key = rowKey(row);
             return (
               <tr key={key || idx + '_key'} className={`h-fit hover:bg-white-200/90 ${idx % 2 ? '' : 'bg-white-100'}`}>
@@ -353,7 +353,7 @@ export default function Table(
 
         {/* Page info */}
         <div>
-          Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, sorted.length)} of {sorted.length} items
+          Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, sorted?.length)} of {sorted?.length} items
         </div>
 
         {/* Prev / Next buttons */}
@@ -367,7 +367,7 @@ export default function Table(
           </button>
           <button
             className="px-2 py-1 border rounded disabled:opacity-50"
-            disabled={currentPage * pageSize >= sorted.length}
+            disabled={currentPage * pageSize >= sorted?.length}
             onClick={() => setCurrentPage(prev => prev + 1)}
           >
             Next

@@ -5,11 +5,12 @@ import BaseDatePicker from '@/Components/inputs/BaseDatePicker';
 import useAuthz from '@/hooks/useAuthz';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { use, useEffect, useMemo, useState } from 'react';
 import CampaignStatusBadge from '../../components/CampaignStatusBadge';
 import { formatDate, formatDateTime, formatWeight, specificationText, todayInIndia } from '../../lib/formatters';
 import { getCampaignProductionReport } from '../../lib/manufacturingApi';
 import { cn } from '@/utils/cn';
+import Table from '@/Components/layout/Table';
 
 const SHIFT_OPTIONS = [
   { value: 'DAY', label: 'Day · 07:30 AM–07:30 PM' },
@@ -111,6 +112,42 @@ export default function CampaignReportPage() {
   const campaign = report?.campaign;
   const summary = report?.summary || {};
   const pagination = report?.pagination || { page: 1, pages: 1, total: 0 };
+
+  const detailProductionData = useMemo(() => { 
+    if(report?.records?.length > 0){
+      return report?.records
+    }
+  });
+  
+  const productionColumns = useMemo(() => [
+    {
+      key: 'manufactured_at',
+      header: 'Manufactured at',
+      render: row => (
+        <span>
+          {formatDateTime(row.at)}
+        </span>),
+    },
+    {
+      key: 'item',
+      header: 'Item',
+      render: row => (
+        <ItemIdentity record={row} />
+      ),
+    },
+    { key: 'specification', header: 'Specification', render: row => specificationText(row) },
+    { key: 'serial_no.', header: 'Serial no.', render: row => {row?.serialNo ? <a href={"/trace/" + row.serialNo}>{row.serialNo}</a> : '—'}},
+    { key: 'weight', header: 'Weight', render: row => {formatWeight(row.weightKg)} },
+    { key: 'quality', header: 'Quality', render: row => {<QualityBadge accepted={row.statusOk} />} },
+    { key: 'source', header: 'Source' , render: row => {<><p>{row.gatewayId}</p><p className="mt-1 text-xs">Scale {row.scaleNo} · {row.recordId}</p></>}},
+    { key: 'inventory', header: 'Inventory', 
+      render: row => {
+      <span className='flex flex-col'>
+        <InventoryBadge status={row.inventoryStatus} />
+        {row.inventoryLastError ? <p className="mt-2 max-w-xs text-xs text-error">{row.inventoryLastError}</p> : null}
+      </span>}
+    },
+  ], []);
 
   return (
     <div className="mx-auto max-w-[1800px] space-y-5 pb-10 flex flex-col gap-3">
@@ -230,7 +267,15 @@ export default function CampaignReportPage() {
           </div>
           <p className="text-sm text-white-500">{Number(pagination.total || 0).toLocaleString('en-IN')} records</p>
         </div>
-        <div className="overflow-x-auto">
+        <Table
+          columns={productionColumns}
+          data={detailProductionData}
+          rowKey={row => row._id}
+          loading={loading}
+          pageSize={25}
+          emptyMessage="No individual records match this selection."
+        />
+        {/* <div className="overflow-x-auto">
           <table className="min-w-[1200px] w-full">
             <thead className="bg-black-300 text-left text-xs uppercase tracking-wider text-white-500">
               <tr>
@@ -252,7 +297,7 @@ export default function CampaignReportPage() {
                   <td className="whitespace-nowrap px-4 py-3 text-sm">{formatDateTime(record.at)}</td>
                   <td className="px-4 py-3"><ItemIdentity record={record} /></td>
                   <td className="max-w-sm px-4 py-3 text-sm text-white-500">{specificationText(record)}</td>
-                  <td className="px-4 py-3 font-mono text-sm">{record.serialNo || '—'}</td>
+                  <td className="px-4 py-3 font-mono text-sm"><a href={"/trace/" + record?.serialNo}></a>{record.serialNo || '—'}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-right font-semibold">{formatWeight(record.weightKg)}</td>
                   <td className="px-4 py-3"><QualityBadge accepted={record.statusOk} /></td>
                   <td className="px-4 py-3 text-sm text-white-500"><p>{record.gatewayId}</p><p className="mt-1 text-xs">Scale {record.scaleNo} · {record.recordId}</p></td>
@@ -270,7 +315,7 @@ export default function CampaignReportPage() {
             <button type="button" className="btn-border" disabled={loading || pagination.page <= 1} onClick={() => setFilters(current => ({ ...current, page: current.page - 1 }))}>Previous</button>
             <button type="button" className="btn-border" disabled={loading || pagination.page >= pagination.pages} onClick={() => setFilters(current => ({ ...current, page: current.page + 1 }))}>Next</button>
           </div>
-        </div>
+        </div> */}
       </section>
     </div>
   );
