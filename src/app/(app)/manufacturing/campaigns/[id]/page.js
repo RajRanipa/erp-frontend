@@ -136,16 +136,16 @@ export default function CampaignReportPage() {
       ),
     },
     { key: 'specification', header: 'Specification', render: row => specificationText(row) },
-    { key: 'serial_no.', header: 'Serial no.', render: row => {row?.serialNo ? <a href={"/trace/" + row.serialNo}>{row.serialNo}</a> : '—'}},
-    { key: 'weight', header: 'Weight', render: row => {formatWeight(row.weightKg)} },
-    { key: 'quality', header: 'Quality', render: row => {<QualityBadge accepted={row.statusOk} />} },
-    { key: 'source', header: 'Source' , render: row => {<><p>{row.gatewayId}</p><p className="mt-1 text-xs">Scale {row.scaleNo} · {row.recordId}</p></>}},
+    { key: 'serial_no.', header: 'Serial no.', render: row => (row?.serialNo ? <a href={"/trace/" + row.serialNo}>{row.serialNo}</a> : '—')},
+    { key: 'weight', header: 'Weight', render: row => (formatWeight(row.weightKg)) },
+    { key: 'quality', header: 'Quality', render: row => (<QualityBadge accepted={row.statusOk} />) },
+    { key: 'source', header: 'Source' , render: row => (<><p>{row.gatewayId}</p><p className="mt-1 text-xs">Scale {row.scaleNo} · {row.recordId}</p></>)},
     { key: 'inventory', header: 'Inventory', 
-      render: row => {
+      render: row => (
       <span className='flex flex-col'>
         <InventoryBadge status={row.inventoryStatus} />
         {row.inventoryLastError ? <p className="mt-2 max-w-xs text-xs text-error">{row.inventoryLastError}</p> : null}
-      </span>}
+      </span>)
     },
   ], []);
 
