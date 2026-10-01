@@ -1,3 +1,5 @@
+import { cn } from "@/utils/cn";
+
 const IST_TIMEZONE = 'Asia/Kolkata';
 const DATE_FORMATTER = new Intl.DateTimeFormat('en-IN', {
   day: '2-digit', month: 'short', year: 'numeric', timeZone: IST_TIMEZONE,
@@ -57,11 +59,20 @@ export function todayInIndia() {
 }
 
 export function specificationText(record) {
-  const parts = [];
-  if (record?.temperature) parts.push(`${record.temperature.value} ${record.temperature.unit}`);
-  if (record?.density) parts.push(`${record.density.value} ${record.density.unit}`);
-  if (record?.dimension) {
-    parts.push(`${record.dimension.length} × ${record.dimension.width} × ${record.dimension.thickness} ${record.dimension.unit}`);
+  let tempClass = '';
+  let temperature = '';
+  let density ='';
+  let dimension = '';
+  if (record?.temperature) {
+    tempClass = record.temperature.value >= 1400 ? "text-red-500" : "text-blue-500";
+    temperature = `${record.temperature.value} ${record.temperature.unit}`;
   }
-  return parts.join(' · ') || 'Specification not mapped';
+  if (record?.density) density = `${record.density.value} ${record.density.unit}`;
+  if (record?.dimension) {
+     dimension = `${record.dimension.length} × ${record.dimension.width} × ${record.dimension.thickness} ${record.dimension.unit}`;
+  }
+  return (<div>
+    <p className={cn(tempClass, "font-semibold")}>{temperature}</p>
+    <p>{density || '-'} · {dimension || '-'}</p>
+  </div>)
 }
