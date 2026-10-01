@@ -102,7 +102,7 @@ export function specificationText(record) {
       ) : null}
 
       {(density || dimension) ? (
-        <p className="text-xs text-white-500">
+        <p className="text-xs text-white-700">
           {[density, dimension].filter(Boolean).join(' · ')}
         </p>
       ) : null}

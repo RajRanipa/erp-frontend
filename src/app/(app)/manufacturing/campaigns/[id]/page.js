@@ -79,7 +79,7 @@ const PRODUCTION_COLUMNS = [
   {
     key: 'specification',
     header: 'Specification',
-    className: 'max-w-sm px-4 py-3 text-sm text-white-700',
+    className: 'max-w-sm px-4 py-3',
     render: row => specificationText(row),
   },
   {
@@ -112,6 +112,7 @@ const PRODUCTION_COLUMNS = [
         <p className="mt-1 text-xs">{row.recordId}</p>
       </div>
     ),
+    hidden: true,
   },
   {
     key: 'inventory',
