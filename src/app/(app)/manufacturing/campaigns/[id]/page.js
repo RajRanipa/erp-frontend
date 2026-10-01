@@ -113,6 +113,7 @@ const PRODUCTION_COLUMNS = [
       </div>
     ),
     hidden: true,
+    group: "hidden",
   },
   {
     key: 'inventory',
