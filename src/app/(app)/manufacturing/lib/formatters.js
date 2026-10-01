@@ -2,6 +2,12 @@ const IST_TIMEZONE = 'Asia/Kolkata';
 const DATE_FORMATTER = new Intl.DateTimeFormat('en-IN', {
   day: '2-digit', month: 'short', year: 'numeric', timeZone: IST_TIMEZONE,
 });
+const TIME_FORMATTER = new Intl.DateTimeFormat('en-IN', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: true,
+  timeZone: IST_TIMEZONE,
+});
 const DATE_TIME_FORMATTER = new Intl.DateTimeFormat('en-IN', {
   day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit',
   minute: '2-digit', hour12: true, timeZone: IST_TIMEZONE,
@@ -15,6 +21,19 @@ export function formatDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '—';
   return DATE_FORMATTER.format(date);
+}
+
+export function formatDateTimeParts(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return (
+    <div>
+      <p>{DATE_FORMATTER.format(date)}</p>
+      <p className="mt-1 text-xs text-white-500">{TIME_FORMATTER.format(date).toUpperCase()}</p>
+    </div>
+  );
 }
 
 export function formatDateTime(value) {

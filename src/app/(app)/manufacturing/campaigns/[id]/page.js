@@ -57,7 +57,8 @@ function ItemIdentity({ record }) {
   return (
     <div>
       <p className="font-medium">{record.item?.name || 'Unmapped product'}</p>
-      <p className="mt-1 text-xs text-white-500">{record.item?.sku || 'UNMAPPED'} · {record.family?.name || 'Unknown family'}</p>
+      <p className="mt-1 text-xs text-white-500">{record.family?.name || 'Unknown family'}</p>
+      <p className="text-xs text-white-500">{record.item?.sku || 'UNMAPPED'}</p>
     </div>
   );
 }
@@ -249,11 +250,11 @@ export default function CampaignReportPage() {
           {[
             [{ key: 'Start date', class: 'from-amber-500/20 to-amber-500/5' }, formatDate(campaign?.startDate)],
             [{ key: 'End date', class: 'from-yellow-500/20 to-yellow-500/5' }, formatDate(campaign?.endDate)],
-            [{ key: 'Total rolls', class: 'from-indigo-500/20 to-indigo-500/5' }, Number(campaign?.totalBlanketRollsProduced || 0).toLocaleString('en-IN')],
-            [{ key: 'Good fibre', class: 'from-emerald-500/20 to-emerald-500/5' }, formatWeight(campaign?.totalGoodFiberProduced)],
-            [{ key: 'Rejected fibre', class: 'from-red-500/20 to-red-500/5' }, formatWeight(campaign?.totalRejectedFiber)],
+            [{ key: 'Total rolls', class: 'dark:from-indigo-500/20 dark:to-indigo-500/5 from-indigo-700/30 to-indigo-700/5' }, Number(campaign?.totalBlanketRollsProduced || 0).toLocaleString('en-IN')],
+            [{ key: 'Good fibre', class: 'dark:from-emerald-500/20 dark:to-emerald-500/5 from-emerald-600/30 to-emerald-600/5' }, formatWeight(campaign?.totalGoodFiberProduced)],
+            [{ key: 'Rejected fibre', class: 'dark:from-red-500/20 dark:to-red-500/5 from-red-600/30 to-red-600/5' }, formatWeight(campaign?.totalRejectedFiber)],
           ].map(([label, value]) => (
-            <div key={label.key} className={cn(label.class, 'p-4 rounded-2xl border border-color-100 bg-gradient-to-br')}>
+            <div key={label.key} className={cn(label.class, 'p-4 rounded-2xl border-0 bg-gradient-to-br')}>
               <dt className="text-xs uppercase tracking-wider text-white-500">{label.key}</dt>
               <dd className="mt-2 font-semibold">{value}</dd>
             </div>
