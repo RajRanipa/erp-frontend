@@ -45,7 +45,7 @@ export function Skeleton({
         <div
           key={i}
           className="relative overflow-hidden bg-white-loading/5 rounded-lg h-full min-h-[16px]"
-          style={{ width: w, height: h }}
+          // style={{ width: w, height: h }}
         >
           <div className="shimmer" />
         </div>
@@ -99,7 +99,7 @@ export default function Loading({
     return (
       <div className={cn('w-full', className)}>
         {children || (
-          <Skeleton height={18} className="mb-2" />
+          <Skeleton className="h-full" />
         )}
       </div>
     );

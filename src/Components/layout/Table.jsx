@@ -25,7 +25,6 @@ export default function Table(
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(propPageSize || 10);
   const sort = controlledSort ?? localSort;
-  // console.log("columns", columns);
   const sorted = useMemo(() => {
     if (!sort) return data;
     const col = columns.find(c => c.key === sort.key);
