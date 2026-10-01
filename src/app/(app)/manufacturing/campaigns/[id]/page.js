@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import CampaignStatusBadge from '../../components/CampaignStatusBadge';
-import { formatDate, formatDateTime, formatWeight, specificationText, todayInIndia } from '../../lib/formatters';
+import { formatDate, formatDateTime, formatDateTimeParts, formatWeight, specificationText, todayInIndia } from '../../lib/formatters';
 import {
   getAllCampaignProductionRecords,
   getCampaignProductionReport,
@@ -57,7 +57,7 @@ function ItemIdentity({ record }) {
   return (
     <div>
       <p className="font-medium">{record.item?.name || 'Unmapped product'}</p>
-      <p className="mt-1 text-xs text-white-500">{record.family?.name || 'Unknown family'}</p>
+      <p className="text-xs text-white-500">{record.family?.name || 'Unknown family'}</p>
       <p className="text-xs text-white-500">{record.item?.sku || 'UNMAPPED'}</p>
     </div>
   );
@@ -68,7 +68,7 @@ const PRODUCTION_COLUMNS = [
     key: 'manufactured_at',
     header: 'Manufactured at',
     className: 'whitespace-nowrap px-4 py-3 text-sm',
-    render: row => formatDateTime(row.at),
+    render: row => formatDateTimeParts(row.at),
   },
   {
     key: 'item',
@@ -108,8 +108,8 @@ const PRODUCTION_COLUMNS = [
     className: 'px-4 py-3 text-sm text-white-500',
     render: row => (
       <div>
-        <p>{row.gatewayId}</p>
-        <p className="mt-1 text-xs">Scale {row.scaleNo} · {row.recordId}</p>
+        <p>{row.gatewayId} · Scale {row.scaleNo}</p>
+        <p className="mt-1 text-xs">{row.recordId}</p>
       </div>
     ),
   },
