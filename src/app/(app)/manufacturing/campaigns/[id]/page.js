@@ -67,7 +67,7 @@ const PRODUCTION_COLUMNS = [
   {
     key: 'manufactured_at',
     header: 'Manufactured at',
-    className: 'whitespace-nowrap px-4 py-3 text-sm',
+    className: 'px-4 py-3 text-sm',
     render: row => formatDateTimeParts(row.at),
   },
   {
