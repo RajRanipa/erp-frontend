@@ -64,7 +64,7 @@ export function specificationText(record) {
   let density ='';
   let dimension = '';
   if (record?.temperature) {
-    tempClass = record.temperature.value >= 1400 ? "text-red-500" : "text-blue-500";
+    tempClass = record.temperature.value >= 1400 ? "text-red-400" : "text-blue-400";
     temperature = `${record.temperature.value} ${record.temperature.unit}`;
   }
   if (record?.density) density = `${record.density.value} ${record.density.unit}`;
@@ -73,6 +73,6 @@ export function specificationText(record) {
   }
   return (<div>
     <p className={cn(tempClass, "font-semibold")}>{temperature}</p>
-    <p>{density || '-'} · {dimension || '-'}</p>
+    {density || dimension && <p>{density || '-'} · {dimension || '-'}</p>}
   </div>)
 }

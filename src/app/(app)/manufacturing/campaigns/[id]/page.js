@@ -79,7 +79,7 @@ const PRODUCTION_COLUMNS = [
   {
     key: 'specification',
     header: 'Specification',
-    className: 'max-w-sm px-4 py-3 text-sm text-white-500',
+    className: 'max-w-sm px-4 py-3 text-sm text-white-700',
     render: row => specificationText(row),
   },
   {
@@ -87,7 +87,7 @@ const PRODUCTION_COLUMNS = [
     header: 'Serial no.',
     className: 'px-4 py-3 font-mono text-sm',
     render: row => row.serialNo
-      ? <Link className="text-action hover:underline" href={`/trace/${row.serialNo}`}>{row.serialNo}</Link>
+      ? <Link className="text-blue-400 hover:underline" href={`/trace/${row.serialNo}`}>{row.serialNo}</Link>
       : '—',
   },
   {
@@ -321,7 +321,7 @@ export default function CampaignReportPage() {
               ) : report?.grouped?.length ? report.grouped.map(group => (
                 <tr key={`${group.item?._id || 'unmapped'}-${group.productCode}-${group.statusOk}-${group.temperatureValue}-${group.densityValue}-${group.sizeCode}`} className="hover:bg-white-100">
                   <td className="px-4 py-3"><ItemIdentity record={group} /></td>
-                  <td className="px-4 py-3 text-sm text-white-500">{specificationText(group)}</td>
+                  <td className="px-4 py-3 text-sm text-white-700">{specificationText(group)}</td>
                   <td className="px-4 py-3"><QualityBadge accepted={group.statusOk} /></td>
                   <td className="px-4 py-3 text-right font-semibold">{Number(group.totalRolls || 0).toLocaleString('en-IN')}</td>
                   <td className="px-4 py-3 text-right font-semibold">{formatWeight(group.totalWeight)}</td>
