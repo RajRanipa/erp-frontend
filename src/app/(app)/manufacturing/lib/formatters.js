@@ -58,21 +58,56 @@ export function todayInIndia() {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
+import { cn } from '@/utils/cn'; // Ensure cn is imported
+
 export function specificationText(record) {
-  let tempClass = '';
+  if (!record) return '—';
+
+  // Support both nested object format and flat properties if your API varies
+  const tempVal = record?.temperature?.value ?? record?.temperatureValue;
+  const tempUnit = record?.temperature?.unit ?? '°C';
+
+  const densityVal = record?.density?.value ?? record?.densityValue;
+  const densityUnit = record?.density?.unit ?? 'kg/m³';
+
   let temperature = '';
-  let density ='';
+  let tempClass = '';
+  if (tempVal != null && tempVal !== '') {
+    tempClass = Number(tempVal) >= 1400 ? 'text-red-400' : 'text-blue-400';
+    temperature = `${tempVal} ${tempUnit}`;
+  }
+
+  let density = '';
+  if (densityVal != null && densityVal !== '') {
+    density = `${densityVal} ${densityUnit}`;
+  }
+
   let dimension = '';
-  if (record?.temperature) {
-    tempClass = record.temperature.value >= 1400 ? "text-red-400" : "text-blue-400";
-    temperature = `${record.temperature.value} ${record.temperature.unit}`;
-  }
-  if (record?.density) density = `${record.density.value} ${record.density.unit}`;
   if (record?.dimension) {
-     dimension = `${record.dimension.length} × ${record.dimension.width} × ${record.dimension.thickness} ${record.dimension.unit}`;
+    const { length, width, thickness, unit = 'mm' } = record.dimension;
+    if (length || width || thickness) {
+      dimension = `${length || '-'} × ${width || '-'} × ${thickness || '-'} ${unit}`;
+    }
+  } else if (record?.sizeCode) {
+    dimension = record.sizeCode;
   }
-  return (<div>
-    <p className={cn(tempClass, "font-semibold")}>{temperature}</p>
-    {density || dimension && <p>{density || '-'} · {dimension || '-'}</p>}
-  </div>)
+
+  // If nothing is available, show a dash
+  if (!temperature && !density && !dimension) {
+    return <span>—</span>;
+  }
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      {temperature ? (
+        <p className={cn(tempClass, 'font-semibold')}>{temperature}</p>
+      ) : null}
+
+      {(density || dimension) ? (
+        <p className="text-xs text-white-500">
+          {[density, dimension].filter(Boolean).join(' · ')}
+        </p>
+      ) : null}
+    </div>
+  );
 }
