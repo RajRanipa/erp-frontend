@@ -58,8 +58,6 @@ export function todayInIndia() {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
-import { cn } from '@/utils/cn'; // Ensure cn is imported
-
 export function specificationText(record) {
   if (!record) return '—';
 
