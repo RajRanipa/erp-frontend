@@ -7,10 +7,13 @@ import useAuthz from '@/hooks/useAuthz';
 import { cn } from '@/utils/cn';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import CampaignStatusBadge from '../../components/CampaignStatusBadge';
 import { formatDate, formatDateTime, formatWeight, specificationText, todayInIndia } from '../../lib/formatters';
-import { getCampaignProductionReport } from '../../lib/manufacturingApi';
+import {
+  getAllCampaignProductionRecords,
+  getCampaignProductionReport,
+} from '../../lib/manufacturingApi';
 
 const SHIFT_OPTIONS = [
   { value: 'DAY', label: 'Day · 07:30 AM–07:30 PM' },
@@ -59,6 +62,73 @@ function ItemIdentity({ record }) {
   );
 }
 
+const PRODUCTION_COLUMNS = [
+  {
+    key: 'manufactured_at',
+    header: 'Manufactured at',
+    className: 'whitespace-nowrap px-4 py-3 text-sm',
+    render: row => formatDateTime(row.at),
+  },
+  {
+    key: 'item',
+    header: 'Item',
+    className: 'px-4 py-3',
+    render: row => <ItemIdentity record={row} />,
+  },
+  {
+    key: 'specification',
+    header: 'Specification',
+    className: 'max-w-sm px-4 py-3 text-sm text-white-500',
+    render: row => specificationText(row),
+  },
+  {
+    key: 'serial_no',
+    header: 'Serial no.',
+    className: 'px-4 py-3 font-mono text-sm',
+    render: row => row.serialNo
+      ? <Link className="text-action hover:underline" href={`/trace/${row.serialNo}`}>{row.serialNo}</Link>
+      : '—',
+  },
+  {
+    key: 'weight',
+    header: 'Weight',
+    className: 'whitespace-nowrap px-4 py-3 text-right font-semibold',
+    render: row => formatWeight(row.weightKg),
+  },
+  {
+    key: 'quality',
+    header: 'Quality',
+    className: 'px-4 py-3',
+    render: row => <QualityBadge accepted={row.statusOk} />,
+  },
+  {
+    key: 'source',
+    header: 'Source',
+    className: 'px-4 py-3 text-sm text-white-500',
+    render: row => (
+      <div>
+        <p>{row.gatewayId}</p>
+        <p className="mt-1 text-xs">Scale {row.scaleNo} · {row.recordId}</p>
+      </div>
+    ),
+  },
+  {
+    key: 'inventory',
+    header: 'Inventory',
+    className: 'px-4 py-3',
+    render: row => (
+      <div className="flex flex-col items-start">
+        <InventoryBadge status={row.inventoryStatus} />
+        {row.inventoryLastError ? (
+          <p className="mt-2 max-w-xs text-xs text-error">{row.inventoryLastError}</p>
+        ) : null}
+      </div>
+    ),
+  },
+];
+
+const productionRowKey = row => row._id;
+
 export default function CampaignReportPage() {
   const { id } = useParams();
   const { can } = useAuthz();
@@ -67,11 +137,14 @@ export default function CampaignReportPage() {
     shift: 'DAY',
     quality: 'ALL',
     familyId: '',
-    limit: 1000, // <-- Requests all records to prevent backend 50-item capping
   }));
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [individualReport, setIndividualReport] = useState(null);
+  const [individualLoading, setIndividualLoading] = useState(false);
+  const [individualError, setIndividualError] = useState('');
+  const individualRequestRef = useRef(null);
 
   useEffect(() => {
     if (!id) return undefined;
@@ -79,19 +152,19 @@ export default function CampaignReportPage() {
     let active = true;
     setLoading(true);
     setError('');
-
     getCampaignProductionReport(id, filters, controller.signal)
       .then(data => { if (active) setReport(data); })
       .catch(err => {
         if (active && err?.code !== 'ERR_CANCELED') setError(err?.response?.data?.message || 'Unable to load this production report');
       })
       .finally(() => { if (active) setLoading(false); });
-
     return () => {
       active = false;
       controller.abort();
     };
   }, [id, filters]);
+
+  useEffect(() => () => individualRequestRef.current?.abort(), []);
 
   const familyOptions = useMemo(() => [
     { value: 'ALL', label: 'All product families' },
@@ -102,6 +175,11 @@ export default function CampaignReportPage() {
   ], [report?.filterOptions?.families]);
 
   const updateFilter = (name, value) => {
+    individualRequestRef.current?.abort();
+    individualRequestRef.current = null;
+    setIndividualReport(null);
+    setIndividualError('');
+    setIndividualLoading(false);
     setFilters(current => ({
       ...current,
       ...(['date', 'shift'].includes(name) ? { familyId: '' } : {}),
@@ -111,73 +189,41 @@ export default function CampaignReportPage() {
 
   const campaign = report?.campaign;
   const summary = report?.summary || {};
-  const pagination = report?.pagination || { page: 1, pages: 1, total: 0 };
+  const individualRecords = individualReport?.records || [];
+  const individualPagination = individualReport?.pagination || {
+    total: individualRecords.length,
+  };
+  const individualRequested = individualLoading || Boolean(individualReport) || Boolean(individualError);
 
-  // Always return an array (empty array fallback instead of undefined)
-  const detailProductionData = useMemo(() => {
-    return report?.records || [];
-  }, [report?.records]);
+  const loadIndividualRecords = async () => {
+    individualRequestRef.current?.abort();
+    const controller = new AbortController();
+    individualRequestRef.current = controller;
+    setIndividualLoading(true);
+    setIndividualError('');
 
-  const productionColumns = useMemo(() => [
-    {
-      key: 'manufactured_at',
-      header: 'Manufactured at',
-      className: 'whitespace-nowrap px-4 py-3 text-sm',
-      render: row => <span>{formatDateTime(row.at)}</span>,
-    },
-    {
-      key: 'item',
-      header: 'Item',
-      className: 'px-4 py-3',
-      render: row => <ItemIdentity record={row} />,
-    },
-    {
-      key: 'specification',
-      header: 'Specification',
-      className: 'max-w-sm px-4 py-3 text-sm text-white-500',
-      render: row => specificationText(row),
-    },
-    {
-      key: 'serial_no.',
-      header: 'Serial no.',
-      className: 'px-4 py-3 font-mono text-sm',
-      render: row => (row?.serialNo ? <a href={`/trace/${row.serialNo}`}>{row.serialNo}</a> : '—'),
-    },
-    {
-      key: 'weight',
-      header: 'Weight',
-      className: 'whitespace-nowrap px-4 py-3 text-right font-semibold',
-      render: row => formatWeight(row.weightKg),
-    },
-    {
-      key: 'quality',
-      header: 'Quality',
-      className: 'px-4 py-3',
-      render: row => <QualityBadge accepted={row.statusOk} />,
-    },
-    {
-      key: 'source',
-      header: 'Source',
-      className: 'px-4 py-3 text-sm text-white-500',
-      render: row => (
-        <>
-          <p>{row.gatewayId}</p>
-          <p className="mt-1 text-xs">Scale {row.scaleNo} · {row.recordId}</p>
-        </>
-      ),
-    },
-    {
-      key: 'inventory',
-      header: 'Inventory',
-      className: 'px-4 py-3',
-      render: row => (
-        <span className="flex flex-col">
-          <InventoryBadge status={row.inventoryStatus} />
-          {row.inventoryLastError ? <p className="mt-2 max-w-xs text-xs text-error">{row.inventoryLastError}</p> : null}
-        </span>
-      ),
-    },
-  ], []);
+    try {
+      const data = await getAllCampaignProductionRecords(
+        id,
+        filters,
+        controller.signal,
+      );
+      if (individualRequestRef.current === controller) {
+        setIndividualReport(data);
+      }
+    } catch (err) {
+      if (individualRequestRef.current === controller && err?.code !== 'ERR_CANCELED') {
+        setIndividualError(
+          err?.response?.data?.message || 'Unable to load individual production records',
+        );
+      }
+    } finally {
+      if (individualRequestRef.current === controller) {
+        individualRequestRef.current = null;
+        setIndividualLoading(false);
+      }
+    }
+  };
 
   return (
     <div className="mx-auto max-w-[1800px] space-y-5 pb-10 flex flex-col gap-3">
@@ -291,19 +337,65 @@ export default function CampaignReportPage() {
         <div className="flex flex-col gap-3 border-b border-white-100 px-5 py-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-lg font-semibold">Individual production records</h2>
-            <p className="mt-1 text-sm text-white-500">Exact PLC record, manufacture time, serial and inventory outcome.</p>
+            <p className="mt-1 text-sm text-white-500">
+              Load the exact PLC records for the selected date, shift, quality and product family only when you need them.
+            </p>
           </div>
-          <p className="text-sm text-white-500">{Number(pagination.total || 0).toLocaleString('en-IN')} records</p>
+          {individualReport ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-sm text-white-500">
+                {Number(individualPagination.total || 0).toLocaleString('en-IN')} records loaded
+              </p>
+              <button
+                type="button"
+                className="btn-border"
+                disabled={individualLoading}
+                onClick={loadIndividualRecords}
+              >
+                Refresh records
+              </button>
+            </div>
+          ) : null}
         </div>
-
-        <Table
-          columns={productionColumns}
-          data={detailProductionData}
-          rowKey={row => row._id}
-          loading={loading}
-          pageSize={25}
-          emptyMessage="No individual records match this selection."
-        />
+        {!individualRequested ? (
+          <div className="flex flex-col items-start gap-4 px-5 py-8 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="font-medium">
+                {Number(summary.totalUnits || 0).toLocaleString('en-IN')} individual records match the current report.
+              </p>
+              <p className="mt-1 text-sm text-white-500">
+                The summary API stays fast because these detailed rows are fetched separately.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn-primary"
+              disabled={loading || Number(summary.totalUnits || 0) === 0}
+              onClick={loadIndividualRecords}
+            >
+              View all individual records
+            </button>
+          </div>
+        ) : (
+          <div className="p-3">
+            {individualError ? (
+              <div className="mb-3 flex flex-col gap-3 rounded-xl border border-error/40 bg-error/10 p-4 text-sm text-error sm:flex-row sm:items-center sm:justify-between">
+                <span>{individualError}</span>
+                <button type="button" className="btn-border" onClick={loadIndividualRecords}>
+                  Try again
+                </button>
+              </div>
+            ) : null}
+            <Table
+              columns={PRODUCTION_COLUMNS}
+              data={individualRecords}
+              rowKey={productionRowKey}
+              loading={individualLoading}
+              pageSize={25}
+              emptyMessage="No individual records match this selection."
+            />
+          </div>
+        )}
       </section>
     </div>
   );
