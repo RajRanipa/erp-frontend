@@ -193,7 +193,7 @@ export default function GoodsReceiptForm({ receiptId = null }) {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 flex flex-col gap-3">
       <PageTitle
         eyebrow="Inbound logistics"
         title={receiptId ? 'Edit goods receipt' : 'Receive supplier goods'}
@@ -201,7 +201,7 @@ export default function GoodsReceiptForm({ receiptId = null }) {
       />
       <ErrorBanner message={error} />
 
-      <section className="grid gap-4 rounded-xl border border-color-100 bg-secondary p-4 lg:grid-cols-4">
+      <section className="grid gap-4 rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20 p-4 lg:grid-cols-4">
         <Field label="Purchase order" required>
           <select
             className={inputClass}
@@ -252,7 +252,7 @@ export default function GoodsReceiptForm({ receiptId = null }) {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-color-100 bg-secondary">
+      <section className="overflow-hidden rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20">
         <div className="flex items-center justify-between border-b border-color-100 px-4 py-3">
           <div>
             <h2 className="font-medium">Inspection & disposition</h2>
@@ -323,13 +323,13 @@ export default function GoodsReceiptForm({ receiptId = null }) {
         </div>
       </section>
 
-      <section className="rounded-xl border border-color-100 bg-secondary p-4">
+      <section className="rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20 p-4">
         <Field label="Receiving notes">
           <textarea className={`${inputClass} min-h-20`} value={form.notes} onChange={event => updateField('notes', event.target.value)} />
         </Field>
       </section>
 
-      <div className="sticky bottom-0 flex justify-end gap-3 rounded-xl border border-color-100 bg-secondary/95 p-3 shadow-lg backdrop-blur">
+      <div className="sticky bottom-0 flex justify-end gap-3 rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20/95 p-3 shadow-lg backdrop-blur">
         <button type="button" className="btn-secondary" disabled={saving} onClick={() => router.back()}>Cancel</button>
         <SubmitButton label="Save draft" loading={saving} onClick={() => save(false)} />
         <SubmitButton label="Save & post stock" loading={saving} className="bg-action hover:bg-action-hover" onClick={() => save(true)} />
