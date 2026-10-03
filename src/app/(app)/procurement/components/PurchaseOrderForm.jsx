@@ -240,7 +240,7 @@ export default function PurchaseOrderForm({ orderId = null }) {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 flex flex-col gap-3">
       <PageTitle
         eyebrow="New commitment"
         title={orderId ? 'Edit purchase order' : 'Create purchase order'}
@@ -248,7 +248,7 @@ export default function PurchaseOrderForm({ orderId = null }) {
       />
       <ErrorBanner message={error} />
 
-      <section className="grid gap-4 rounded-xl border border-color-100 bg-secondary p-4 lg:grid-cols-4">
+      <section className="grid gap-4 rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20 p-4 lg:grid-cols-4">
         <Field label="Supplier" required>
           <AdaptiveSelectInput
             className={inputClass}
@@ -350,7 +350,7 @@ export default function PurchaseOrderForm({ orderId = null }) {
         </Field>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-color-100 bg-secondary">
+      <section className="overflow-hidden rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-color-100 px-4 py-3">
           <div>
             <h2 className="font-medium">Order lines</h2>
@@ -476,11 +476,21 @@ export default function PurchaseOrderForm({ orderId = null }) {
               })}
             </tbody>
           </table>
+          <div className='flex justify-end p-2'>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => updateField('lines', [...form.lines, emptyLine()])}
+              disabled={form.lines.length >= 200}
+            >
+              + Add line
+            </button>
+          </div>
         </div>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="rounded-xl border border-color-100 bg-secondary p-4">
+        <div className="rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20 p-4">
           <Field label="Notes">
             <textarea
               className={`${inputClass} min-h-24 resize-y`}
@@ -490,9 +500,9 @@ export default function PurchaseOrderForm({ orderId = null }) {
             />
           </Field>
         </div>
-        <div className="rounded-xl border border-color-100 bg-secondary p-4">
+        <div className="rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20 p-4">
           <h2 className="font-medium">Order total</h2>
-          <div className="mt-3 space-y-3 text-sm">
+          <div className="mt-3 space-y-3 text-sm flex flex-col gap-2">
             <div className="flex justify-between"><span>Subtotal</span><span>{money(totals.subtotal, form.currency)}</span></div>
             <div className="flex justify-between text-secondary-text/65"><span>Discount</span><span>− {money(totals.discount, form.currency)}</span></div>
             <div className="flex justify-between"><span>Tax</span><span>{money(totals.tax, form.currency)}</span></div>
@@ -502,7 +512,7 @@ export default function PurchaseOrderForm({ orderId = null }) {
               ['roundOff', 'Round off'],
             ].map(([field, label]) => (
               <label key={field} className="flex items-center justify-between gap-4">
-                <span>{label}</span>
+                <span className="text-nowrap">{label}</span>
                 <input
                   type="number"
                   step="0.01"
@@ -520,7 +530,8 @@ export default function PurchaseOrderForm({ orderId = null }) {
         </div>
       </section>
 
-      <div className="sticky bottom-0 flex flex-wrap justify-end gap-3 rounded-xl border border-color-100 bg-secondary/95 p-3 shadow-lg backdrop-blur">
+      <div className="sticky bottom-0 p-4  bg-transparent">
+      <div className="p-3 flex flex-wrap shadow-lg justify-end gap-3 rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20 backdrop-blur">
         <button type="button" className="btn-secondary" onClick={() => router.back()} disabled={saving}>
           Cancel
         </button>
@@ -541,6 +552,7 @@ export default function PurchaseOrderForm({ orderId = null }) {
       {selectedSupplier && (
         <p className="sr-only">Selected supplier: {selectedSupplier.legalName || selectedSupplier.name}</p>
       )}
+    </div>
     </div>
   );
 }

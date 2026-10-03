@@ -336,7 +336,7 @@ export default function DocumentDetail({ kind, id }) {
   const documentNumber = config.number(document);
   const isInvoice = kind === 'invoices';
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 flex flex-col gap-3">
       <PageTitle
         eyebrow={config.title}
         title={documentNumber}
@@ -346,12 +346,12 @@ export default function DocumentDetail({ kind, id }) {
       <ErrorBanner message={error} />
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-xl border border-color-100 bg-secondary p-4">
+        <div className="rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20 p-4">
           <p className="text-xs uppercase text-secondary-text/55">Supplier</p>
           <p className="mt-1 font-medium">{supplierName(document)}</p>
           <p className="text-xs text-secondary-text/55">{document.supplierId?.code || document.supplierSnapshot?.code}</p>
         </div>
-        <div className="rounded-xl border border-color-100 bg-secondary p-4">
+        <div className="rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20 p-4">
           <p className="text-xs uppercase text-secondary-text/55">
             {kind === 'invoices' ? 'Supplier invoice' : 'Warehouse'}
           </p>
@@ -362,12 +362,12 @@ export default function DocumentDetail({ kind, id }) {
             {kind === 'orders' ? `Expected ${shortDate(document.expectedDeliveryDate)}` : ''}
           </p>
         </div>
-        <div className="rounded-xl border border-color-100 bg-secondary p-4">
+        <div className="rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20 p-4">
           <p className="text-xs uppercase text-secondary-text/55">Lines</p>
           <p className="mt-1 text-xl font-semibold">{document.lines?.length || 0}</p>
           {isInvoice && <ProcurementStatusBadge value={document.matchStatus} />}
         </div>
-        <div className="rounded-xl border border-color-100 bg-secondary p-4">
+        <div className="rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20 p-4">
           <p className="text-xs uppercase text-secondary-text/55">
             {document.totals ? 'Document value' : 'Total quantity'}
           </p>
@@ -383,7 +383,7 @@ export default function DocumentDetail({ kind, id }) {
       </section>
 
       {(document.purchaseOrderId || document.goodsReceiptId) && (
-        <section className="flex flex-wrap gap-3 rounded-xl border border-color-100 bg-secondary px-4 py-3 text-sm">
+        <section className="flex flex-wrap gap-3 rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20 px-4 py-3 text-sm">
           {document.purchaseOrderId && (
             <span>
               Purchase order:{' '}
@@ -409,7 +409,7 @@ export default function DocumentDetail({ kind, id }) {
         </section>
       )}
 
-      <section className="overflow-hidden rounded-xl border border-color-100 bg-secondary">
+      <section className="overflow-hidden rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20">
         <div className="border-b border-color-100 px-4 py-3">
           <h2 className="font-medium">Line details</h2>
         </div>
@@ -515,7 +515,7 @@ export default function DocumentDetail({ kind, id }) {
       )}
 
       {document.statusHistory?.length > 0 && (
-        <section className="rounded-xl border border-color-100 bg-secondary p-4">
+        <section className="rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20 p-4">
           <h2 className="font-medium">Audit trail</h2>
           <div className="mt-3 space-y-3">
             {[...document.statusHistory].reverse().map(entry => (
@@ -535,7 +535,7 @@ export default function DocumentDetail({ kind, id }) {
       )}
 
       {actions.length > 0 && (
-        <section className="sticky bottom-0 rounded-xl border border-color-100 bg-secondary/95 p-3 shadow-lg backdrop-blur">
+        <section className="sticky bottom-0 rounded-xl border border-white-100 bg-gradient-to-br from-secondary/90 to-secondary/20/95 p-3 shadow-lg backdrop-blur">
           {actions.some(action => action.requiresNote) && (
             <textarea
               className={`${inputClass} mb-3 min-h-16`}
